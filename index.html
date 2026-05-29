@@ -526,20 +526,31 @@
             const compressed = await compressData(JSON.stringify(reportData));
             const shareUrl = `${window.location.origin}${window.location.pathname}?report=${compressed}`;
 
+            // 모바일 환경 등에서 native 공유 API 지원 시도
             if (navigator.share) {
-                await navigator.share({
-                    title: `${childName}의 AI 일기 성장 보고서 도착 📝`,
-                    text: `💮 ${secondStamp}! 맞춤법과 표현력이 훌륭하게 자랐어요. 우리 아이가 스스로 고쳐 쓴 일기를 확인해 보세요!`,
-                    url: shareUrl
-                });
-            } else {
-                // 클립보드 복사 폴백
-                await navigator.clipboard.writeText(shareUrl);
-                alert("부모님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.");
+                try {
+                    await navigator.share({
+                        title: `${childName}의 AI 일기 성장 보고서 도착 📝`,
+                        text: `💮 ${secondStamp}! 맞춤법과 표현력이 훌륭하게 자랐어요. 우리 아이가 스스로 고쳐 쓴 일기를 확인해 보세요!`,
+                        url: shareUrl
+                    });
+                    return; // 공유 성공 시 종료
+                } catch (shareError) {
+                    // 사용자가 취소(AbortError)했거나 데스크톱 등 미지원 환경인 경우 클립보드 복사로 폴백
+                    console.log("Web Share failed, falling back to clipboard:", shareError);
+                    if (shareError.name === 'AbortError') {
+                        // 사용자가 공유창을 닫은 경우 경고창 없이 종료
+                        return;
+                    }
+                }
             }
+
+            // 클립보드 복사 폴백
+            await navigator.clipboard.writeText(shareUrl);
+            alert("부모님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.");
         } catch (error) {
             console.error("공유 중 오류", error);
-            alert("공유를 처리하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            alert("공유 처리 중 오류가 발생했습니다. 브라우저 설정을 확인해 주세요.");
         }
     }
 
