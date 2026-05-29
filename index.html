@@ -61,6 +61,7 @@
 </head>
 <body>
 
+<div id="mainView" style="width:100%; display:flex; flex-direction:column; align-items:center;">
 <!-- 상단 게임 대시보드 -->
 <div class="top-dashboard">
     <!-- 미션 단어 상자 -->
@@ -124,6 +125,71 @@
         
         <!-- 다시 도전하기 버튼 -->
         <button id="btnRetry" onclick="startRewriteMode()" style="display:none; width:100%; margin-top:15px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">✏️ 선생님 힌트로 다시 도전하기!</button>
+        
+        <!-- 부모님께 자랑하기 버튼 -->
+        <button id="btnShare" onclick="shareReport()" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #48bb78 0%, #38a169 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">💌 부모님께 성장 보고서 자랑하기</button>
+    </div>
+</div>
+</div> <!-- end of mainView -->
+
+<!-- 부모님 일기 성장 보고서 전용 뷰 -->
+<div id="reportView" style="display: none; width: 700px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); margin: 20px 0; font-family: 'Malgun Gothic', sans-serif;">
+    <div style="text-align: center; margin-bottom: 25px;">
+        <span style="font-size: 45px;">📝</span>
+        <h1 id="reportTitle" style="color: #2b6cb0; margin: 10px 0 5px 0; font-size: 24px;">[아이]의 AI 일기 성장 보고서</h1>
+        <p style="color: #718096; margin: 0; font-size: 14px;">선생님의 피드백을 적용해 스스로 레벨업한 자랑스러운 결과입니다!</p>
+    </div>
+    
+    <!-- 성적 변화 카드 대시보드 -->
+    <div style="background: #ebf8ff; border: 2px solid #bee3f8; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-around; margin-bottom: 25px;">
+        <div style="text-align: center; flex: 1;">
+            <div style="font-size: 14px; color: #4299e1; font-weight: bold;">✨ 맞춤법 점수</div>
+            <div id="reportSpellingScore" style="font-size: 20px; font-weight: bold; color: #2b6cb0; margin-top: 5px;">80점 ➡️ 100점 (+20)</div>
+        </div>
+        <div style="width: 2px; height: 40px; background: #bee3f8;"></div>
+        <div style="text-align: center; flex: 1;">
+            <div style="font-size: 14px; color: #4299e1; font-weight: bold;">💡 표현력 점수</div>
+            <div id="reportExpressionScore" style="font-size: 20px; font-weight: bold; color: #2b6cb0; margin-top: 5px;">75점 ➡️ 90점 (+15)</div>
+        </div>
+        <div style="width: 2px; height: 40px; background: #bee3f8;"></div>
+        <div style="text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center;">
+            <div style="font-size: 13px; color: #e53e3e; font-weight: bold;">💮 칭찬 도장</div>
+            <div id="reportStamp" style="background: #fff5f5; border: 2px dashed #e53e3e; color: #e53e3e; font-weight: bold; font-size: 14px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; transform: rotate(5deg);">참 잘했어요</div>
+        </div>
+    </div>
+    
+    <!-- 일기 역사 그리드 -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+        <!-- 처음 쓴 일기 -->
+        <div style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #718096; display: flex; align-items: center; gap: 5px;">
+                <span>✍️</span> 처음 쓴 일기
+            </h3>
+            <div id="reportFirstContent" style="white-space: pre-wrap; font-size: 14px; line-height: 1.6; color: #4a5568; height: 120px; overflow-y: auto;">일기 내용...</div>
+        </div>
+        
+        <!-- AI 선생님의 마법 힌트 -->
+        <div style="background: #fffaf0; border: 1px solid #feebc8; border-radius: 12px; padding: 15px; position: relative;">
+            <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #dd6b20; display: flex; align-items: center; gap: 5px;">
+                <span>👩‍🏫</span> AI 선생님의 힌트
+            </h3>
+            <div id="reportFeedback" style="white-space: pre-wrap; font-size: 13px; line-height: 1.5; color: #7b341e; height: 120px; overflow-y: auto;">피드백 내용...</div>
+        </div>
+    </div>
+    
+    <!-- 다시 쓴 일기 (최종 완성본) -->
+    <div style="background: #fff; border: 3px solid #b7791f; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(183,121,31,0.08); margin-bottom: 30px; background-image: radial-gradient(#e2e8f0 1px, transparent 0), radial-gradient(#e2e8f0 1px, transparent 0); background-size: 16px 16px; background-position: 0 0, 8px 8px;">
+        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #b7791f; display: flex; align-items: center; gap: 6px;">
+            <span>👑</span> 스스로 피드백을 반영해 다시 쓴 일기
+        </h3>
+        <div id="reportSecondContent" style="white-space: pre-wrap; font-size: 15px; line-height: 1.7; color: #2d3748; font-weight: 500;">다시 쓴 일기 내용...</div>
+    </div>
+
+    <!-- 답장 기능 -->
+    <div style="border-top: 2px dashed #e2e8f0; padding-top: 25px; text-align: center;">
+        <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #4a5568;">💬 아이에게 칭찬 한마디 답장 보내기</h3>
+        <input type="text" id="parentReplyInput" placeholder="예) 정말 잘 썼어! 고생한 우리 아들 최고! 오늘 맛있는 치킨 먹자!" style="width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px;">
+        <button onclick="sendParentReply()" style="width: 100%; margin-top: 0; background: #38a169; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s;">💌 카톡으로 칭찬 보내기</button>
     </div>
 </div>
 
@@ -137,6 +203,62 @@
     let prevSpellingScore = 0;
     let prevExpressionScore = 0;
     let isRewriteMode = false;
+
+    // 글로벌 데이터 수집을 위한 변수 저장 (부모님 공유용)
+    let firstSpellingScore = 0;
+    let firstExpressionScore = 0;
+    let firstStamp = '';
+    let secondSpellingScore = 0;
+    let secondExpressionScore = 0;
+    let secondStamp = '';
+    let rewrittenContent = '';
+
+    // Gzip 압축 후 Base64URL 변환
+    async function compressData(str) {
+        const stream = new Blob([str]).stream();
+        const compressedStream = stream.pipeThrough(new CompressionStream("gzip"));
+        const chunks = [];
+        const reader = compressedStream.getReader();
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            chunks.push(value);
+        }
+        const blob = new Blob(chunks);
+        const arrayBuffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(arrayBuffer);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary)
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+    }
+
+    // Base64URL 복원 후 Gzip 해제
+    async function decompressData(base64url) {
+        try {
+            let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/');
+            while (base64.length % 4) {
+                base64 += '=';
+            }
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            const stream = new Blob([bytes]).stream();
+            const decompressedStream = stream.pipeThrough(new DecompressionStream("gzip"));
+            const response = new Response(decompressedStream);
+            const text = await response.text();
+            return text;
+        } catch (e) {
+            console.error("복원 실패", e);
+            return null;
+        }
+    }
 
     function startRewriteMode() {
         originalContent = textarea.value.trim();
@@ -226,6 +348,16 @@
         const bonusScoreText = document.getElementById('bonusScoreText');
         const btnRetry = document.getElementById('btnRetry');
         const levelupTitle = document.getElementById('levelupTitle');
+        const btnShare = document.getElementById('btnShare');
+        
+        loadingText.style.display = 'block';
+        feedbackResult.innerText = 'AI 선생님이 일기를 열심히 분석하고 있습니다...';
+        scoreContainer.style.display = 'none';
+        stampBadge.style.display = 'none';
+        bonusScoreText.style.display = 'none';
+        btnRetry.style.display = 'none';
+        levelupTitle.style.display = 'none';
+        btnShare.style.display = 'none';
         
         loadingText.style.display = 'block';
         feedbackResult.innerText = 'AI 선생님이 일기를 열심히 분석하고 있습니다...';
@@ -307,12 +439,21 @@
                             levelupTitle.style.display = 'block';
                         }
                         
+                        // 부모님 공유용 데이터 축적
+                        secondSpellingScore = finalSpelling;
+                        secondExpressionScore = finalExpression;
+                        secondStamp = data.stamp;
+                        rewrittenContent = content;
+                        
                         // 다시 쓰기 완료했으므로 모드 해제
                         cancelRewriteMode();
                         
                         // 점수 정보 업데이트
                         prevSpellingScore = finalSpelling;
                         prevExpressionScore = finalExpression;
+
+                        // 부모님 자랑하기 버튼 활성화
+                        btnShare.style.display = 'block';
                     } else {
                         // 첫 제출일 때
                         document.getElementById('spellingScoreText').innerText = finalSpelling + '점';
@@ -323,6 +464,11 @@
                         // 다시 쓰기 준비를 위해 점수 세팅
                         prevSpellingScore = finalSpelling;
                         prevExpressionScore = finalExpression;
+                        
+                        // 부모님 공유용 첫 점수/도장 세팅
+                        firstSpellingScore = finalSpelling;
+                        firstExpressionScore = finalExpression;
+                        firstStamp = data.stamp;
                     }
 
                     setTimeout(() => {
@@ -357,6 +503,135 @@
         } finally {
             loadingText.style.display = 'none';
         }
+    }
+
+    // 부모님 성장 보고서 공유 기능
+    async function shareReport() {
+        const childName = prompt("어린이의 이름을 입력해 주세요 (예: 홍길동):");
+        if (!childName) return;
+
+        const reportData = {
+            name: childName,
+            c1: originalContent,
+            fb: originalFeedback,
+            c2: rewrittenContent || textarea.value.trim(),
+            s1: firstSpellingScore,
+            e1: firstExpressionScore,
+            s2: secondSpellingScore,
+            e2: secondExpressionScore,
+            st: secondStamp
+        };
+
+        try {
+            const compressed = await compressData(JSON.stringify(reportData));
+            const shareUrl = `${window.location.origin}${window.location.pathname}?report=${compressed}`;
+
+            if (navigator.share) {
+                await navigator.share({
+                    title: `${childName}의 AI 일기 성장 보고서 도착 📝`,
+                    text: `💮 ${secondStamp}! 맞춤법과 표현력이 훌륭하게 자랐어요. 우리 아이가 스스로 고쳐 쓴 일기를 확인해 보세요!`,
+                    url: shareUrl
+                });
+            } else {
+                // 클립보드 복사 폴백
+                await navigator.clipboard.writeText(shareUrl);
+                alert("부모님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.");
+            }
+        } catch (error) {
+            console.error("공유 중 오류", error);
+            alert("공유를 처리하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
+        }
+    }
+
+    let reportChildName = '';
+    
+    // 부모님용 보고서 뷰 렌더링
+    async function renderParentReport(reportParam) {
+        document.getElementById('mainView').style.display = 'none';
+        document.getElementById('reportView').style.display = 'block';
+        document.body.style.backgroundColor = '#f0f4f8';
+
+        const decompressed = await decompressData(reportParam);
+        if (!decompressed) {
+            alert("보고서 데이터를 읽을 수 없습니다. 링크가 손상되었거나 잘못되었습니다.");
+            return;
+        }
+
+        try {
+            const data = JSON.parse(decompressed);
+            reportChildName = data.name || '우리아이';
+            
+            document.getElementById('reportTitle').innerText = `📝 ${reportChildName} 어린이의 일기 성장 보고서`;
+            
+            // 성적 변화 렌더링
+            const spellingDiff = data.s2 - data.s1;
+            const spellingText = `${data.s1}점 ➡️ ${data.s2}점` + (spellingDiff > 0 ? ` (+${spellingDiff})` : spellingDiff < 0 ? ` (${spellingDiff})` : ' (동일)');
+            document.getElementById('reportSpellingScore').innerText = spellingText;
+
+            const expressionDiff = data.e2 - data.e1;
+            const expressionText = `${data.e1}점 ➡️ ${data.e2}점` + (expressionDiff > 0 ? ` (+${expressionDiff})` : expressionDiff < 0 ? ` (${expressionDiff})` : ' (동일)');
+            document.getElementById('reportExpressionScore').innerText = expressionText;
+
+            // 도장 렌더링
+            document.getElementById('reportStamp').innerText = data.st;
+            if (data.st === '참 잘했어요') {
+                document.getElementById('reportStamp').style.color = '#e53e3e';
+                document.getElementById('reportStamp').style.borderColor = '#e53e3e';
+                document.getElementById('reportStamp').style.background = '#fff5f5';
+            } else if (data.st === '좋은 시도예요') {
+                document.getElementById('reportStamp').style.color = '#dd6b20';
+                document.getElementById('reportStamp').style.borderColor = '#dd6b20';
+                document.getElementById('reportStamp').style.background = '#fffaf0';
+            } else {
+                document.getElementById('reportStamp').style.color = '#3182ce';
+                document.getElementById('reportStamp').style.borderColor = '#3182ce';
+                document.getElementById('reportStamp').style.background = '#ebf8ff';
+            }
+
+            // 일기 내용 렌더링
+            document.getElementById('reportFirstContent').innerText = data.c1;
+            document.getElementById('reportFeedback').innerText = data.fb;
+            document.getElementById('reportSecondContent').innerText = data.c2;
+
+            // 답장 인풋 기본 텍스트
+            document.getElementById('parentReplyInput').placeholder = `예) 우리 ${reportChildName} 정말 잘했어! 고쳐 쓰느라 수고했어~`;
+        } catch (err) {
+            console.error("보고서 파싱 실패", err);
+            alert("보고서 데이터를 분석하는 중 오류가 발생했습니다.");
+        }
+    }
+
+    // 부모님 답장 카카오톡 메시지 전송 기능
+    function sendParentReply() {
+        const replyText = document.getElementById('parentReplyInput').value.trim();
+        if (!replyText) {
+            alert('아이에게 보낼 칭찬 메세지를 입력해주세요!');
+            return;
+        }
+        
+        const message = `💌 [부모님 답장] ${replyText}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: '아이에게 답장 보내기',
+                text: message
+            }).catch(err => {
+                // 폴백 복사
+                navigator.clipboard.writeText(message);
+                alert(`답장 내용이 복사되었습니다: "${message}"\n카카오톡방에 붙여넣기해서 보내주세요!`);
+            });
+        } else {
+            navigator.clipboard.writeText(message).then(() => {
+                alert(`답장 내용이 복사되었습니다: "${message}"\n카카오톡으로 이동해 아이에게 붙여넣기해서 보내주세요!`);
+            });
+        }
+    }
+
+    // 부모님 보고서 공유 모드 감지 (자동 구동)
+    const urlParams = new URLSearchParams(window.location.search);
+    const reportParam = urlParams.get('report');
+    if (reportParam) {
+        renderParentReport(reportParam);
     }
 </script>
 
