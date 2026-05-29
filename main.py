@@ -44,6 +44,20 @@ AI_TEACHER_PROMPT = """
 class DiaryInput(BaseModel):
     content: str
 
+@app.get("/list-models")
+async def list_models():
+    try:
+        api_key_from_env = os.environ.get("GEMINI_API_KEY")
+        if not api_key_from_env:
+            return {"error": "GEMINI_API_KEY environment variable is not set."}
+        client = genai.Client(api_key=api_key_from_env)
+        models = []
+        for m in client.models.list():
+            models.append(m.name)
+        return {"models": models}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.post("/check-diary")
 async def check_diary(data: DiaryInput):
     if not data.content.strip():
