@@ -41,8 +41,11 @@ async def check_diary(data: DiaryInput):
         raise HTTPException(status_code=400, detail="일기 내용을 입력해주세요.")
     
     try:
-        # 최신 Gemini Client 인스턴스 생성
-        client = genai.Client(api_key=GEMINI_API_KEY)
+       # Render 시스템 환경변수에서 직접 키를 꺼내옵니다.
+          api_key_from_env = os.environ.get("GEMINI_API_KEY")
+          
+          # Client에 명확하게 api_key를 직접 주입합니다.
+          client = genai.Client(api_key=api_key_from_env)
         
         # 비용이 들지 않는 가장 빠르고 가벼운 2.5 Flash 모델 사용
         response = client.models.generate_content(
