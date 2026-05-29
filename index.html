@@ -58,6 +58,8 @@
         .levelup-title { display: none; text-align: center; font-size: 17px; font-weight: bold; color: #b7791f; background: #fefcbf; border: 2px solid #ecc94b; border-radius: 10px; padding: 12px; margin-bottom: 15px; animation: levelup-pulse 0.8s infinite alternate; }
         @keyframes levelup-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
     </style>
+    <!-- 카카오톡 SDK 로드 -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk_v2/kakao.min.js" integrity="sha384-Im55Kmrjmg5nRa26ALjIGGT25MGGGs4pH17a/x6t9abVRYtwgec75y1HTMfOcM68" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -194,6 +196,30 @@
 </div>
 
 <script>
+    // 카카오 앱 키 설정 (이곳에 발급받으신 JavaScript 키를 적어주시면 매번 입력할 필요가 없습니다)
+    let KAKAO_APP_KEY = 'YOUR_KAKAO_APP_KEY'; 
+
+    // 코드에 설정되지 않은 경우 localStorage에서 로드
+    if (KAKAO_APP_KEY === 'YOUR_KAKAO_APP_KEY') {
+        KAKAO_APP_KEY = localStorage.getItem('kakao_app_key') || '';
+    }
+
+    // 카카오 SDK 초기화 함수
+    function initKakao() {
+        if (KAKAO_APP_KEY && window.Kakao) {
+            try {
+                if (!Kakao.isInitialized()) {
+                    Kakao.init(KAKAO_APP_KEY);
+                }
+            } catch (e) {
+                console.error("Kakao SDK Init Error", e);
+            }
+        }
+    }
+
+    // 스크립트 로드 즉시 초기화 시도
+    initKakao();
+
     const textarea = document.getElementById('diaryInput');
     const charCount = document.getElementById('charCount');
     
@@ -507,6 +533,15 @@
 
     // 부모님 성장 보고서 공유 기능
     async function shareReport() {
+        // Kakao App Key가 설정되지 않았다면 사용자에게 입력을 받습니다.
+        if (!KAKAO_APP_KEY || KAKAO_APP_KEY === 'YOUR_KAKAO_APP_KEY') {
+            const userKey = prompt("카카오톡 원클릭 공유를 위해 카카오 JavaScript 앱 키가 필요합니다.\n\n카카오 개발자 센터(developers.kakao.com)에서 발급받은 'JavaScript 키'를 입력해 주세요 (최초 1회만 입력):");
+            if (!userKey) return;
+            localStorage.setItem('kakao_app_key', userKey.trim());
+            KAKAO_APP_KEY = userKey.trim();
+            initKakao();
+        }
+
         const childName = prompt("어린이의 이름을 입력해 주세요 (예: 홍길동):");
         if (!childName) return;
 
@@ -526,7 +561,37 @@
             const compressed = await compressData(JSON.stringify(reportData));
             const shareUrl = `${window.location.origin}${window.location.pathname}?report=${compressed}`;
 
-            // 모바일 환경 등에서 native 공유 API 지원 시도
+            // 1. 카카오톡 SDK 연동을 통한 원클릭 전송 시도
+            if (window.Kakao && Kakao.isInitialized()) {
+                try {
+                    Kakao.Share.sendDefault({
+                        objectType: 'feed',
+                        content: {
+                            title: `${childName}의 AI 일기 성장 보고서 도착 📝`,
+                            description: `💮 ${secondStamp}! 맞춤법과 표현력이 훌륭하게 자랐어요. 우리 아이가 스스로 고쳐 쓴 일기를 확인해 보세요!`,
+                            imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=500&q=80',
+                            link: {
+                                mobileWebUrl: shareUrl,
+                                webUrl: shareUrl,
+                            },
+                        },
+                        buttons: [
+                            {
+                                title: '보고서 보러가기',
+                                link: {
+                                    mobileWebUrl: shareUrl,
+                                    webUrl: shareUrl,
+                                },
+                            },
+                        ],
+                    });
+                    return; // 성공 시 공유 로직 종료
+                } catch (kakaoError) {
+                    console.warn("Kakao SDK share failed, falling back to Web Share:", kakaoError);
+                }
+            }
+
+            // 2. 모바일 환경 등에서 native 공유 API 지원 시도 (카카오 SDK 실패 또는 미설정 시)
             if (navigator.share) {
                 try {
                     await navigator.share({
@@ -536,7 +601,6 @@
                     });
                     return; // 공유 성공 시 종료
                 } catch (shareError) {
-                    // 사용자가 취소(AbortError)했거나 데스크톱 등 미지원 환경인 경우 클립보드 복사로 폴백
                     console.log("Web Share failed, falling back to clipboard:", shareError);
                     if (shareError.name === 'AbortError') {
                         // 사용자가 공유창을 닫은 경우 경고창 없이 종료
@@ -545,7 +609,7 @@
                 }
             }
 
-            // 클립보드 복사 폴백
+            // 3. 클립보드 복사 폴백
             await navigator.clipboard.writeText(shareUrl);
             alert("부모님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.");
         } catch (error) {
