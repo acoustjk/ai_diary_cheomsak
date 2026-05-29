@@ -15,25 +15,24 @@
         button { margin-top: 15px; background: #3182ce; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; }
         button:hover { background: #2b6cb0; }
         
-        /* 피드백 박스 스타일 */
         .feedback-box { flex: 1; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; background: #f7fafc; white-space: pre-wrap; overflow-y: auto; font-size: 15px; line-height: 1.6; color: #2d3748; }
         .loading { display: none; color: #3182ce; font-weight: bold; text-align: center; margin-top: 20px; }
         
-        /* 📈 업그레이드: 점수판 스타일 */
+        /* 점수판 스타일 */
         .score-container { display: none; margin-bottom: 15px; background: #ebf8ff; padding: 12px; border-radius: 10px; border: 1px solid #bee3f8; }
         .score-bar-wrapper { margin: 8px 0; }
         .score-label { font-size: 14px; color: #2b6cb0; font-weight: bold; display: flex; justify-content: space-between; }
         .score-bar { background: #e2e8f0; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 4px; }
         .score-fill { background: #4299e1; height: 100%; width: 0%; transition: width 1s ease-in-out; }
         
-        /* 💮 업그레이드: 칭찬 도장 스타일 */
+        /* 칭찬 도장 스타일 */
         .stamp-badge { 
             display: none; position: absolute; top: 10px; right: 20px; 
-            width: 90px; height: 90px; border-radius: 50%; 
+            width: 95px; height: 95px; border-radius: 50%; 
             border: 4px dashed #e53e3e; color: #e53e3e;
-            text-align: center; line-height: 20px; font-weight: bold; font-size: 14px;
+            text-align: center; font-weight: bold; font-size: 13px;
             transform: rotate(15deg); justify-content: center; align-items: center;
-            flex-direction: column; background-color: rgba(255,255,255,0.8);
+            flex-direction: column; background-color: rgba(255,255,255,0.9);
             box-shadow: 0 0 8px rgba(229, 62, 62, 0.2);
             animation: stamp-animation 0.4s ease-in-out;
         }
@@ -46,7 +45,6 @@
 <body>
 
 <div class="container">
-    <!-- 왼쪽: 아이가 글을 쓰는 공간 -->
     <div class="left-panel">
         <h2>✍️ 오늘의 일기 쓰기</h2>
         <p style="color:#718096; margin-top:-10px; font-size:14px;">오늘 하루 있었던 일을 멋지게 적고 레벨업에 도전해봐요!</p>
@@ -56,14 +54,11 @@
         <div id="loadingText" class="loading">⏳ AI 선생님이 채점과 피드백을 준비하고 있어요...</div>
     </div>
 
-    <!-- 오른쪽: AI 선생님의 첨삭 피드백 공간 -->
     <div class="right-panel">
         <h2>👩‍🏫 마법 힌트 & 레벨업</h2>
         
-        <!-- 💮 칭찬 도장 위치 -->
-        <div id="stampBadge" class="stamp-badge"><div>💮</div><div id="stampText">참 잘했어요</div></div>
+        <div id="stampBadge" class="stamp-badge"><div style="font-size:20px;">💮</div><div id="stampText">참 잘했어요</div></div>
 
-        <!-- 📈 점수 시각화 구역 -->
         <div id="scoreContainer" class="score-container">
             <div class="score-bar-wrapper">
                 <div class="score-label"><span>✨ 맞춤법 점수</span><span id="spellingScoreText">0점</span></div>
@@ -99,7 +94,6 @@
         const scoreContainer = document.getElementById('scoreContainer');
         const stampBadge = document.getElementById('stampBadge');
         
-        // 초기화
         loadingText.style.display = 'block';
         feedbackResult.innerText = 'AI 선생님이 일기를 분석하고 있습니다...';
         scoreContainer.style.display = 'none';
@@ -117,26 +111,25 @@
             try {
                 const data = JSON.parse(rawData);
                 if (response.ok) {
-                    // 1. 피드백 텍스트 반영
                     feedbackResult.innerText = data.feedback;
                     
-                    // 2. 점수판 보이기 및 애니메이션 설정
                     scoreContainer.style.display = 'block';
                     document.getElementById('spellingScoreText').innerText = data.spelling_score + '점';
                     document.getElementById('expressionScoreText').innerText = data.expression_score + '점';
                     
-                    // 게이지 바 채우기 애니메이션 (약간의 시차를 두어 부드럽게 강조)
                     setTimeout(() => {
                         document.getElementById('spellingScoreFill').style.width = data.spelling_score + '%';
                         document.getElementById('expressionScoreFill').style.width = data.expression_score + '%';
                     }, 100);
 
-                    # 3. 도장 찍기 애니메이션 설정
                     document.getElementById('stampText').innerText = data.stamp;
-                    // 도장 종류에 따른 색상 변화 추가
-                    if(data.stamp === '참 잘했어요') stampBadge.style.color = stampBadge.style.borderColor = '#e53e3e';
-                    else if(data.stamp === '좋은 시도예요') stampBadge.style.color = stampBadge.style.borderColor = '#dd6b20';
-                    else stampBadge.style.color = stampBadge.style.borderColor = '#3182ce';
+                    if(data.stamp === '참 잘했어요') {
+                        stampBadge.style.color = stampBadge.style.borderColor = '#e53e3e';
+                    } else if(data.stamp === '좋은 시도예요') {
+                        stampBadge.style.color = stampBadge.style.borderColor = '#dd6b20';
+                    } else {
+                        stampBadge.style.color = stampBadge.style.borderColor = '#3182ce';
+                    }
                     
                     stampBadge.style.display = 'flex';
 
