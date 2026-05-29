@@ -330,6 +330,21 @@
         charCount.innerText = textarea.value.length;
     });
 
+    // 복사, 붙여넣기, 잘라내기 방지 기능 추가
+    textarea.addEventListener('paste', (e) => {
+        e.preventDefault();
+        alert('일기는 다른 곳에서 복사해 붙여넣을 수 없고, 스스로 직접 타이핑해서 작성해야 해요! 😉');
+    });
+
+    textarea.addEventListener('copy', (e) => {
+        e.preventDefault();
+        alert('일기 내용은 복사할 수 없어요! 스스로 한 자 한 자 적어봐요. 😉');
+    });
+
+    textarea.addEventListener('cut', (e) => {
+        e.preventDefault();
+    });
+
     // 시작하자마자 미션 생성 및 배지 체크
     generateMissions();
     updateStreakAndBadges(false);
