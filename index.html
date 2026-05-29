@@ -48,6 +48,15 @@
             animation: stamp-animation 0.4s ease-in-out;
         }
         @keyframes stamp-animation { 0% { transform: scale(3) rotate(45deg); opacity: 0; } 100% { transform: scale(1) rotate(15deg); opacity: 1; } }
+
+        /* 다시 쓰기 모드 알림 */
+        .rewrite-banner { display: none; background: #faf5ff; border: 2px dashed #805ad5; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; color: #553c9a; align-items: center; justify-content: space-between; }
+        .rewrite-banner button { margin-top: 0; padding: 4px 10px; font-size: 13px; background: #e53e3e; }
+        .rewrite-banner button:hover { background: #c53030; }
+        
+        /* 레벨업 칭찬 애니메이션 */
+        .levelup-title { display: none; text-align: center; font-size: 17px; font-weight: bold; color: #b7791f; background: #fefcbf; border: 2px solid #ecc94b; border-radius: 10px; padding: 12px; margin-bottom: 15px; animation: levelup-pulse 0.8s infinite alternate; }
+        @keyframes levelup-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
     </style>
 </head>
 <body>
@@ -77,10 +86,17 @@
 <div class="container">
     <div class="left-panel">
         <h2>✍️ 오늘의 일기 쓰기</h2>
+        
+        <!-- 다시 쓰기 모드 알림 배너 -->
+        <div id="rewriteBanner" class="rewrite-banner">
+            <span>💡 <strong>선생님 피드백 반영해서 고쳐 쓰는 중!</strong> 아래 입력창에서 일기를 수정하고 다시 검사받아 보세요.</span>
+            <button onclick="cancelRewriteMode()">취소</button>
+        </div>
+
         <textarea id="diaryInput" placeholder="오늘 하루는 어땠나요? 오늘의 비밀 단어를 넣어서 신나게 적어보세요!"></textarea>
         <div class="stats">⏱️ 글자 수: <span id="charCount">0</span>자</div>
         
-        <button onclick="submitDiary()">🤖 AI 선생님께 일기 검사받기</button>
+        <button id="btnSubmit" onclick="submitDiary()">🤖 AI 선생님께 일기 검사받기</button>
         <div id="loadingText" class="loading">⏳ AI 선생님이 일기를 분석하는 중입니다 (약 5초 소요)...</div>
     </div>
 
@@ -102,12 +118,53 @@
         </div>
 
         <div id="feedbackResult" class="feedback-box">검사받기 버튼을 누르면 피드백과 점수가 여기에 등장해요!</div>
+        
+        <!-- 레벨업 타이틀 -->
+        <div id="levelupTitle" class="levelup-title">⭐ 대단해요! 실력이 레벨업 되었습니다! ⭐</div>
+        
+        <!-- 다시 도전하기 버튼 -->
+        <button id="btnRetry" onclick="startRewriteMode()" style="display:none; width:100%; margin-top:15px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">✏️ 선생님 힌트로 다시 도전하기!</button>
     </div>
 </div>
 
 <script>
     const textarea = document.getElementById('diaryInput');
     const charCount = document.getElementById('charCount');
+    
+    // 다시 쓰기 상태 관리 변수
+    let originalContent = '';
+    let originalFeedback = '';
+    let prevSpellingScore = 0;
+    let prevExpressionScore = 0;
+    let isRewriteMode = false;
+
+    function startRewriteMode() {
+        originalContent = textarea.value.trim();
+        originalFeedback = document.getElementById('feedbackResult').innerText;
+        
+        isRewriteMode = true;
+        
+        // UI 변경
+        document.getElementById('rewriteBanner').style.display = 'flex';
+        document.getElementById('btnSubmit').innerText = '✨ 고친 일기 다시 검사받기';
+        document.getElementById('btnSubmit').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        document.getElementById('btnRetry').style.display = 'none';
+        
+        alert('다시 쓰기 모드가 켜졌습니다! 선생님이 준 피드백을 보고 일기를 고친 뒤 제출하세요.');
+    }
+    
+    function cancelRewriteMode() {
+        isRewriteMode = false;
+        
+        // UI 원복
+        document.getElementById('rewriteBanner').style.display = 'none';
+        document.getElementById('btnSubmit').innerText = '🤖 AI 선생님께 일기 검사받기';
+        document.getElementById('btnSubmit').style.background = '#3182ce';
+        
+        if (originalFeedback) {
+            document.getElementById('btnRetry').style.display = 'block';
+        }
+    }
     
     // 오늘의 미션 단어 리스트 자동 생성
     const wordPool = ["행복", "초콜릿", "하늘", "우당탕탕", "친구", "컴퓨터", "선생님", "강아지", "자전거", "비밀", "맛있는", "가족"];
@@ -167,12 +224,16 @@
         const scoreContainer = document.getElementById('scoreContainer');
         const stampBadge = document.getElementById('stampBadge');
         const bonusScoreText = document.getElementById('bonusScoreText');
+        const btnRetry = document.getElementById('btnRetry');
+        const levelupTitle = document.getElementById('levelupTitle');
         
         loadingText.style.display = 'block';
         feedbackResult.innerText = 'AI 선생님이 일기를 열심히 분석하고 있습니다...';
         scoreContainer.style.display = 'none';
         stampBadge.style.display = 'none';
         bonusScoreText.style.display = 'none';
+        btnRetry.style.display = 'none';
+        levelupTitle.style.display = 'none';
 
         // 미션 단어 체크 검사
         const missionSuccess = currentMissions.every(word => content.includes(word));
@@ -183,10 +244,16 @@
                             window.location.protocol === 'file:';
             const apiBase = isLocal ? 'http://127.0.0.1:8000' : 'https://ai-diary-cheomsak.onrender.com';
 
+            const payload = { content: content };
+            if (isRewriteMode) {
+                payload.original_content = originalContent;
+                payload.feedback = originalFeedback;
+            }
+
             const response = await fetch(`${apiBase}/check-diary`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: content })
+                body: JSON.stringify(payload)
             });
 
             const rawData = await response.text();
@@ -206,9 +273,58 @@
                     }
 
                     scoreContainer.style.display = 'block';
-                    document.getElementById('spellingScoreText').innerText = finalSpelling + '점';
-                    document.getElementById('expressionScoreText').innerText = finalExpression + '점';
                     
+                    // 다시 쓰기 결과 렌더링
+                    if (isRewriteMode) {
+                        // 이전 점수와 비교
+                        let spellingDiff = finalSpelling - prevSpellingScore;
+                        let expressionDiff = finalExpression - prevExpressionScore;
+                        
+                        let spellText = finalSpelling + '점';
+                        if (spellingDiff > 0) {
+                            spellText += ` (이전: ${prevSpellingScore}점 ➡️ ${finalSpelling}점) (+${spellingDiff}) 🎉`;
+                        } else if (spellingDiff < 0) {
+                            spellText += ` (이전: ${prevSpellingScore}점 ➡️ ${finalSpelling}점) (${spellingDiff})`;
+                        } else {
+                            spellText += ` (이전과 동일: ${finalSpelling}점)`;
+                        }
+
+                        let exprText = finalExpression + '점';
+                        if (expressionDiff > 0) {
+                            exprText += ` (이전: ${prevExpressionScore}점 ➡️ ${finalExpression}점) (+${expressionDiff}) 🎉`;
+                        } else if (expressionDiff < 0) {
+                            exprText += ` (이전: ${prevExpressionScore}점 ➡️ ${finalExpression}점) (${expressionDiff})`;
+                        } else {
+                            exprText += ` (이전과 동일: ${finalExpression}점)`;
+                        }
+
+                        document.getElementById('spellingScoreText').innerText = spellText;
+                        document.getElementById('spellingScoreText').style.fontSize = '12px';
+                        document.getElementById('expressionScoreText').innerText = exprText;
+                        document.getElementById('expressionScoreText').style.fontSize = '12px';
+                        
+                        if (data.improved) {
+                            levelupTitle.style.display = 'block';
+                        }
+                        
+                        // 다시 쓰기 완료했으므로 모드 해제
+                        cancelRewriteMode();
+                        
+                        // 점수 정보 업데이트
+                        prevSpellingScore = finalSpelling;
+                        prevExpressionScore = finalExpression;
+                    } else {
+                        // 첫 제출일 때
+                        document.getElementById('spellingScoreText').innerText = finalSpelling + '점';
+                        document.getElementById('spellingScoreText').style.fontSize = '14px';
+                        document.getElementById('expressionScoreText').innerText = finalExpression + '점';
+                        document.getElementById('expressionScoreText').style.fontSize = '14px';
+                        
+                        // 다시 쓰기 준비를 위해 점수 세팅
+                        prevSpellingScore = finalSpelling;
+                        prevExpressionScore = finalExpression;
+                    }
+
                     setTimeout(() => {
                         document.getElementById('spellingScoreFill').style.width = finalSpelling + '%';
                         document.getElementById('expressionScoreFill').style.width = finalExpression + '%';
@@ -225,6 +341,9 @@
                     updateStreakAndBadges(true);
                     // 다음 미션 단어 미리 생성하기
                     generateMissions();
+
+                    // 첫 제출 후에는 다시 쓰기 버튼 활성화
+                    btnRetry.style.display = 'block';
 
                 } else {
                     feedbackResult.innerText = '오류 발생: ' + (data.detail || JSON.stringify(data));

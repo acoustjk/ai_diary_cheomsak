@@ -43,6 +43,41 @@ AI_TEACHER_PROMPT = """
 
 class DiaryInput(BaseModel):
     content: str
+    original_content: str = None
+    feedback: str = None
+
+AI_REWRITE_PROMPT = """
+당신은 10세 초등학생 아이들의 일기를 검사하고 문해력을 키워주는 다정한 초등학교 선생님입니다.
+아이가 이전 일기에서 당신이 준 피드백을 바탕으로 일기를 다시 작성(첨삭 반영)했습니다.
+이전 일기 내용과 이전 피드백을 새로운 일기 내용과 비교하여 개선점을 칭찬하고 분석 결과를 지정된 JSON 형식으로만 답변하세요.
+
+[입력 데이터 정보]
+- 이전 일기: {original_content}
+- 이전 피드백: {previous_feedback}
+- 다시 쓴 일기: {new_content}
+
+[규칙]
+1. 아이가 이전 피드백을 참고하여 맞춤법 오류를 올바르게 수정했는지 확인하고 격려해 주세요.
+2. 대안 어휘 추천을 실제로 활용하여 문장을 더 풍부하게 만들었는지 확인하고 칭찬해 주세요.
+3. 바뀐 내용에 대해 "우와, ~하게 고쳤구나!", "선생님이 가르쳐 준 부분을 기억했네!" 처럼 감동받은 어조로 따뜻하게 칭찬해 주세요.
+4. 새로운 일기를 바탕으로 다시 점수(각 100점 만점)를 매기세요. 이전 점수보다 개선된 점이 있다면 점수를 높여서 성취감을 느끼게 해 주세요:
+   - spelling_score: 맞춤법과 띄어쓰기 점수
+   - expression_score: 어휘력과 표현력 점수
+5. 점수에 따라 아래 3가지 도장 중 하나를 선택하세요:
+   - 참 잘했어요 (두 점수의 평균이 85점 이상)
+   - 좋은 시도예요 (두 점수의 평균이 60점 이상 85점 미만)
+   - 힘내라 힘! (두 점수의 평균이 60점 미만)
+6. 개선 여부를 판단하여 'improved' 필드에 true 또는 false를 기록하세요. (조금이라도 나아졌다면 true)
+
+[반드시 아래의 JSON 형식으로만 답변하세요. 다른 설명은 생략하세요]
+{
+    "feedback": "다시 쓴 일기에 대한 따뜻한 칭찬과 첨삭 피드백 내용",
+    "spelling_score": 100,
+    "expression_score": 90,
+    "stamp": "참 잘했어요",
+    "improved": true
+}
+"""
 
 @app.post("/check-diary")
 async def check_diary(data: DiaryInput):
@@ -56,12 +91,26 @@ async def check_diary(data: DiaryInput):
             
         client = genai.Client(api_key=api_key_from_env)
         
+        # 다시 쓰기 모드인 경우 프롬프트 구성 다르게 처리
+        if data.original_content and data.feedback:
+            prompt = AI_REWRITE_PROMPT.replace(
+                "{original_content}", data.original_content
+            ).replace(
+                "{previous_feedback}", data.feedback
+            ).replace(
+                "{new_content}", data.content
+            )
+            system_instruction = "당신은 아이의 글쓰기 실력을 격려하고 레벨업 시켜주는 초등학교 선생님입니다."
+        else:
+            prompt = data.content
+            system_instruction = AI_TEACHER_PROMPT
+
         # 1. 일기 분석 및 텍스트/점수 생성
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=data.content,
+            contents=prompt,
             config=types.GenerateContentConfig(
-                system_instruction=AI_TEACHER_PROMPT,
+                system_instruction=system_instruction,
                 temperature=0.3,
                 response_mime_type="application/json"
             )
