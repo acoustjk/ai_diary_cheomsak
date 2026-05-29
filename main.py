@@ -58,7 +58,7 @@ async def check_diary(data: DiaryInput):
         
         # 1. 일기 분석 및 텍스트/점수 생성
         response = client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-1.5-flash',
             contents=data.content,
             config=types.GenerateContentConfig(
                 system_instruction=AI_TEACHER_PROMPT,
