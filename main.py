@@ -125,7 +125,13 @@ async def check_diary(data: DiaryInput):
     except HTTPException as he:
         raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI 서버 오류가 발생했습니다: {str(e)}")
+        err_str = str(e)
+        if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+            raise HTTPException(
+                status_code=429,
+                detail="AI 선생님 요청 한도(1분당 제한)를 초과했습니다. 약 1분 후에 다시 시도해주세요! ⏳"
+            )
+        raise HTTPException(status_code=500, detail=f"AI 서버 오류가 발생했습니다: {err_str}")
 
 @app.get("/shorten")
 async def shorten(url: str):
