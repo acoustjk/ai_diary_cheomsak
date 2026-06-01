@@ -48,6 +48,7 @@ class DiaryInput(BaseModel):
     content: str
     original_content: str = None
     feedback: str = None
+    api_key: str = None
 
 AI_REWRITE_PROMPT = """
 당신은 10세 초등학생 아이들의 일기를 검사하고 문해력을 키워주는 다정한 초등학교 선생님입니다.
@@ -88,11 +89,11 @@ async def check_diary(data: DiaryInput):
         raise HTTPException(status_code=400, detail="일기 내용을 입력해주세요.")
     
     try:
-        api_key_from_env = os.environ.get("GEMINI_API_KEY")
-        if not api_key_from_env:
-            raise HTTPException(status_code=500, detail="GEMINI_API_KEY 환경변수가 설정되지 않았습니다. 서버 설정을 확인해주세요.")
+        api_key = data.api_key or os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            raise HTTPException(status_code=500, detail="GEMINI_API_KEY가 설정되지 않았습니다. 개인 API 키를 등록하거나 서버 설정을 확인해주세요.")
             
-        client = genai.Client(api_key=api_key_from_env)
+        client = genai.Client(api_key=api_key)
         
         # 다시 쓰기 모드인 경우 프롬프트 구성 다르게 처리
         if data.original_content and data.feedback:
