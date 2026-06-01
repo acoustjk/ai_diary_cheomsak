@@ -1,5 +1,7 @@
 import os
 import json
+import urllib.request
+import urllib.parse
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -124,6 +126,23 @@ async def check_diary(data: DiaryInput):
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI 서버 오류가 발생했습니다: {str(e)}")
+
+@app.get("/shorten")
+async def shorten(url: str):
+    try:
+        api_url = f"https://is.gd/create.php?format=json&url={urllib.parse.quote(url)}"
+        req = urllib.request.Request(
+            api_url,
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+        )
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            if "shorturl" in res_data:
+                return res_data
+            return {"shorturl": url}
+    except Exception as e:
+        print(f"URL Shortening failed: {e}")
+        return {"shorturl": url}
 
 @app.get("/")
 async def read_index():
