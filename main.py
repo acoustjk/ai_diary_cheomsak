@@ -130,15 +130,15 @@ async def check_diary(data: DiaryInput):
 @app.get("/shorten")
 async def shorten(url: str):
     try:
-        api_url = f"https://is.gd/create.php?format=json&url={urllib.parse.quote(url)}"
+        api_url = f"http://tinyurl.com/api-create.php?url={urllib.parse.quote(url)}"
         req = urllib.request.Request(
             api_url,
             headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
         )
-        with urllib.request.urlopen(req, timeout=5) as response:
-            res_data = json.loads(response.read().decode('utf-8'))
-            if "shorturl" in res_data:
-                return res_data
+        with urllib.request.urlopen(req, timeout=10) as response:
+            short_url = response.read().decode('utf-8').strip()
+            if short_url.startswith("http"):
+                return {"shorturl": short_url}
             return {"shorturl": url}
     except Exception as e:
         print(f"URL Shortening failed: {e}")
