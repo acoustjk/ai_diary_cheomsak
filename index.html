@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>아이들 레벨업 킹 AI 일기장 🚀</title>
+    <!-- 구글 애드센스 수익형 광고 스크립트 -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1234567890123456" crossorigin="anonymous"></script>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
@@ -166,10 +168,23 @@
         </div>
     </div>
 
-    <!-- 부모님용 추천 가이드 광고 배너 (Mock Ad Banner) -->
-    <div style="background: linear-gradient(135deg, #fff5f5 0%, #fffaf0 100%); border: 1px solid #fed7d7; border-radius: 12px; padding: 15px; margin-bottom: 25px; text-align: center; font-size: 13px; color: #7b2c2c; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: center; gap: 10px;">
-        <span style="font-size: 9px; font-weight: bold; background: #e53e3e; color: white; padding: 2px 5px; border-radius: 4px;">광고</span>
-        📢 <strong>스마트 초등 문해력 가이드:</strong> 일기 쓰기 습관으로 어휘력을 2배 성장시키는 비법! <a href="https://ai-diary-cheomsak.onrender.com" target="_blank" style="color: #3182ce; font-weight: bold; text-decoration: underline; margin-left: 5px;">자세히 보기 👉</a>
+    <!-- 구글 애드센스 광고 영역 (Google AdSense) -->
+    <!-- 본인의 애드센스 퍼블리셔 ID와 광고 슬롯 ID로 세팅하여 수익형 광고를 게재할 수 있습니다. -->
+    <div style="margin: 25px 0; text-align: center; background: #fafafa; border: 1px solid #edf2f7; border-radius: 12px; padding: 15px; min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: relative;">
+        <span style="position: absolute; top: 2px; left: 5px; font-size: 9px; font-weight: bold; color: #a0aec0; background: #edf2f7; padding: 1px 4px; border-radius: 3px;">AD / Google AdSense</span>
+        
+        <ins class="adsbygoogle"
+             style="display:block; text-align:center;"
+             data-ad-layout="in-article"
+             data-ad-format="fluid"
+             data-ad-client="ca-pub-1234567890123456"
+             data-ad-slot="9876543210"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        
+        <p style="margin: 0; font-size: 13px; color: #718096; font-weight: bold;">📢 [광고 게재 영역] 구글 애드센스</p>
+        <p style="margin: 3px 0 0 0; font-size: 11px; color: #a0aec0;">(수익을 창출하려면 index.html 파일의 ca-pub-1234567890123456을 본인의 애드센스 ID로 변경하세요.)</p>
     </div>
     
     <!-- 일기 역사 그리드 -->
@@ -204,7 +219,7 @@
         <button onclick="captureReport()" style="flex: 1; margin-top: 0; background: linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px rgba(49,130,206,0.2);">
             📸 이미지로 저장 (캡처)
         </button>
-        <button onclick="window.print()" style="flex: 1; margin-top: 0; background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px rgba(74,85,104,0.2);">
+        <button onclick="printReport()" style="flex: 1; margin-top: 0; background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px rgba(74,85,104,0.2);">
             🖨️ PDF / 인쇄 저장
         </button>
     </div>
@@ -662,7 +677,12 @@
         }
     }
 
-    // 보고서 이미지로 캡처 저장 기능
+    function closeCaptureModal() {
+        document.getElementById('captureModal').style.display = 'none';
+        document.getElementById('captureImageContainer').innerHTML = '';
+    }
+
+    // 보고서 이미지로 캡처 저장 기능 (인앱 브라우저 롱클릭 저장용 우회 처리)
     async function captureReport() {
         const reportElement = document.getElementById('reportView');
         const actionArea = document.getElementById('reportActionArea');
@@ -683,19 +703,34 @@
                 backgroundColor: '#ffffff',
                 logging: false
             });
-            const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            const link = document.createElement('a');
-            link.download = `${reportChildName}_AI일기_성장보고서.png`;
-            link.href = image;
-            link.click();
+            
+            // canvas -> img tag 변환 (인앱 브라우저 롱클릭 대응)
+            const imgData = canvas.toDataURL("image/png");
+            const img = document.createElement('img');
+            img.src = imgData;
+            img.style.width = '100%';
+            img.style.borderRadius = '6px';
+            
+            // 모달에 이미지 삽입 후 모달 팝업 띄우기
+            document.getElementById('captureImageContainer').appendChild(img);
+            document.getElementById('captureModal').style.display = 'flex';
         } catch (e) {
             console.error("캡처 실패", e);
-            alert("캡처에 실패했습니다. 모바일 브라우저의 PDF 저장이나 화면 캡처 기능을 이용해 주세요.");
+            alert("캡처에 실패했습니다. 모바일 브라우저의 화면 캡처 기능을 이용해 주세요.");
         } finally {
             actionArea.style.display = 'flex';
             replyArea.style.display = 'block';
             window.scrollTo(0, currentScroll); // 스크롤 위치 원복
         }
+    }
+
+    // PDF 및 인쇄 요청 기능 (인앱 브라우저 대응 알림 추가)
+    function printReport() {
+        const isKakao = /KAKAOTALK/i.test(navigator.userAgent);
+        if (isKakao) {
+            alert("💡 카카오톡 인앱 브라우저에서는 인쇄/PDF 저장 기능이 지원되지 않을 수 있습니다.\n\n정상적으로 인쇄 및 PDF 저장을 하려면:\n1. 우측 상단의 점 3개(메뉴) 버튼 클릭\n2. '다른 브라우저로 열기(Chrome/Safari)' 선택\n3. 다시 'PDF / 인쇄 저장' 버튼을 눌러주세요!\n\n(또는 '이미지로 저장' 버튼을 눌러 롱클릭 다운로드를 이용해 보세요!)");
+        }
+        window.print();
     }
 
     // 부모님 답장 카카오톡 메시지 전송 기능
@@ -731,6 +766,21 @@
         renderParentReport(reportParam);
     }
 </script>
+
+<!-- 이미지 캡처 저장용 모달 창 (인앱 브라우저 롱클릭 저장용) -->
+<div id="captureModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box; font-family: sans-serif;">
+    <div style="background: white; border-radius: 15px; padding: 20px; max-width: 550px; width: 100%; text-align: center; display: flex; flex-direction: column; align-items: center; position: relative;">
+        <span onclick="closeCaptureModal()" style="position: absolute; top: 10px; right: 15px; font-size: 24px; font-weight: bold; cursor: pointer; color: #a0aec0;">&times;</span>
+        <h3 style="margin: 0 0 10px 0; color: #2b6cb0; font-size: 17px; font-weight: bold;">📸 이미지 생성 완료!</h3>
+        <p style="margin: 0 0 15px 0; font-size: 13px; color: #4a5568; line-height: 1.5;">
+            <strong>아래 보고서 이미지를 2초간 길게 터치하여</strong><br>'이미지 저장' 또는 '사진 앱에 추가'를 눌러주세요.
+        </p>
+        <div id="captureImageContainer" style="width: 100%; max-height: 320px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; padding: 5px; background: #fafafa;">
+            <!-- 생성된 img 태그 주입 -->
+        </div>
+        <button onclick="closeCaptureModal()" style="margin-top: 15px; width: 100%; background: #4a5568; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s;">닫기</button>
+    </div>
+</div>
 
 </body>
 </html>
