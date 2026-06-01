@@ -57,7 +57,14 @@
         /* 레벨업 칭찬 애니메이션 */
         .levelup-title { display: none; text-align: center; font-size: 17px; font-weight: bold; color: #b7791f; background: #fefcbf; border: 2px solid #ecc94b; border-radius: 10px; padding: 12px; margin-bottom: 15px; animation: levelup-pulse 0.8s infinite alternate; }
         @keyframes levelup-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
+
+        @media print {
+            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            #mainView, #reportActionArea, #parentReplyArea { display: none !important; }
+            #reportView { box-shadow: none !important; border: none !important; padding: 10px !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
+        }
     </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -138,6 +145,7 @@
         <span style="font-size: 45px;">📝</span>
         <h1 id="reportTitle" style="color: #2b6cb0; margin: 10px 0 5px 0; font-size: 24px;">[아이]의 AI 일기 성장 보고서</h1>
         <p style="color: #718096; margin: 0; font-size: 14px;">선생님의 피드백을 적용해 스스로 레벨업한 자랑스러운 결과입니다!</p>
+        <p id="reportDate" style="color: #4a5568; margin: 8px 0 0 0; font-size: 13px; font-weight: bold; background: #edf2f7; display: inline-block; padding: 4px 12px; border-radius: 12px;">📅 작성일: 로딩 중...</p>
     </div>
     
     <!-- 성적 변화 카드 대시보드 -->
@@ -156,6 +164,12 @@
             <div style="font-size: 13px; color: #e53e3e; font-weight: bold;">💮 칭찬 도장</div>
             <div id="reportStamp" style="background: #fff5f5; border: 2px dashed #e53e3e; color: #e53e3e; font-weight: bold; font-size: 14px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; transform: rotate(5deg);">참 잘했어요</div>
         </div>
+    </div>
+
+    <!-- 부모님용 추천 가이드 광고 배너 (Mock Ad Banner) -->
+    <div style="background: linear-gradient(135deg, #fff5f5 0%, #fffaf0 100%); border: 1px solid #fed7d7; border-radius: 12px; padding: 15px; margin-bottom: 25px; text-align: center; font-size: 13px; color: #7b2c2c; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: center; gap: 10px;">
+        <span style="font-size: 9px; font-weight: bold; background: #e53e3e; color: white; padding: 2px 5px; border-radius: 4px;">광고</span>
+        📢 <strong>스마트 초등 문해력 가이드:</strong> 일기 쓰기 습관으로 어휘력을 2배 성장시키는 비법! <a href="https://ai-diary-cheomsak.onrender.com" target="_blank" style="color: #3182ce; font-weight: bold; text-decoration: underline; margin-left: 5px;">자세히 보기 👉</a>
     </div>
     
     <!-- 일기 역사 그리드 -->
@@ -185,8 +199,18 @@
         <div id="reportSecondContent" style="white-space: pre-wrap; font-size: 15px; line-height: 1.7; color: #2d3748; font-weight: 500;">다시 쓴 일기 내용...</div>
     </div>
 
+    <!-- 저장 및 인쇄 버튼 영역 -->
+    <div id="reportActionArea" style="display: flex; gap: 12px; margin-bottom: 25px;">
+        <button onclick="captureReport()" style="flex: 1; margin-top: 0; background: linear-gradient(135deg, #3182ce 0%, #2b6cb0 100%); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px rgba(49,130,206,0.2);">
+            📸 이미지로 저장 (캡처)
+        </button>
+        <button onclick="window.print()" style="flex: 1; margin-top: 0; background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 6px rgba(74,85,104,0.2);">
+            🖨️ PDF / 인쇄 저장
+        </button>
+    </div>
+
     <!-- 답장 기능 -->
-    <div style="border-top: 2px dashed #e2e8f0; padding-top: 25px; text-align: center;">
+    <div id="parentReplyArea" style="border-top: 2px dashed #e2e8f0; padding-top: 25px; text-align: center;">
         <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #4a5568;">💬 아이에게 칭찬 한마디 답장 보내기</h3>
         <input type="text" id="parentReplyInput" placeholder="예) 정말 잘 썼어! 고생한 우리 아들 최고! 오늘 맛있는 치킨 먹자!" style="width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 14px; box-sizing: border-box; margin-bottom: 12px;">
         <button onclick="sendParentReply()" style="width: 100%; margin-top: 0; background: #38a169; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s;">💌 카톡으로 칭찬 보내기</button>
@@ -539,7 +563,7 @@
 
         try {
             const compressed = await compressData(JSON.stringify(reportData));
-            const shareUrl = `${window.location.origin}${window.location.pathname}?report=${compressed}`;
+            const shareUrl = `${window.location.origin}${window.location.pathname}?r=${compressed}`;
 
             // 모바일 환경 등에서 native 공유 API 지원 시도
             if (navigator.share) {
@@ -589,6 +613,17 @@
             
             document.getElementById('reportTitle').innerText = `📝 ${reportChildName} 어린이의 일기 성장 보고서`;
             
+            // 작성일 렌더링
+            let reportDateStr = "";
+            if (data.ts) {
+                const date = new Date(data.ts);
+                reportDateStr = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+            } else {
+                const date = new Date();
+                reportDateStr = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+            }
+            document.getElementById('reportDate').innerText = `📅 작성일: ${reportDateStr}`;
+
             // 성적 변화 렌더링
             const spellingDiff = data.s2 - data.s1;
             const spellingText = `${data.s1}점 ➡️ ${data.s2}점` + (spellingDiff > 0 ? ` (+${spellingDiff})` : spellingDiff < 0 ? ` (${spellingDiff})` : ' (동일)');
@@ -627,6 +662,42 @@
         }
     }
 
+    // 보고서 이미지로 캡처 저장 기능
+    async function captureReport() {
+        const reportElement = document.getElementById('reportView');
+        const actionArea = document.getElementById('reportActionArea');
+        const replyArea = document.getElementById('parentReplyArea');
+        
+        // 캡처 시 불필요한 영역 임시 숨김
+        actionArea.style.display = 'none';
+        replyArea.style.display = 'none';
+        
+        // 스크롤 상단으로 임시 이동 (캡처 잘림 방지)
+        const currentScroll = window.scrollY;
+        window.scrollTo(0, 0);
+
+        try {
+            const canvas = await html2canvas(reportElement, {
+                useCORS: true,
+                scale: 2, // 해상도 업그레이드
+                backgroundColor: '#ffffff',
+                logging: false
+            });
+            const image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            const link = document.createElement('a');
+            link.download = `${reportChildName}_AI일기_성장보고서.png`;
+            link.href = image;
+            link.click();
+        } catch (e) {
+            console.error("캡처 실패", e);
+            alert("캡처에 실패했습니다. 모바일 브라우저의 PDF 저장이나 화면 캡처 기능을 이용해 주세요.");
+        } finally {
+            actionArea.style.display = 'flex';
+            replyArea.style.display = 'block';
+            window.scrollTo(0, currentScroll); // 스크롤 위치 원복
+        }
+    }
+
     // 부모님 답장 카카오톡 메시지 전송 기능
     function sendParentReply() {
         const replyText = document.getElementById('parentReplyInput').value.trim();
@@ -655,7 +726,7 @@
 
     // 부모님 보고서 공유 모드 감지 (자동 구동)
     const urlParams = new URLSearchParams(window.location.search);
-    const reportParam = urlParams.get('report');
+    const reportParam = urlParams.get('r') || urlParams.get('report');
     if (reportParam) {
         renderParentReport(reportParam);
     }
