@@ -131,6 +131,11 @@ async def check_diary(data: DiaryInput):
                 status_code=429,
                 detail="AI 선생님 요청 한도(1분당 제한)를 초과했습니다. 약 1분 후에 다시 시도해주세요! ⏳"
             )
+        elif "503" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str:
+            raise HTTPException(
+                status_code=503,
+                detail="현재 Google AI 서버에 일시적으로 많은 요청이 몰려 대기 중입니다. 잠시 후 다시 시도해주세요! ⏳"
+            )
         raise HTTPException(status_code=500, detail=f"AI 서버 오류가 발생했습니다: {err_str}")
 
 @app.get("/shorten")
