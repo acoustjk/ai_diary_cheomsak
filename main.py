@@ -1,6 +1,7 @@
 import os
 import json
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
@@ -123,6 +124,10 @@ async def check_diary(data: DiaryInput):
         raise he
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI 서버 오류가 발생했습니다: {str(e)}")
+
+@app.get("/")
+async def read_index():
+    return FileResponse("index.html")
 
 if __name__ == "__main__":
     import uvicorn
