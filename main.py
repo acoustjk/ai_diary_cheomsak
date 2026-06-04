@@ -8,6 +8,57 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
 from google.genai import types
+import firebase_admin
+from firebase_admin import credentials, messaging
+
+# Initialize Firebase Admin SDK
+firebase_creds_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+if firebase_creds_json:
+    try:
+        creds_dict = json.loads(firebase_creds_json)
+        cred = credentials.Certificate(creds_dict)
+        firebase_admin.initialize_app(cred)
+        print("Firebase Admin initialized successfully with environment variable credentials.")
+    except Exception as e:
+        print(f"Error initializing Firebase Admin with env var: {e}")
+else:
+    # Fallback to local serviceAccountKey.json
+    local_key_path = "serviceAccountKey.json"
+    if os.path.exists(local_key_path):
+        try:
+            cred = credentials.Certificate(local_key_path)
+            firebase_admin.initialize_app(cred)
+            print("Firebase Admin initialized with local serviceAccountKey.json.")
+        except Exception as e:
+            print(f"Error initializing Firebase Admin with local key: {e}")
+    else:
+        print("Firebase Admin NOT initialized: No credentials found. Push notifications will be skipped.")
+
+def send_fcm_notification(child_id: str, child_name: str):
+    if not firebase_admin._apps:
+        print("Firebase Admin is not initialized. Skipping notification.")
+        return
+    
+    topic = f"child_{child_id}"
+    display_name = child_name or "아이"
+    
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title="✍️ 일기 작성 완료!",
+            body=f"{display_name}이가 일기 쓰기를 완료했어요! 첨삭 결과를 확인해 보세요."
+        ),
+        data={
+            "childId": child_id,
+            "childName": child_name or ""
+        },
+        topic=topic,
+    )
+    
+    try:
+        response = messaging.send(message)
+        print(f"Successfully sent message to topic {topic}: {response}")
+    except Exception as e:
+        print(f"Failed to send FCM message: {e}")
 
 app = FastAPI()
 
@@ -49,6 +100,8 @@ class DiaryInput(BaseModel):
     original_content: str = None
     feedback: str = None
     api_key: str = None
+    child_id: str = None
+    child_name: str = None
 
 AI_REWRITE_PROMPT = """
 당신은 10세 초등학생 아이들의 일기를 검사하고 문해력을 키워주는 다정한 초등학교 선생님입니다.
@@ -121,6 +174,14 @@ async def check_diary(data: DiaryInput):
         )
         
         result = json.loads(response.text)
+        
+        # 만약 고쳐 쓰기 완료(original_content가 있는 경우)이고 child_id가 전달된 경우 FCM 알림 전송
+        if data.original_content and data.child_id:
+            try:
+                send_fcm_notification(data.child_id, data.child_name)
+            except Exception as e:
+                print(f"Error during push notification execution: {e}")
+                
         return result
         
     except HTTPException as he:
