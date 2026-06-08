@@ -100,6 +100,17 @@
 
 <div class="container">
     <div class="left-panel">
+        <!-- ✍️ 작가 프로필 선택기 카드 -->
+        <div id="profileSwitcherCard" style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; text-align: left;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: bold; font-size: 14px; color: #2d3748;">✍️ 현재 작성 중인 어린이 프로필</span>
+                <button onclick="addNewProfilePrompt()" style="margin-top: 0; background: #3182ce; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none;">+ 새 작가 추가</button>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px;" id="profileListArea">
+                <!-- 자녀 프로필 선택 버튼들이 여기에 렌더링됩니다 -->
+            </div>
+        </div>
+
         <!-- 👦 어린이 작가 이름 입력 카드 -->
         <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; box-sizing: border-box;">
             <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #2d3748; white-space: nowrap;">👦 어린이 작가 이름:</label>
@@ -275,23 +286,331 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 로컬 스토리지에서 childId 및 childName 읽기/생성
+    // ----------------------------------------------------
+    // 다중 프로필 관리 시스템 (Option 1)
+    // ----------------------------------------------------
+    let profiles = [];
+    try {
+        profiles = JSON.parse(localStorage.getItem('child_profiles') || '[]');
+    } catch (e) {
+        console.error("Failed to parse child_profiles, reset to empty", e);
+    }
+
+    // 마이그레이션: 기존 childId가 있고 profiles가 비어있으면 마이그레이션 진행
+    let legacyChildId = localStorage.getItem('child_id');
+    let legacyChildName = localStorage.getItem('child_name') || '';
+    
+    if (profiles.length === 0) {
+        if (legacyChildId) {
+            profiles = [{ id: legacyChildId, name: legacyChildName || '어린이 작가' }];
+        } else {
+            const defaultId = self.crypto.randomUUID();
+            profiles = [{ id: defaultId, name: '어린이 작가' }];
+            legacyChildId = defaultId;
+        }
+        localStorage.setItem('child_profiles', JSON.stringify(profiles));
+    }
+
+    // 활성 childId 결정
     let childId = localStorage.getItem('child_id');
-    if (!childId) {
-        childId = self.crypto.randomUUID();
+    if (!childId || !profiles.some(p => p.id === childId)) {
+        childId = profiles[0].id;
         localStorage.setItem('child_id', childId);
     }
-    let childName = localStorage.getItem('child_name') || '';
+    
+    let childName = profiles.find(p => p.id === childId)?.name || '어린이 작가';
 
     // UI 요소 연동
     const childNameInput = document.getElementById('childNameInput');
-    // input이 있는지 방어 코드 처리 (공유뷰일 때는 없음)
     if (childNameInput) {
         childNameInput.value = childName;
         childNameInput.addEventListener('input', (e) => {
             childName = e.target.value.trim();
-            localStorage.setItem('child_name', childName);
+            // 프로필 리스트 업데이트
+            const profile = profiles.find(p => p.id === childId);
+            if (profile) {
+                profile.name = childName || '어린이 작가';
+                localStorage.setItem('child_profiles', JSON.stringify(profiles));
+                renderProfiles();
+            }
         });
+    }
+
+    // 프로필 렌더링
+    function renderProfiles() {
+        const listArea = document.getElementById('profileListArea');
+        if (!listArea) return;
+        listArea.innerHTML = '';
+
+        profiles.forEach(p => {
+            const isActive = p.id === childId;
+            const chip = document.createElement('div');
+            chip.style.display = 'inline-flex';
+            chip.style.alignItems = 'center';
+            chip.style.padding = '6px 12px';
+            chip.style.borderRadius = '20px';
+            chip.style.fontSize = '13px';
+            chip.style.fontWeight = 'bold';
+            chip.style.cursor = 'pointer';
+            chip.style.transition = 'all 0.2s';
+            chip.style.border = '2px solid';
+
+            if (isActive) {
+                chip.style.backgroundColor = '#ebf8ff';
+                chip.style.borderColor = '#3182ce';
+                chip.style.color = '#2b6cb0';
+            } else {
+                chip.style.backgroundColor = '#f7fafc';
+                chip.style.borderColor = '#e2e8f0';
+                chip.style.color = '#4a5568';
+            }
+
+            chip.onclick = (e) => {
+                if (e.target.classList.contains('delete-btn')) return;
+                selectProfile(p.id);
+            };
+
+            const nameSpan = document.createElement('span');
+            nameSpan.innerText = '👦 ' + (p.name || '새 작가');
+            chip.appendChild(nameSpan);
+
+            if (profiles.length > 1) {
+                const deleteBtn = document.createElement('span');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerText = ' ×';
+                deleteBtn.style.marginLeft = '8px';
+                deleteBtn.style.color = '#e53e3e';
+                deleteBtn.style.fontSize = '14px';
+                deleteBtn.style.cursor = 'pointer';
+                deleteBtn.style.fontWeight = 'bold';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteProfilePrompt(p.id, p.name);
+                };
+                chip.appendChild(deleteBtn);
+            }
+
+            listArea.appendChild(chip);
+        });
+    }
+
+    // 프로필 추가 프롬프트
+    function addNewProfilePrompt() {
+        const name = prompt("새로운 어린이 작가 이름을 입력해 주세요:");
+        if (!name || !name.trim()) return;
+
+        saveSession(childId);
+
+        const newId = self.crypto.randomUUID();
+        profiles.push({ id: newId, name: name.trim() });
+        localStorage.setItem('child_profiles', JSON.stringify(profiles));
+
+        selectProfile(newId);
+    }
+
+    // 프로필 삭제 프롬프트
+    function deleteProfilePrompt(id, name) {
+        if (profiles.length <= 1) {
+            alert('최소 하나의 프로필은 존재해야 합니다.');
+            return;
+        }
+        if (!confirm(`정말 이 프로필 [${name}]을 삭제할까요?\n작성 중이던 일기와 세션 정보도 함께 삭제됩니다.`)) {
+            return;
+        }
+
+        localStorage.removeItem('diary_session_' + id);
+        localStorage.removeItem('diary_streak_' + id);
+        localStorage.removeItem('diary_last_date_' + id);
+
+        profiles = profiles.filter(p => p.id !== id);
+        localStorage.setItem('child_profiles', JSON.stringify(profiles));
+
+        if (childId === id) {
+            childId = profiles[0].id;
+            localStorage.setItem('child_id', childId);
+            childName = profiles[0].name;
+            const childNameInput = document.getElementById('childNameInput');
+            if (childNameInput) childNameInput.value = childName;
+            
+            loadSession(childId);
+            
+            if (!isReportModeOnStart) {
+                startPairingListener();
+            }
+            updateStreakAndBadges(false);
+        } else {
+            renderProfiles();
+        }
+    }
+
+    // 프로필 선택 전환
+    function selectProfile(id) {
+        if (childId === id) return;
+
+        saveSession(childId);
+
+        childId = id;
+        localStorage.setItem('child_id', childId);
+        const currentProfile = profiles.find(p => p.id === childId);
+        childName = currentProfile ? currentProfile.name : '어린이 작가';
+
+        const childNameInput = document.getElementById('childNameInput');
+        if (childNameInput) {
+            childNameInput.value = childName;
+        }
+
+        loadSession(childId);
+
+        if (!isReportModeOnStart) {
+            startPairingListener();
+        }
+        
+        updateStreakAndBadges(false);
+        renderProfiles();
+    }
+
+    // 현재 세션 상태 저장 함수
+    function saveSession(id) {
+        if (!id) return;
+        const txt = document.getElementById('diaryInput') ? document.getElementById('diaryInput').value : '';
+        const sessionState = {
+            text: txt,
+            originalContent: originalContent,
+            originalFeedback: originalFeedback,
+            prevSpellingScore: prevSpellingScore,
+            prevExpressionScore: prevExpressionScore,
+            isRewriteMode: isRewriteMode,
+            firstSpellingScore: firstSpellingScore,
+            firstExpressionScore: firstExpressionScore,
+            firstStamp: firstStamp,
+            secondSpellingScore: secondSpellingScore,
+            secondExpressionScore: secondExpressionScore,
+            secondStamp: secondStamp,
+            rewrittenContent: rewrittenContent,
+            feedbackResultHTML: document.getElementById('feedbackResult') ? document.getElementById('feedbackResult').innerHTML : '',
+            scoreContainerDisplay: document.getElementById('scoreContainer') ? document.getElementById('scoreContainer').style.display : 'none',
+            spellingScoreText: document.getElementById('spellingScoreText') ? document.getElementById('spellingScoreText').innerText : '0점',
+            spellingScoreFillWidth: document.getElementById('spellingScoreFill') ? document.getElementById('spellingScoreFill').style.width : '0%',
+            expressionScoreText: document.getElementById('expressionScoreText') ? document.getElementById('expressionScoreText').innerText : '0점',
+            expressionScoreFillWidth: document.getElementById('expressionScoreFill') ? document.getElementById('expressionScoreFill').style.width : '0%',
+            stampBadgeDisplay: document.getElementById('stampBadge') ? document.getElementById('stampBadge').style.display : 'none',
+            stampText: document.getElementById('stampText') ? document.getElementById('stampText').innerText : '',
+            stampColor: document.getElementById('stampBadge') ? document.getElementById('stampBadge').style.color : '',
+            stampBorderColor: document.getElementById('stampBadge') ? document.getElementById('stampBadge').style.borderColor : '',
+            bonusScoreTextDisplay: document.getElementById('bonusScoreText') ? document.getElementById('bonusScoreText').style.display : 'none',
+            btnRetryDisplay: document.getElementById('btnRetry') ? document.getElementById('btnRetry').style.display : 'none',
+            levelupTitleDisplay: document.getElementById('levelupTitle') ? document.getElementById('levelupTitle').style.display : 'none',
+            btnShareDisplay: document.getElementById('btnShare') ? document.getElementById('btnShare').style.display : 'none'
+        };
+        localStorage.setItem('diary_session_' + id, JSON.stringify(sessionState));
+    }
+
+    // 세션 상태 복원 함수
+    function loadSession(id) {
+        if (!id) return;
+        const saved = localStorage.getItem('diary_session_' + id);
+        const txtInput = document.getElementById('diaryInput');
+        const charCount = document.getElementById('charCount');
+        
+        if (saved) {
+            try {
+                const s = JSON.parse(saved);
+                if (txtInput) {
+                    txtInput.value = s.text || '';
+                    if (charCount) charCount.innerText = txtInput.value.length;
+                }
+                originalContent = s.originalContent || '';
+                originalFeedback = s.originalFeedback || '';
+                prevSpellingScore = s.prevSpellingScore || 0;
+                prevExpressionScore = s.prevExpressionScore || 0;
+                isRewriteMode = s.isRewriteMode || false;
+                firstSpellingScore = s.firstSpellingScore || 0;
+                firstExpressionScore = s.firstExpressionScore || 0;
+                firstStamp = s.firstStamp || '';
+                secondSpellingScore = s.secondSpellingScore || 0;
+                secondExpressionScore = s.secondExpressionScore || 0;
+                secondStamp = s.secondStamp || '';
+                rewrittenContent = s.rewrittenContent || '';
+
+                // UI 복원
+                if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = s.feedbackResultHTML || '검사받기 버튼을 누르면 피드백과 점수가 여기에 등장해요!';
+                if (document.getElementById('scoreContainer')) document.getElementById('scoreContainer').style.display = s.scoreContainerDisplay || 'none';
+                if (document.getElementById('spellingScoreText')) document.getElementById('spellingScoreText').innerText = s.spellingScoreText || '0점';
+                if (document.getElementById('spellingScoreFill')) document.getElementById('spellingScoreFill').style.width = s.spellingScoreFillWidth || '0%';
+                if (document.getElementById('expressionScoreText')) document.getElementById('expressionScoreText').innerText = s.expressionScoreText || '0점';
+                if (document.getElementById('expressionScoreFill')) document.getElementById('expressionScoreFill').style.width = s.expressionScoreFillWidth || '0%';
+                if (document.getElementById('stampBadge')) {
+                    document.getElementById('stampBadge').style.display = s.stampBadgeDisplay || 'none';
+                    document.getElementById('stampBadge').style.color = s.stampColor || '';
+                    document.getElementById('stampBadge').style.borderColor = s.stampBorderColor || '';
+                }
+                if (document.getElementById('stampText')) document.getElementById('stampText').innerText = s.stampText || '';
+                if (document.getElementById('bonusScoreText')) document.getElementById('bonusScoreText').style.display = s.bonusScoreTextDisplay || 'none';
+                if (document.getElementById('btnRetry')) document.getElementById('btnRetry').style.display = s.btnRetryDisplay || 'none';
+                if (document.getElementById('levelupTitle')) document.getElementById('levelupTitle').style.display = s.levelupTitleDisplay || 'none';
+                if (document.getElementById('btnShare')) document.getElementById('btnShare').style.display = s.btnShareDisplay || 'none';
+
+                // 다시 쓰기 모드 UI 복원
+                if (isRewriteMode) {
+                    if (document.getElementById('rewriteBanner')) document.getElementById('rewriteBanner').style.display = 'flex';
+                    if (document.getElementById('btnSubmit')) {
+                        document.getElementById('btnSubmit').innerText = '✨ 고친 일기 다시 검사받기';
+                        document.getElementById('btnSubmit').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    }
+                } else {
+                    if (document.getElementById('rewriteBanner')) document.getElementById('rewriteBanner').style.display = 'none';
+                    if (document.getElementById('btnSubmit')) {
+                        document.getElementById('btnSubmit').innerText = '🤖 AI 선생님께 일기 검사받기';
+                        document.getElementById('btnSubmit').style.background = '#3182ce';
+                    }
+                }
+
+            } catch (err) {
+                console.error("Failed to parse saved session for child: " + id, err);
+                resetToDefaultSession();
+            }
+        } else {
+            resetToDefaultSession();
+        }
+    }
+
+    function resetToDefaultSession() {
+        const txtInput = document.getElementById('diaryInput');
+        const charCount = document.getElementById('charCount');
+        if (txtInput) {
+            txtInput.value = '';
+            if (charCount) charCount.innerText = '0';
+        }
+        originalContent = '';
+        originalFeedback = '';
+        prevSpellingScore = 0;
+        prevExpressionScore = 0;
+        isRewriteMode = false;
+        firstSpellingScore = 0;
+        firstExpressionScore = 0;
+        firstStamp = '';
+        secondSpellingScore = 0;
+        secondExpressionScore = 0;
+        secondStamp = '';
+        rewrittenContent = '';
+
+        if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = '검사받기 버튼을 누르면 피드백과 점수가 여기에 등장해요!';
+        if (document.getElementById('scoreContainer')) document.getElementById('scoreContainer').style.display = 'none';
+        if (document.getElementById('spellingScoreText')) document.getElementById('spellingScoreText').innerText = '0점';
+        if (document.getElementById('spellingScoreFill')) document.getElementById('spellingScoreFill').style.width = '0%';
+        if (document.getElementById('expressionScoreText')) document.getElementById('expressionScoreText').innerText = '0점';
+        if (document.getElementById('expressionScoreFill')) document.getElementById('expressionScoreFill').style.width = '0%';
+        if (document.getElementById('stampBadge')) document.getElementById('stampBadge').style.display = 'none';
+        if (document.getElementById('stampText')) document.getElementById('stampText').innerText = '';
+        if (document.getElementById('bonusScoreText')) document.getElementById('bonusScoreText').style.display = 'none';
+        if (document.getElementById('btnRetry')) document.getElementById('btnRetry').style.display = 'none';
+        if (document.getElementById('levelupTitle')) document.getElementById('levelupTitle').style.display = 'none';
+        if (document.getElementById('btnShare')) document.getElementById('btnShare').style.display = 'none';
+        if (document.getElementById('rewriteBanner')) document.getElementById('rewriteBanner').style.display = 'none';
+        if (document.getElementById('btnSubmit')) {
+            document.getElementById('btnSubmit').innerText = '🤖 AI 선생님께 일기 검사받기';
+            document.getElementById('btnSubmit').style.background = '#3182ce';
+        }
     }
 
     // ----------------------------------------------------
@@ -397,6 +716,9 @@
         // DOM 로드 완료 후 실행되도록 지연 처리
         window.addEventListener('DOMContentLoaded', () => {
             startPairingListener();
+            renderProfiles();
+            loadSession(childId);
+            updateStreakAndBadges(false);
         });
     }
 
@@ -506,8 +828,8 @@
 
     // 출석 체크 및 배지 시스템 로직 (브라우저 메모리 사용)
     function updateStreakAndBadges(isNewWrite) {
-        let streak = parseInt(localStorage.getItem('diary_streak') || '0');
-        let lastDate = localStorage.getItem('diary_last_date');
+        let streak = parseInt(localStorage.getItem('diary_streak_' + childId) || '0');
+        let lastDate = localStorage.getItem('diary_last_date_' + childId);
         const todayStr = new Date().toLocaleDateString();
 
         if (isNewWrite) {
@@ -520,13 +842,17 @@
                 // 연속이 깨졌거나 처음이면 1일로 초기화
                 streak = 1;
             }
-            localStorage.setItem('diary_streak', streak);
-            localStorage.setItem('diary_last_date', todayStr);
+            localStorage.setItem('diary_streak_' + childId, streak);
+            localStorage.setItem('diary_last_date_' + childId, todayStr);
         }
 
         document.getElementById('streakCount').innerText = streak;
         
         // 배지 시각 활성화
+        document.getElementById('badge1').classList.remove('active');
+        document.getElementById('badge3').classList.remove('active');
+        document.getElementById('badge5').classList.remove('active');
+
         if (streak >= 1) document.getElementById('badge1').classList.add('active');
         if (streak >= 3) document.getElementById('badge3').classList.add('active');
         if (streak >= 5) document.getElementById('badge5').classList.add('active');
@@ -534,6 +860,7 @@
 
     textarea.addEventListener('input', () => {
         charCount.innerText = textarea.value.length;
+        saveSession(childId);
     });
 
     // 복사, 붙여넣기, 잘라내기 방지 기능 추가
@@ -551,9 +878,8 @@
         e.preventDefault();
     });
 
-    // 시작하자마자 미션 생성 및 배지 체크
+    // 시작하자마자 미션 생성
     generateMissions();
-    updateStreakAndBadges(false);
 
     async function submitDiary() {
         const content = textarea.value.trim();
