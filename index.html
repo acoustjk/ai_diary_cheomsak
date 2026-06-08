@@ -5,6 +5,11 @@
     <title>똑똑일기 🚀</title>
     <!-- 구글 애드센스 수익형 광고 스크립트 -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1234567890123456" crossorigin="anonymous"></script>
+    
+    <!-- 구글 파이어베이스 JS SDK (Compat 버전) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         
@@ -95,6 +100,30 @@
 
 <div class="container">
     <div class="left-panel">
+        <!-- 👦 어린이 작가 이름 입력 카드 -->
+        <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; box-sizing: border-box;">
+            <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #2d3748; white-space: nowrap;">👦 어린이 작가 이름:</label>
+            <input type="text" id="childNameInput" placeholder="이름을 입력해 주세요" style="flex: 1; padding: 8px 12px; border: 2.5px solid #cbd5e0; border-radius: 6px; font-size: 14px; color: #000000; font-weight: bold;">
+        </div>
+
+        <!-- 🔗 부모님 연결 상태 카드 -->
+        <div id="pairingCard" style="border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; border: 2px solid #feb2b2; background-color: #fff5f5; transition: 0.3s; box-sizing: border-box;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span id="pairingEmoji" style="font-size: 20px;">⚠️</span>
+                <div style="text-align: left;">
+                    <div id="pairingStatusText" style="font-weight: bold; font-size: 14px; color: #c53030;">부모님 앱과 연결되어 있지 않아요</div>
+                    <div id="pairingSubText" style="font-size: 12px; color: #9b2c2c; margin-top: 2px;">우측 버튼을 눌러 연결 코드(6자리)를 발급받으세요.</div>
+                </div>
+            </div>
+            <button id="btnGetPairingCode" onclick="generatePairingCode()" style="margin-top: 0; background: #e53e3e; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none; white-space: nowrap;">코드 생성</button>
+        </div>
+
+        <!-- 페어링 코드 표시 구역 (평소 숨김) -->
+        <div id="pairingCodeDisplay" style="display: none; background: #edf2f7; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center; border: 1px solid #cbd5e0;">
+            <div style="font-size: 11px; color: #718096; margin-bottom: 4px; font-weight: bold;">부모님 앱에 입력할 연결 코드 (10분 유효)</div>
+            <div id="webPairingCode" style="font-size: 32px; font-weight: bold; color: #2b6cb0; letter-spacing: 2px;">000 000</div>
+        </div>
+
         <h2>✍️ 오늘의 일기 쓰기</h2>
         
         <!-- 다시 쓰기 모드 알림 배너 -->
@@ -233,6 +262,144 @@
 </div>
 
 <script>
+    // ----------------------------------------------------
+    // Firebase 설정 및 초기화
+    // ----------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyCEDJy7Mlsbd-FW10XhkqtMvW1VtuAjY9E",
+        authDomain: "toktok-diary.firebaseapp.com",
+        projectId: "toktok-diary",
+        storageBucket: "toktok-diary.firebasestorage.app",
+        messagingSenderId: "400225425219"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 로컬 스토리지에서 childId 및 childName 읽기/생성
+    let childId = localStorage.getItem('child_id');
+    if (!childId) {
+        childId = self.crypto.randomUUID();
+        localStorage.setItem('child_id', childId);
+    }
+    let childName = localStorage.getItem('child_name') || '';
+
+    // UI 요소 연동
+    const childNameInput = document.getElementById('childNameInput');
+    // input이 있는지 방어 코드 처리 (공유뷰일 때는 없음)
+    if (childNameInput) {
+        childNameInput.value = childName;
+        childNameInput.addEventListener('input', (e) => {
+            childName = e.target.value.trim();
+            localStorage.setItem('child_name', childName);
+        });
+    }
+
+    // ----------------------------------------------------
+    // 실시간 페어링 연동 리스너
+    // ----------------------------------------------------
+    let pairingListener = null;
+
+    function startPairingListener() {
+        if (pairingListener) {
+            pairingListener();
+        }
+        
+        pairingListener = db.collection("children").doc(childId)
+            .onSnapshot((doc) => {
+                const pairingCard = document.getElementById('pairingCard');
+                const pairingEmoji = document.getElementById('pairingEmoji');
+                const pairingStatusText = document.getElementById('pairingStatusText');
+                const pairingSubText = document.getElementById('pairingSubText');
+                const btnGetPairingCode = document.getElementById('btnGetPairingCode');
+
+                if (!pairingCard) return;
+
+                if (doc.exists) {
+                    const data = doc.data();
+                    const reviewers = data.pairedReviewers || [];
+                    if (reviewers.length > 0) {
+                        const names = reviewers.map(r => r.name || "보호자").join(", ");
+                        pairingCard.style.backgroundColor = "#f0fdf4";
+                        pairingCard.style.borderColor = "#bbf7d0";
+                        pairingEmoji.innerText = "✅";
+                        pairingStatusText.innerText = "부모님 앱과 연결되었습니다";
+                        pairingStatusText.style.color = "#15803d";
+                        pairingSubText.innerText = `연결된 보호자: ${names} (일기가 자동으로 전송됩니다)`;
+                        pairingSubText.style.color = "#166534";
+                        btnGetPairingCode.style.background = "#166534";
+                        btnGetPairingCode.innerText = "코드 재발급";
+                    } else {
+                        resetPairingCardUI();
+                    }
+                } else {
+                    resetPairingCardUI();
+                }
+            }, (error) => {
+                console.error("Pairing snapshot listener error:", error);
+            });
+    }
+
+    function resetPairingCardUI() {
+        const pairingCard = document.getElementById('pairingCard');
+        const pairingEmoji = document.getElementById('pairingEmoji');
+        const pairingStatusText = document.getElementById('pairingStatusText');
+        const pairingSubText = document.getElementById('pairingSubText');
+        const btnGetPairingCode = document.getElementById('btnGetPairingCode');
+
+        if (!pairingCard) return;
+
+        pairingCard.style.backgroundColor = "#fff5f5";
+        pairingCard.style.borderColor = "#feb2b2";
+        pairingEmoji.innerText = "⚠️";
+        pairingStatusText.innerText = "부모님 앱과 연결되어 있지 않아요";
+        pairingStatusText.style.color = "#c53030";
+        pairingSubText.innerText = "우측 버튼을 눌러 연결 코드(6자리)를 발급받으세요.";
+        pairingSubText.style.color = "#9b2c2c";
+        btnGetPairingCode.style.background = "#e53e3e";
+        btnGetPairingCode.innerText = "코드 생성";
+    }
+
+    // 페어링 코드 발급 함수
+    let pairingCodeTimer = null;
+    async function generatePairingCode() {
+        const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+        const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+
+        try {
+            await db.collection("children").doc(childId).set({
+                childId: childId,
+                childName: currentName,
+                pairingCode: newCode,
+                pairingCodeExpires: expires
+            }, { merge: true });
+
+            document.getElementById('webPairingCode').innerText = `${newCode.substring(0, 3)} ${newCode.substring(3, 6)}`;
+            document.getElementById('pairingCodeDisplay').style.display = 'block';
+
+            if (pairingCodeTimer) {
+                clearTimeout(pairingCodeTimer);
+            }
+            pairingCodeTimer = setTimeout(() => {
+                document.getElementById('pairingCodeDisplay').style.display = 'none';
+            }, 600000); // 10 mins
+
+            alert('페어링 코드가 발급되었습니다! 10분간 유효합니다.');
+        } catch (error) {
+            console.error("Failed to generate pairing code:", error);
+            alert("코드 발급 중 오류가 발생했습니다: " + error.message);
+        }
+    }
+
+    // 리스너 시작 (공유 모드가 아닐 때만 시작)
+    const isReportModeOnStart = new URLSearchParams(window.location.search).has('r') || new URLSearchParams(window.location.search).has('report');
+    if (!isReportModeOnStart) {
+        // DOM 로드 완료 후 실행되도록 지연 처리
+        window.addEventListener('DOMContentLoaded', () => {
+            startPairingListener();
+        });
+    }
+
     const textarea = document.getElementById('diaryInput');
     const charCount = document.getElementById('charCount');
     
@@ -430,7 +597,11 @@
                             window.location.protocol === 'file:';
             const apiBase = isLocal ? 'http://127.0.0.1:8000' : 'https://ai-diary-cheomsak.onrender.com';
 
-            const payload = { content: content };
+            const payload = { 
+                content: content,
+                child_id: childId,
+                child_name: childNameInput ? childNameInput.value.trim() : "무명 어린이"
+            };
             if (isRewriteMode) {
                 payload.original_content = originalContent;
                 payload.feedback = originalFeedback;
@@ -544,6 +715,37 @@
 
                     // 첫 제출 후에는 다시 쓰기 버튼 활성화
                     btnRetry.style.display = 'block';
+
+                    // ----------------------------------------------------
+                    // Firestore 실시간 데이터베이스 업로드
+                    // ----------------------------------------------------
+                    const diaryReportId = self.crypto.randomUUID();
+                    const diaryTimestamp = Date.now();
+                    const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+                    const uploadData = {
+                        diaryId: diaryReportId,
+                        timestamp: diaryTimestamp,
+                        name: currentName,
+                        originalContent: isRewriteMode ? originalContent : content,
+                        originalFeedback: isRewriteMode ? originalFeedback : data.feedback,
+                        rewrittenContent: isRewriteMode ? content : "",
+                        firstSpellingScore: isRewriteMode ? prevSpellingScore : finalSpelling,
+                        firstExpressionScore: isRewriteMode ? prevExpressionScore : finalExpression,
+                        secondSpellingScore: isRewriteMode ? finalSpelling : 0,
+                        secondExpressionScore: isRewriteMode ? finalExpression : 0,
+                        stamp: data.stamp,
+                        improved: data.improved || false
+                    };
+
+                    db.collection("children").doc(childId)
+                        .collection("diaries").doc(diaryReportId)
+                        .set(uploadData, { merge: true })
+                        .then(() => {
+                            console.log("웹 일기 보고서 Firestore 업로드 성공!");
+                        })
+                        .catch((e) => {
+                            console.error("웹 일기 보고서 Firestore 업로드 실패:", e);
+                        });
 
                 } else {
                     feedbackResult.innerText = '오류 발생: ' + (data.detail || JSON.stringify(data));
