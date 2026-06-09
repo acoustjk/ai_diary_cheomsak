@@ -65,6 +65,73 @@
         .levelup-title { display: none; text-align: center; font-size: 17px; font-weight: bold; color: #b7791f; background: #fefcbf; border: 2px solid #ecc94b; border-radius: 10px; padding: 12px; margin-bottom: 15px; animation: levelup-pulse 0.8s infinite alternate; }
         @keyframes levelup-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
 
+        /* 가상 키보드 & 타자 가이드 스타일 */
+        .key {
+            background: white;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 7px 0;
+            width: 30px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            color: #4a5568;
+            box-sizing: border-box;
+            transition: all 0.1s;
+            cursor: default;
+        }
+        .key.active {
+            background: #ecc94b !important;
+            border-color: #d69e2e !important;
+            color: white !important;
+            box-shadow: 0 0 8px #ecc94b;
+            transform: scale(1.08);
+        }
+        .finger {
+            transition: all 0.15s;
+        }
+        .finger.active {
+            background: #ecc94b !important;
+            box-shadow: 0 0 8px #ecc94b;
+            transform: translateY(-3px);
+        }
+        .char-span {
+            position: relative;
+            padding: 0 1px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .char-span.active {
+            border-bottom: 3px solid #764ba2;
+            animation: typing-blink 0.8s infinite;
+        }
+        @keyframes typing-blink {
+            0%, 100% { border-color: #764ba2; }
+            50% { border-color: transparent; }
+        }
+        .char-span.correct {
+            color: #38a169; /* Green */
+            background: transparent;
+        }
+        .char-span.incorrect {
+            color: #e53e3e; /* Red */
+            background: #fff5f5;
+        }
+
+        /* 모드 선택 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
         @media print {
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
             #mainView, #reportActionArea, #parentReplyArea { display: none !important; }
@@ -111,6 +178,7 @@
             </div>
         </div>
 
+        <div id="normalDiaryArea" style="display: flex; flex-direction: column;">
         <!-- 👦 어린이 작가 이름 입력 카드 -->
         <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; box-sizing: border-box;">
             <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #2d3748; white-space: nowrap;">👦 어린이 작가 이름:</label>
@@ -148,6 +216,130 @@
         
         <button id="btnSubmit" onclick="submitDiary()">🤖 AI 선생님께 일기 검사받기</button>
         <div id="loadingText" class="loading">⏳ AI 선생님이 일기를 분석하는 중입니다 (약 5초 소요)...</div>
+        </div>
+
+        <!-- ⌨️ 타자 연습 영역 (평소 숨김) -->
+        <div id="typingPracticeArea" style="display: none; flex-direction: column; box-sizing: border-box; text-align: left;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                <h3 style="margin: 0; color: #764ba2; font-size: 16px;">⌨️ 선생님 힌트 따라 쓰기 연습</h3>
+                <button onclick="quitTypingPractice()" style="margin-top: 0; background: #e53e3e; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none;">연습 중단</button>
+            </div>
+
+            <!-- 타자 연습 상태 배지 -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <div style="flex: 1; background: #ebf8ff; border: 1.5px solid #bee3f8; border-radius: 8px; padding: 6px; text-align: center; font-weight: bold; color: #2b6cb0; font-size: 12px;">
+                    ⏱️ 현재 타수: <span id="typingWpm" style="color:#e53e3e;">0</span> 타/분
+                </div>
+                <div style="flex: 1; background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 8px; padding: 6px; text-align: center; font-weight: bold; color: #166534; font-size: 12px;">
+                    🎯 정확도: <span id="typingAccuracy">100</span> %
+                </div>
+            </div>
+
+            <!-- 따라 쓰기 글상자 -->
+            <div style="background: #fff; border: 2.5px solid #764ba2; border-radius: 12px; padding: 15px; min-height: 100px; max-height: 180px; overflow-y: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06); line-height: 1.8; letter-spacing: 0.5px; margin-bottom: 12px; position: relative; box-sizing: border-box;">
+                <div id="typingTargetContainer" style="color: #a0aec0; word-break: break-all; user-select: none;">
+                    글을 불러오는 중...
+                </div>
+            </div>
+
+            <!-- 가상 키보드 & 양손 가이드 -->
+            <div id="keyboardGuideArea">
+                <!-- 가상 키보드 자판 레이아웃 -->
+                <div class="keyboard" style="display: flex; flex-direction: column; gap: 4px; background: #f8fafc; padding: 8px; border-radius: 12px; border: 2px solid #e2e8f0; user-select: none; box-sizing: border-box;">
+                    <!-- Row 1 -->
+                    <div class="key-row" style="display: flex; gap: 3px; justify-content: center;">
+                        <div id="key-Backquote" class="key">`</div>
+                        <div id="key-Digit1" class="key">1</div>
+                        <div id="key-Digit2" class="key">2</div>
+                        <div id="key-Digit3" class="key">3</div>
+                        <div id="key-Digit4" class="key">4</div>
+                        <div id="key-Digit5" class="key">5</div>
+                        <div id="key-Digit6" class="key">6</div>
+                        <div id="key-Digit7" class="key">7</div>
+                        <div id="key-Digit8" class="key">8</div>
+                        <div id="key-Digit9" class="key">9</div>
+                        <div id="key-Digit0" class="key">0</div>
+                        <div id="key-Minus" class="key">-</div>
+                        <div id="key-Equal" class="key">=</div>
+                        <div id="key-Backspace" class="key" style="width: 44px; font-size:9px;">Bksp</div>
+                    </div>
+                    <!-- Row 2 -->
+                    <div class="key-row" style="display: flex; gap: 3px; justify-content: center;">
+                        <div id="key-Tab" class="key" style="width: 40px; font-size:9px;">Tab</div>
+                        <div id="key-KeyQ" class="key">ㅂ</div>
+                        <div id="key-KeyW" class="key">ㅈ</div>
+                        <div id="key-KeyE" class="key">ㄷ</div>
+                        <div id="key-KeyR" class="key">ㄱ</div>
+                        <div id="key-KeyT" class="key">ㅅ</div>
+                        <div id="key-KeyY" class="key">ㅛ</div>
+                        <div id="key-KeyU" class="key">ㅕ</div>
+                        <div id="key-KeyI" class="key">ㅑ</div>
+                        <div id="key-KeyO" class="key">ㅐ</div>
+                        <div id="key-KeyP" class="key">ㅔ</div>
+                        <div id="key-BracketLeft" class="key">[</div>
+                        <div id="key-BracketRight" class="key">]</div>
+                        <div id="key-Backslash" class="key" style="width: 34px;">\</div>
+                    </div>
+                    <!-- Row 3 -->
+                    <div class="key-row" style="display: flex; gap: 3px; justify-content: center;">
+                        <div id="key-CapsLock" class="key" style="width: 44px; font-size:9px;">Caps</div>
+                        <div id="key-KeyA" class="key">ㅁ</div>
+                        <div id="key-KeyS" class="key">ㄴ</div>
+                        <div id="key-KeyD" class="key">ㅇ</div>
+                        <div id="key-KeyF" class="key">ㄹ</div>
+                        <div id="key-KeyG" class="key">ㅎ</div>
+                        <div id="key-KeyH" class="key">ㅗ</div>
+                        <div id="key-KeyJ" class="key">ㅓ</div>
+                        <div id="key-KeyK" class="key">ㅏ</div>
+                        <div id="key-KeyL" class="key">ㅣ</div>
+                        <div id="key-Semicolon" class="key">;</div>
+                        <div id="key-Quote" class="key">'</div>
+                        <div id="key-Enter" class="key" style="width: 46px; font-size:9px;">Enter</div>
+                    </div>
+                    <!-- Row 4 -->
+                    <div class="key-row" style="display: flex; gap: 3px; justify-content: center;">
+                        <div id="key-ShiftLeft" class="key" style="width: 54px; font-size:9px;">Shift</div>
+                        <div id="key-KeyZ" class="key">ㅋ</div>
+                        <div id="key-KeyX" class="key">ㅌ</div>
+                        <div id="key-KeyC" class="key">ㅊ</div>
+                        <div id="key-KeyV" class="key">ㅍ</div>
+                        <div id="key-KeyB" class="key">ㅠ</div>
+                        <div id="key-KeyN" class="key">ㅜ</div>
+                        <div id="key-KeyM" class="key">ㅡ</div>
+                        <div id="key-Comma" class="key">,</div>
+                        <div id="key-Period" class="key">.</div>
+                        <div id="key-Slash" class="key">/</div>
+                        <div id="key-ShiftRight" class="key" style="width: 54px; font-size:9px;">Shift</div>
+                    </div>
+                    <!-- Row 5 -->
+                    <div class="key-row" style="display: flex; gap: 3px; justify-content: center;">
+                        <div id="key-Space" class="key" style="width: 220px;">Space</div>
+                    </div>
+                </div>
+
+                <!-- 양손 가이드 그래픽 -->
+                <div class="hands-container" style="display: flex; justify-content: center; gap: 40px; margin-top: 10px;">
+                    <!-- Left Hand -->
+                    <div class="hand left-hand" style="display: flex; gap: 5px; align-items: flex-end; height: 60px; padding: 5px 10px; background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 12px; position: relative; width: 90px; box-sizing: border-box;">
+                        <span style="position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: bold; color: #a0aec0; white-space: nowrap;">왼손</span>
+                        <div id="finger-1" class="finger" style="width: 8px; height: 25px; background: #cbd5e0; border-radius: 4px;"></div>
+                        <div id="finger-2" class="finger" style="width: 8px; height: 32px; background: #cbd5e0; border-radius: 4px;"></div>
+                        <div id="finger-3" class="finger" style="width: 8px; height: 35px; background: #cbd5e0; border-radius: 4px;"></div>
+                        <div id="finger-4" class="finger" style="width: 8px; height: 32px; background: #cbd5e0; border-radius: 4px;"></div>
+                        <div id="finger-5" class="finger" style="width: 8px; height: 18px; background: #cbd5e0; border-radius: 4px; margin-left: 2px;"></div>
+                    </div>
+                    <!-- Right Hand -->
+                    <div class="hand right-hand" style="display: flex; gap: 5px; align-items: flex-end; height: 60px; padding: 5px 10px; background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 12px; position: relative; width: 90px; box-sizing: border-box;">
+                        <span style="position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: bold; color: #a0aec0; white-space: nowrap;">오른손</span>
+                        <div id="finger-6" class="finger" style="width: 8px; height: 18px; background: #cbd5e0; border-radius: 4px; margin-right: 2px;"></div>
+                        <div id="finger-7" class="finger" style="width: 8px; height: 32px; background: #cbd5e0; border-radius: 4px;"></div>
+                        <div id="finger-8" class="finger" style="width: 8px; height: 35px; background: #cbd5e0; border-radius: 4px;"></div>
+                        <div id="finger-9" class="finger" style="width: 8px; height: 32px; background: #cbd5e0; border-radius: 4px;"></div>
+                        <div id="finger-10" class="finger" style="width: 8px; height: 25px; background: #cbd5e0; border-radius: 4px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="right-panel">
@@ -487,6 +679,7 @@
             secondExpressionScore: secondExpressionScore,
             secondStamp: secondStamp,
             rewrittenContent: rewrittenContent,
+            lastCorrectedDiary: lastCorrectedDiary,
             feedbackResultHTML: document.getElementById('feedbackResult') ? document.getElementById('feedbackResult').innerHTML : '',
             scoreContainerDisplay: document.getElementById('scoreContainer') ? document.getElementById('scoreContainer').style.display : 'none',
             spellingScoreText: document.getElementById('spellingScoreText') ? document.getElementById('spellingScoreText').innerText : '0점',
@@ -531,6 +724,7 @@
                 secondExpressionScore = s.secondExpressionScore || 0;
                 secondStamp = s.secondStamp || '';
                 rewrittenContent = s.rewrittenContent || '';
+                lastCorrectedDiary = s.lastCorrectedDiary || '';
 
                 // UI 복원
                 if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = s.feedbackResultHTML || '검사받기 버튼을 누르면 피드백과 점수가 여기에 등장해요!';
@@ -581,6 +775,7 @@
             txtInput.value = '';
             if (charCount) charCount.innerText = '0';
         }
+        lastCorrectedDiary = '';
         originalContent = '';
         originalFeedback = '';
         prevSpellingScore = 0;
@@ -726,6 +921,119 @@
     const charCount = document.getElementById('charCount');
     
     // 다시 쓰기 상태 관리 변수
+    let lastCorrectedDiary = ''; // AI 선생님이 고쳐준 완벽한 일기
+    let isTypingMode = false;
+    let typingText = '';
+    let typingIndex = 0;
+    let typingJamos = [];
+    let typingJamoIndex = 0;
+    let typingErrors = 0;
+    let typingTotalKeystrokes = 0;
+    let typingStartTime = null;
+
+    const CHOSEONG_LIST = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+    const JUNGSEONG_LIST = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+    const JONGSEONG_LIST = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+    const COMPOSITE_VOWELS = {
+        'ㅘ': ['ㅗ', 'ㅏ'], 'ㅙ': ['ㅗ', 'ㅐ'], 'ㅚ': ['ㅗ', 'ㅣ'],
+        'ㅝ': ['ㅜ', 'ㅓ'], 'ㅞ': ['ㅜ', 'ㅔ'], 'ㅟ': ['ㅜ', 'ㅣ'],
+        'ㅢ': ['ㅡ', 'ㅣ']
+    };
+
+    const COMPOSITE_CONSONANTS = {
+        'ㄳ': ['ㄱ', 'ㅅ'], 'ㄴ': ['ㄴ', 'ㅈ'], 'ㄶ': ['ㄴ', 'ㅎ'],
+        'ㄺ': ['ㄹ', 'ㄱ'], 'ㄻ': ['ㄹ', 'ㅁ'], 'ㄼ': ['ㄹ', 'ㅂ'],
+        'ㄽ': ['ㄹ', 'ㅅ'], 'ㄾ': ['ㄹ', 'ㅌ'], 'ㄿ': ['ㄹ', 'ㅍ'],
+        'ㅀ': ['ㄹ', 'ㅎ'], 'ㅄ': ['ㅂ', 'ㅅ']
+    };
+
+    const JAMO_TO_KEY = {
+        'ㄱ': { code: 'KeyR', shift: false }, 'ㄲ': { code: 'KeyR', shift: true },
+        'ㄴ': { code: 'KeyS', shift: false }, 'ㄷ': { code: 'KeyE', shift: false },
+        'ㄸ': { code: 'KeyE', shift: true }, 'ㄹ': { code: 'KeyF', shift: false },
+        'ㅁ': { code: 'KeyA', shift: false }, 'ㅂ': { code: 'KeyQ', shift: false },
+        'ㅃ': { code: 'KeyQ', shift: true }, 'ㅅ': { code: 'KeyT', shift: false },
+        'ㅆ': { code: 'KeyT', shift: true }, 'ㅇ': { code: 'KeyD', shift: false },
+        'ㅈ': { code: 'KeyW', shift: false }, 'ㅉ': { code: 'KeyW', shift: true },
+        'ㅊ': { code: 'KeyC', shift: false }, 'ㅋ': { code: 'KeyZ', shift: false },
+        'ㅌ': { code: 'KeyX', shift: false }, 'ㅍ': { code: 'KeyV', shift: false },
+        'ㅎ': { code: 'KeyG', shift: false }, 'ㅏ': { code: 'KeyK', shift: false },
+        'ㅐ': { code: 'KeyO', shift: false }, 'ㅑ': { code: 'KeyI', shift: false },
+        'ㅒ': { code: 'KeyO', shift: true }, 'ㅓ': { code: 'KeyJ', shift: false },
+        'ㅔ': { code: 'KeyP', shift: false }, 'ㅕ': { code: 'KeyU', shift: false },
+        'ㅖ': { code: 'KeyP', shift: true }, 'ㅗ': { code: 'KeyH', shift: false },
+        'ㅛ': { code: 'KeyY', shift: false }, 'ㅜ': { code: 'KeyN', shift: false },
+        'ㅠ': { code: 'KeyB', shift: false }, 'ㅡ': { code: 'KeyM', shift: false },
+        'ㅣ': { code: 'KeyL', shift: false }
+    };
+
+    const ENGLISH_KEY_MAP = {
+        'a': { code: 'KeyA', shift: false }, 'A': { code: 'KeyA', shift: true },
+        'b': { code: 'KeyB', shift: false }, 'B': { code: 'KeyB', shift: true },
+        'c': { code: 'KeyC', shift: false }, 'C': { code: 'KeyC', shift: true },
+        'd': { code: 'KeyD', shift: false }, 'D': { code: 'KeyD', shift: true },
+        'e': { code: 'KeyE', shift: false }, 'E': { code: 'KeyE', shift: true },
+        'f': { code: 'KeyF', shift: false }, 'F': { code: 'KeyF', shift: true },
+        'g': { code: 'KeyG', shift: false }, 'G': { code: 'KeyG', shift: true },
+        'h': { code: 'KeyH', shift: false }, 'H': { code: 'KeyH', shift: true },
+        'i': { code: 'KeyI', shift: false }, 'I': { code: 'KeyI', shift: true },
+        'j': { code: 'KeyJ', shift: false }, 'J': { code: 'KeyJ', shift: true },
+        'k': { code: 'KeyK', shift: false }, 'K': { code: 'KeyK', shift: true },
+        'l': { code: 'KeyL', shift: false }, 'L': { code: 'KeyL', shift: true },
+        'm': { code: 'KeyM', shift: false }, 'M': { code: 'KeyM', shift: true },
+        'n': { code: 'KeyN', shift: false }, 'N': { code: 'KeyN', shift: true },
+        'o': { code: 'KeyO', shift: false }, 'O': { code: 'KeyO', shift: true },
+        'p': { code: 'KeyP', shift: false }, 'P': { code: 'KeyP', shift: true },
+        'q': { code: 'KeyQ', shift: false }, 'Q': { code: 'KeyQ', shift: true },
+        'r': { code: 'KeyR', shift: false }, 'R': { code: 'KeyR', shift: true },
+        's': { code: 'KeyS', shift: false }, 'S': { code: 'KeyS', shift: true },
+        't': { code: 'KeyT', shift: false }, 'T': { code: 'KeyT', shift: true },
+        'u': { code: 'KeyU', shift: false }, 'U': { code: 'KeyU', shift: true },
+        'v': { code: 'KeyV', shift: false }, 'V': { code: 'KeyV', shift: true },
+        'w': { code: 'KeyW', shift: false }, 'W': { code: 'KeyW', shift: true },
+        'x': { code: 'KeyX', shift: false }, 'X': { code: 'KeyX', shift: true },
+        'y': { code: 'KeyY', shift: false }, 'Y': { code: 'KeyY', shift: true },
+        'z': { code: 'KeyZ', shift: false }, 'Z': { code: 'KeyZ', shift: true },
+        '1': { code: 'Digit1', shift: false }, '!': { code: 'Digit1', shift: true },
+        '2': { code: 'Digit2', shift: false }, '@': { code: 'Digit2', shift: true },
+        '3': { code: 'Digit3', shift: false }, '#': { code: 'Digit3', shift: true },
+        '4': { code: 'Digit4', shift: false }, '$': { code: 'Digit4', shift: true },
+        '5': { code: 'Digit5', shift: false }, '%': { code: 'Digit5', shift: true },
+        '6': { code: 'Digit6', shift: false }, '^': { code: 'Digit6', shift: true },
+        '7': { code: 'Digit7', shift: false }, '&': { code: 'Digit7', shift: true },
+        '8': { code: 'Digit8', shift: false }, '*': { code: 'Digit8', shift: true },
+        '9': { code: 'Digit9', shift: false }, '(': { code: 'Digit9', shift: true },
+        '0': { code: 'Digit0', shift: false }, ')': { code: 'Digit0', shift: true },
+        '-': { code: 'Minus', shift: false }, '_': { code: 'Minus', shift: true },
+        '=': { code: 'Equal', shift: false }, '+': { code: 'Equal', shift: true },
+        '[': { code: 'BracketLeft', shift: false }, '{': { code: 'BracketLeft', shift: true },
+        ']': { code: 'BracketRight', shift: false }, '}': { code: 'BracketRight', shift: true },
+        ';': { code: 'Semicolon', shift: false }, ':': { code: 'Semicolon', shift: true },
+        "'": { code: 'Quote', shift: false }, '"': { code: 'Quote', shift: true },
+        ',': { code: 'Comma', shift: false }, '<': { code: 'Comma', shift: true },
+        '.': { code: 'Period', shift: false }, '>': { code: 'Period', shift: true },
+        '/': { code: 'Slash', shift: false }, '?': { code: 'Slash', shift: true },
+        '\\': { code: 'Backslash', shift: false }, '|': { code: 'Backslash', shift: true },
+        '`': { code: 'Backquote', shift: false }, '~': { code: 'Backquote', shift: true }
+    };
+
+    const KEY_TO_FINGER = {
+        'KeyQ': 1, 'KeyA': 1, 'KeyZ': 1, 'Digit1': 1, 'Backquote': 1, 'ShiftLeft': 1,
+        'KeyW': 2, 'KeyS': 2, 'KeyX': 2, 'Digit2': 2,
+        'KeyE': 3, 'KeyD': 3, 'KeyC': 3, 'Digit3': 3,
+        'KeyR': 4, 'KeyF': 4, 'KeyV': 4, 'Digit4': 4,
+        'KeyT': 4, 'KeyG': 4, 'KeyB': 4, 'Digit5': 4,
+        'Space': 5,
+        'KeyY': 7, 'KeyH': 7, 'KeyN': 7, 'Digit6': 7,
+        'KeyU': 7, 'KeyJ': 7, 'KeyM': 7, 'Digit7': 7,
+        'KeyI': 8, 'KeyK': 8, 'Comma': 8, 'Digit8': 8,
+        'KeyO': 9, 'KeyL': 9, 'Period': 9, 'Digit9': 9,
+        'KeyP': 10, 'Semicolon': 10, 'Slash': 10, 'Digit0': 10, 'Minus': 10, 'Equal': 10,
+        'BracketLeft': 10, 'BracketRight': 10, 'Backslash': 10, 'Quote': 10,
+        'Backspace': 10, 'Enter': 10, 'ShiftRight': 10
+    };
+
     let originalContent = '';
     let originalFeedback = '';
     let prevSpellingScore = 0;
@@ -787,6 +1095,370 @@
             return null;
         }
     }
+
+    // ----------------------------------------------------
+    // 타자 가이드 및 따라 쓰기 연습 기능 구현
+    // ----------------------------------------------------
+    function decomposeHangul(syllable) {
+        const charCode = syllable.charCodeAt(0) - 0xAC00;
+        if (charCode < 0 || charCode > 11171) {
+            return [syllable];
+        }
+        const choIndex = Math.floor(charCode / 588);
+        const jungIndex = Math.floor((charCode % 588) / 28);
+        const jongIndex = charCode % 28;
+
+        const cho = CHOSEONG_LIST[choIndex];
+        const jung = JUNGSEONG_LIST[jungIndex];
+        const jong = JONGSEONG_LIST[jongIndex];
+
+        const parts = [cho];
+        if (COMPOSITE_VOWELS[jung]) {
+            parts.push(...COMPOSITE_VOWELS[jung]);
+        } else {
+            parts.push(jung);
+        }
+
+        if (jong) {
+            if (COMPOSITE_CONSONANTS[jong]) {
+                parts.push(...COMPOSITE_CONSONANTS[jong]);
+            } else {
+                parts.push(jong);
+            }
+        }
+        return parts;
+    }
+
+    function getKeystrokesForChar(char) {
+        if (char === ' ') return [{ code: 'Space', shift: false }];
+        if (char === '\n') return [{ code: 'Enter', shift: false }];
+        const code = char.charCodeAt(0);
+        if (code >= 0xAC00 && code <= 0xD7A3) {
+            const jamos = decomposeHangul(char);
+            const keystrokes = [];
+            for (let j of jamos) {
+                if (JAMO_TO_KEY[j]) keystrokes.push(JAMO_TO_KEY[j]);
+            }
+            return keystrokes;
+        }
+        if (JAMO_TO_KEY[char]) return [JAMO_TO_KEY[char]];
+        if (ENGLISH_KEY_MAP[char]) return [ENGLISH_KEY_MAP[char]];
+        return [{ code: char, shift: false }];
+    }
+
+    function chooseRewriteMode(mode) {
+        closeModeSelectModal();
+        if (mode === 'free') {
+            startFreeRewriteMode();
+        } else if (mode === 'typing') {
+            startTypingPracticeMode();
+        }
+    }
+
+    function closeModeSelectModal() {
+        document.getElementById('modeSelectModal').style.display = 'none';
+    }
+
+    function showModeSelectModal() {
+        document.getElementById('modeSelectModal').style.display = 'flex';
+    }
+
+    // 기존의 다시 도전하기 트리거 함수를 모달을 띄우는 것으로 교체
+    function startRewriteMode() {
+        if (!lastCorrectedDiary) {
+            // 피드백 텍스트 등에서 한글 텍스트만 대충 파싱하거나 원래 일기를 기반으로 설정 (방어코드)
+            lastCorrectedDiary = textarea.value.trim() || '오늘 하루 정말 즐거웠다.';
+        }
+        showModeSelectModal();
+    }
+
+    // 1. 자유 고쳐 쓰기 모드 (기존 1안 로직)
+    function startFreeRewriteMode() {
+        originalContent = textarea.value.trim();
+        originalFeedback = document.getElementById('feedbackResult').innerText;
+        isRewriteMode = true;
+        
+        document.getElementById('rewriteBanner').style.display = 'flex';
+        document.getElementById('btnSubmit').innerText = '✨ 고친 일기 다시 검사받기';
+        document.getElementById('btnSubmit').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        document.getElementById('btnRetry').style.display = 'none';
+        
+        alert('자유 고쳐 쓰기 모드가 켜졌습니다! 선생님이 준 피드백을 보고 일기를 고쳐 쓰고 제출해 주세요.');
+    }
+
+    // 2. 가이드 따라 쓰기 타자 연습 모드 (신규 결합 모드)
+    function startTypingPracticeMode() {
+        originalContent = textarea.value.trim();
+        originalFeedback = document.getElementById('feedbackResult').innerText;
+        
+        isTypingMode = true;
+        typingText = lastCorrectedDiary;
+        typingIndex = 0;
+        typingJamoIndex = 0;
+        typingErrors = 0;
+        typingTotalKeystrokes = 0;
+        typingStartTime = null;
+
+        // UI 뷰 전환
+        document.getElementById('normalDiaryArea').style.display = 'none';
+        document.getElementById('typingPracticeArea').style.display = 'flex';
+
+        // 분석 텍스트 렌더링
+        const container = document.getElementById('typingTargetContainer');
+        container.innerHTML = '';
+        
+        for (let i = 0; i < typingText.length; i++) {
+            const span = document.createElement('span');
+            span.id = 'char-' + i;
+            span.className = 'char-span';
+            span.innerText = typingText[i] === '\n' ? '↵\n' : typingText[i];
+            if (typingText[i] === '\n') {
+                span.style.color = '#cbd5e0';
+            }
+            container.appendChild(span);
+        }
+
+        // 첫 글자 자모 준비 및 자판/손가락 하이라이트
+        typingJamos = getKeystrokesForChar(typingText[0]);
+        updateActiveSpan();
+        
+        const nextKeystroke = typingJamos[0];
+        if (nextKeystroke) {
+            highlightKeyAndFinger(nextKeystroke.code, nextKeystroke.shift);
+        }
+
+        updateTypingStats();
+        alert('선생님 힌트 따라 쓰기 타자 연습이 시작되었습니다! 화면 하단의 키보드 및 손가락 가이드를 보며 알맞게 쳐 보세요.');
+    }
+
+    function updateActiveSpan() {
+        document.querySelectorAll('.char-span').forEach(s => s.classList.remove('active'));
+        const activeSpan = document.getElementById('char-' + typingIndex);
+        if (activeSpan) {
+            activeSpan.classList.add('active');
+            activeSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    function highlightKeyAndFinger(code, shiftRequired) {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+        document.querySelectorAll('.finger').forEach(f => f.classList.remove('active'));
+
+        if (!code) return;
+
+        const keyEl = document.getElementById('key-' + code);
+        if (keyEl) keyEl.classList.add('active');
+
+        if (shiftRequired) {
+            const fingerNum = KEY_TO_FINGER[code];
+            if (fingerNum && fingerNum >= 6) {
+                const shiftL = document.getElementById('key-ShiftLeft');
+                if (shiftL) shiftL.classList.add('active');
+                const finger1 = document.getElementById('finger-1');
+                if (finger1) finger1.classList.add('active');
+            } else {
+                const shiftR = document.getElementById('key-ShiftRight');
+                if (shiftR) shiftR.classList.add('active');
+                const finger10 = document.getElementById('finger-10');
+                if (finger10) finger10.classList.add('active');
+            }
+        }
+
+        const fingerNum = KEY_TO_FINGER[code];
+        if (fingerNum) {
+            const fingerEl = document.getElementById('finger-' + fingerNum);
+            if (fingerEl) fingerEl.classList.add('active');
+        }
+    }
+
+    function updateTypingStats() {
+        const wpmSpan = document.getElementById('typingWpm');
+        const accSpan = document.getElementById('typingAccuracy');
+        
+        if (typingStartTime) {
+            const minutes = (Date.now() - typingStartTime) / 60000;
+            const wpm = minutes > 0 ? Math.round(typingTotalKeystrokes / minutes) : 0;
+            if (wpmSpan) wpmSpan.innerText = wpm;
+        }
+        
+        const accuracy = typingTotalKeystrokes > 0 ? Math.max(0, Math.round(((typingTotalKeystrokes - typingErrors) / typingTotalKeystrokes) * 100)) : 100;
+        if (accSpan) accSpan.innerText = accuracy;
+    }
+
+    function handleTypingKeyDown(e) {
+        if (!isTypingMode) return;
+
+        const code = e.code;
+        const shift = e.shiftKey;
+
+        // 특수 제어키 오버라이드
+        if (code === 'Space' || code === 'Tab' || code === 'Backspace' || code === 'Enter') {
+            e.preventDefault();
+        }
+
+        // 제어 모디파이어 단독 클릭 무시
+        if (code === 'ShiftLeft' || code === 'ShiftRight' || code === 'ControlLeft' || code === 'ControlRight' || code === 'AltLeft' || code === 'AltRight') {
+            return;
+        }
+
+        const currentKeystroke = typingJamos[typingJamoIndex];
+        if (!currentKeystroke) return;
+
+        typingTotalKeystrokes++;
+
+        if (code === currentKeystroke.code && shift === currentKeystroke.shift) {
+            // 입력 성공!
+            typingJamoIndex++;
+
+            if (!typingStartTime) {
+                typingStartTime = Date.now();
+            }
+
+            // 한 글자 내의 모든 자모 입력 완료 시
+            if (typingJamoIndex >= typingJamos.length) {
+                const span = document.getElementById('char-' + typingIndex);
+                if (span) {
+                    span.className = 'char-span correct';
+                }
+
+                typingIndex++;
+                typingJamoIndex = 0;
+
+                if (typingIndex >= typingText.length) {
+                    finishTypingPractice();
+                    return;
+                } else {
+                    typingJamos = getKeystrokesForChar(typingText[typingIndex]);
+                    updateActiveSpan();
+                }
+            }
+
+            const nextKeystroke = typingJamos[typingJamoIndex];
+            if (nextKeystroke) {
+                highlightKeyAndFinger(nextKeystroke.code, nextKeystroke.shift);
+            } else {
+                highlightKeyAndFinger(null, false);
+            }
+
+            updateTypingStats();
+
+        } else {
+            // 오타 입력!
+            typingErrors++;
+            
+            const span = document.getElementById('char-' + typingIndex);
+            if (span) {
+                span.classList.add('incorrect');
+                setTimeout(() => {
+                    span.classList.remove('incorrect');
+                }, 150);
+            }
+            updateTypingStats();
+        }
+    }
+
+    // 타자 완료 처리
+    function finishTypingPractice() {
+        isTypingMode = false;
+        highlightKeyAndFinger(null, false);
+
+        const accuracy = typingTotalKeystrokes > 0 ? Math.max(0, Math.round(((typingTotalKeystrokes - typingErrors) / typingTotalKeystrokes) * 100)) : 100;
+        const finalWpm = typingStartTime ? Math.round(typingTotalKeystrokes / ((Date.now() - typingStartTime) / 60000)) : 0;
+
+        alert(`🎉 정말 대단해요! 선생님 교정 일기 타자 연습을 완료했습니다!\n⏱️ 평균 타수: ${finalWpm} 타/분\n🎯 정확도: ${accuracy}%`);
+
+        // 입력창에 최종 결과 복사 및 UI 리셋
+        textarea.value = typingText;
+        if (charCount) charCount.innerText = textarea.value.length;
+
+        // UI를 원래 모드로 전환하되, 유료/고쳐쓰기 완료 상태로 업데이트
+        document.getElementById('typingPracticeArea').style.display = 'none';
+        document.getElementById('normalDiaryArea').style.display = 'flex';
+
+        // 2차 제출 데이터를 로컬 메모리에 기록 (부모님 공유용)
+        secondSpellingScore = 100;
+        secondExpressionScore = 100;
+        secondStamp = '참 잘했어요';
+        rewrittenContent = typingText;
+
+        // UI에 만점 및 레벨업 완료 상태 렌더링
+        document.getElementById('feedbackResult').innerHTML = `💮 <b>참 잘했어요!</b>\n\n선생님이 수정해 준 글을 완벽히 타자 가이드에 따라 연습 완료해냈습니다!\n정확도: ${accuracy}%, 평균 타수: ${finalWpm}타/분으로 문장 학습을 성공적으로 수료했습니다.\n\n보호자 앱으로 성장 보고서 전송이 완료되었습니다.`;
+        
+        document.getElementById('scoreContainer').style.display = 'block';
+        document.getElementById('spellingScoreText').innerText = `100점 (이전: ${prevSpellingScore}점 ➡️ 100점) (+${100 - prevSpellingScore}) 🎉`;
+        document.getElementById('spellingScoreFill').style.width = '100%';
+        document.getElementById('expressionScoreText').innerText = `100점 (이전: ${prevExpressionScore}점 ➡️ 100점) (+${100 - prevExpressionScore}) 🎉`;
+        document.getElementById('expressionScoreFill').style.width = '100%';
+        
+        document.getElementById('stampText').innerText = '참 잘했어요';
+        const stampBadge = document.getElementById('stampBadge');
+        stampBadge.style.color = stampBadge.style.borderColor = '#e53e3e';
+        stampBadge.style.display = 'flex';
+
+        document.getElementById('levelupTitle').style.display = 'block';
+        document.getElementById('btnShare').style.display = 'block';
+        document.getElementById('btnRetry').style.display = 'none';
+
+        // Firestore 실시간 데이터베이스 업로드 및 부모 앱 푸시 연동
+        const diaryReportId = self.crypto.randomUUID();
+        const diaryTimestamp = Date.now();
+        const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+        const uploadData = {
+            diaryId: diaryReportId,
+            timestamp: diaryTimestamp,
+            name: currentName,
+            originalContent: originalContent,
+            originalFeedback: originalFeedback,
+            rewrittenContent: typingText,
+            firstSpellingScore: prevSpellingScore,
+            firstExpressionScore: prevExpressionScore,
+            secondSpellingScore: 100,
+            secondExpressionScore: 100,
+            stamp: '참 잘했어요',
+            improved: true
+        };
+
+        db.collection("children").doc(childId)
+            .collection("diaries").doc(diaryReportId)
+            .set(uploadData, { merge: true })
+            .then(() => {
+                console.log("타자 완료 보고서 업로드 성공!");
+            });
+
+        // FastAPI 서버를 통해 부모 스마트폰 푸시 알림 전송 (비용 부담 방지를 위해 알림 트리거 전용 API 사용)
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:';
+        const apiBase = isLocal ? 'http://127.0.0.1:8000' : 'https://ai-diary-cheomsak.onrender.com';
+        
+        fetch(`${apiBase}/send-notification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                child_id: childId,
+                child_name: currentName
+            })
+        }).then(res => {
+            console.log("FCM 푸시 알림 송출 완료!");
+        }).catch(err => {
+            console.error("FCM 푸시 알림 실패:", err);
+        });
+
+        // 세션 정보 최종 저장
+        saveSession(childId);
+    }
+
+    function quitTypingPractice() {
+        if (confirm('타자 연습을 중단하고 원래 화면으로 돌아갈까요? (진행 상태는 저장되지 않습니다.)')) {
+            isTypingMode = false;
+            highlightKeyAndFinger(null, false);
+            document.getElementById('typingPracticeArea').style.display = 'none';
+            document.getElementById('normalDiaryArea').style.display = 'flex';
+        }
+    }
+
+    // 전역 이벤트 리스너 마인드 바인딩
+    window.addEventListener('keydown', handleTypingKeyDown);
 
     function startRewriteMode() {
         originalContent = textarea.value.trim();
@@ -945,6 +1617,7 @@
                 const data = JSON.parse(rawData);
                 if (response.ok) {
                     feedbackResult.innerText = data.feedback;
+                    lastCorrectedDiary = data.corrected_diary || '';
                     
                     // 미션 성공 시 보너스 점수 가산
                     let finalSpelling = data.spelling_score;
@@ -1307,6 +1980,19 @@
             <!-- 생성된 img 태그 주입 -->
         </div>
         <button onclick="closeCaptureModal()" style="margin-top: 15px; width: 100%; background: #4a5568; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.2s;">닫기</button>
+    </div>
+</div>
+
+<!-- 모드 선택 모달 -->
+<div id="modeSelectModal" class="modal-overlay">
+    <div style="background: white; padding: 25px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <h3 style="margin-top: 0; color: #2b6cb0; font-size: 18px;">✏️ 어떻게 다시 도전할까요?</h3>
+        <p style="font-size: 14px; color: #4a5568; margin-bottom: 20px; line-height: 1.5;">선생님의 힌트를 보고 자유롭게 일기를 수정하거나,<br/>올바른 문장으로 양손 타자 연습을 할 수 있어요.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button onclick="chooseRewriteMode('free')" style="margin-top: 0; background: #3182ce; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">✏️ 스스로 자유롭게 고쳐 쓰기</button>
+            <button onclick="chooseRewriteMode('typing')" style="margin-top: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">⌨️ 선생님 힌트 따라 쓰기 연습</button>
+            <button onclick="closeModeSelectModal()" style="margin-top: 5px; background: #edf2f7; color: #4a5568; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">취소</button>
+        </div>
     </div>
 </div>
 

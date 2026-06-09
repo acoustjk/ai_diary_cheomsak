@@ -85,13 +85,15 @@ AI_TEACHER_PROMPT = """
    - 참 잘했어요 (두 점수의 평균이 85점 이상)
    - 좋은 시도예요 (두 점수의 평균이 60점 이상 85점 미만)
    - 힘내라 힘! (두 점수의 평균이 60점 미만)
+6. 아이가 제출한 일기 원본을 바탕으로, 맞춤법과 띄어쓰기를 모두 완벽히 교정하고 좋은 추천 표현들을 자연스럽게 반영하여, 아이가 쓴 것처럼 친근하면서도 가장 모범적인 완성형 일기 전체(150~300자 내외)를 새롭게 작성하여 'corrected_diary' 필드에 추가해 주세요.
 
 [반드시 아래의 JSON 형식으로만 답변하세요. 다른 설명은 생략하세요]
 {
     "feedback": "AI 선생님의 친절한 피드백 내용",
     "spelling_score": 90,
     "expression_score": 80,
-    "stamp": "참 잘했어요"
+    "stamp": "참 잘했어요",
+    "corrected_diary": "선생님이 올바르게 교정하고 다듬어 완성한 일기 내용 전체"
 }
 """
 
@@ -199,6 +201,21 @@ async def check_diary(data: DiaryInput):
                 detail="현재 Google AI 서버에 일시적으로 많은 요청이 몰려 대기 중입니다. 잠시 후 다시 시도해주세요! ⏳"
             )
         raise HTTPException(status_code=500, detail=f"AI 서버 오류가 발생했습니다: {err_str}")
+
+
+class NotificationInput(BaseModel):
+    child_id: str
+    child_name: str
+
+@app.post("/send-notification")
+async def send_notification(data: NotificationInput):
+    if not data.child_id:
+        raise HTTPException(status_code=400, detail="child_id가 필요합니다.")
+    try:
+        send_fcm_notification(data.child_id, data.child_name)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/shorten")
 async def shorten(url: str):
