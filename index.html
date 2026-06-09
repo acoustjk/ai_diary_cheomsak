@@ -1460,20 +1460,7 @@
     // 전역 이벤트 리스너 마인드 바인딩
     window.addEventListener('keydown', handleTypingKeyDown);
 
-    function startRewriteMode() {
-        originalContent = textarea.value.trim();
-        originalFeedback = document.getElementById('feedbackResult').innerText;
-        
-        isRewriteMode = true;
-        
-        // UI 변경
-        document.getElementById('rewriteBanner').style.display = 'flex';
-        document.getElementById('btnSubmit').innerText = '✨ 고친 일기 다시 검사받기';
-        document.getElementById('btnSubmit').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        document.getElementById('btnRetry').style.display = 'none';
-        
-        alert('다시 쓰기 모드가 켜졌습니다! 선생님이 준 피드백을 보고 일기를 고친 뒤 제출하세요.');
-    }
+
     
     function cancelRewriteMode() {
         isRewriteMode = false;
