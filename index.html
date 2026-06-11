@@ -972,19 +972,28 @@
         saveSession(childId);
     });
 
+    // 임시 설정: true인 경우 복사/붙여넣기 허용 (테스트용), 나중에 false로 바꾸면 차단 기능이 활성화됩니다.
+    const ALLOW_COPY_PASTE = true;
+
     // 복사, 붙여넣기, 잘라내기 방지 기능 추가
     textarea.addEventListener('paste', (e) => {
-        e.preventDefault();
-        alert('일기는 다른 곳에서 복사해 붙여넣을 수 없고, 스스로 직접 타이핑해서 작성해야 해요! 😉');
+        if (!ALLOW_COPY_PASTE) {
+            e.preventDefault();
+            alert('일기는 다른 곳에서 복사해 붙여넣을 수 없고, 스스로 직접 타이핑해서 작성해야 해요! 😉');
+        }
     });
 
     textarea.addEventListener('copy', (e) => {
-        e.preventDefault();
-        alert('일기 내용은 복사할 수 없어요! 스스로 한 자 한 자 적어봐요. 😉');
+        if (!ALLOW_COPY_PASTE) {
+            e.preventDefault();
+            alert('일기 내용은 복사할 수 없어요! 스스로 한 자 한 자 적어봐요. 😉');
+        }
     });
 
     textarea.addEventListener('cut', (e) => {
-        e.preventDefault();
+        if (!ALLOW_COPY_PASTE) {
+            e.preventDefault();
+        }
     });
 
     // 시작하자마자 미션 생성
