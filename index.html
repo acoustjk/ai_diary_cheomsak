@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>똑똑일기 🚀</title>
+    <link rel="icon" type="image/png" href="images/gochi_avatar.png">
+    <title>AI고치 👾</title>
     <!-- 구글 애드센스 수익형 광고 스크립트 -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1234567890123456" crossorigin="anonymous"></script>
     
@@ -170,8 +171,8 @@
         <!-- ✍️ 작가 프로필 선택기 카드 -->
         <div id="profileSwitcherCard" style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; text-align: left;">
             <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-weight: bold; font-size: 14px; color: #2d3748;">✍️ 현재 작성 중인 어린이 프로필</span>
-                <button onclick="addNewProfilePrompt()" style="margin-top: 0; background: #3182ce; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none;">+ 새 작가 추가</button>
+                <span style="font-weight: bold; font-size: 14px; color: #2d3748;">👦 현재 일기 쓰고 있는 어린이</span>
+                <button onclick="addNewProfilePrompt()" style="margin-top: 0; background: #3182ce; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none;">+ 새 친구 추가</button>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px;" id="profileListArea">
                 <!-- 자녀 프로필 선택 버튼들이 여기에 렌더링됩니다 -->
@@ -181,7 +182,7 @@
         <div id="normalDiaryArea" style="display: flex; flex-direction: column;">
         <!-- 👦 어린이 작가 이름 입력 카드 -->
         <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; box-sizing: border-box;">
-            <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #2d3748; white-space: nowrap;">👦 어린이 작가 이름:</label>
+            <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #2d3748; white-space: nowrap;">👦 어린이 이름:</label>
             <input type="text" id="childNameInput" placeholder="이름을 입력해 주세요" style="flex: 1; padding: 8px 12px; border: 2.5px solid #cbd5e0; border-radius: 6px; font-size: 14px; color: #000000; font-weight: bold;">
         </div>
 
@@ -203,7 +204,7 @@
             <div id="webPairingCode" style="font-size: 32px; font-weight: bold; color: #2b6cb0; letter-spacing: 2px;">000 000</div>
         </div>
 
-        <h2>✍️ 오늘의 일기 쓰기</h2>
+        <h2>✍️ AI고치와 일기 쓰기</h2>
         
         <!-- 다시 쓰기 모드 알림 배너 -->
         <div id="rewriteBanner" class="rewrite-banner">
@@ -211,17 +212,17 @@
             <button onclick="cancelRewriteMode()">취소</button>
         </div>
 
-        <textarea id="diaryInput" spellcheck="false" placeholder="오늘 하루는 어땠나요? 오늘의 비밀 단어를 넣어서 신나게 적어보세요!"></textarea>
+        <textarea id="diaryInput" spellcheck="false" placeholder="오늘 하루는 어땠어? 오늘의 비밀 단어를 넣어서 신나게 일기를 써봐! 내가 도와줄게!"></textarea>
         <div class="stats">⏱️ 글자 수: <span id="charCount">0</span>자</div>
         
-        <button id="btnSubmit" onclick="submitDiary()">🤖 AI 선생님께 일기 검사받기</button>
-        <div id="loadingText" class="loading">⏳ AI 선생님이 일기를 분석하는 중입니다 (약 5초 소요)...</div>
+        <button id="btnSubmit" onclick="submitDiary()">👾 AI고치에게 일기 보여주기</button>
+        <div id="loadingText" class="loading">⏳ AI고치가 머리를 맞대고 열심히 고민하는 중... (약 5초 소요)</div>
         </div>
 
         <!-- ⌨️ 타자 연습 영역 (평소 숨김) -->
         <div id="typingPracticeArea" style="display: none; flex-direction: column; box-sizing: border-box; text-align: left;">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                <h3 style="margin: 0; color: #764ba2; font-size: 16px;">⌨️ 선생님 힌트 따라 쓰기 연습</h3>
+                <h3 style="margin: 0; color: #764ba2; font-size: 16px;">⌨️ AI고치 따라 쓰기 연습</h3>
                 <button onclick="quitTypingPractice()" style="margin-top: 0; background: #e53e3e; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none;">연습 중단</button>
             </div>
 
@@ -343,7 +344,12 @@
     </div>
 
     <div class="right-panel">
-        <h2>👩‍🏫 마법 힌트 & 레벨업 결과</h2>
+        <h2><img src="images/gochi_avatar.png" style="width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 8px; border: 2px solid #3182ce; object-fit: cover; background: white;">내 친구 AI고치</h2>
+        
+        <!-- 👾 AI고치 캐릭터 감정/포즈 시각화 구역 -->
+        <div id="gochiCharacterArea" style="display: flex; justify-content: center; align-items: flex-end; height: 220px; margin-top: 10px; margin-bottom: 15px; position: relative;">
+            <img id="gochiImg" src="images/gochi_default.png" style="height: 210px; width: auto; border-radius: 12px; transition: all 0.3s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));">
+        </div>
         
         <div id="stampBadge" class="stamp-badge"><div style="font-size:20px;">💮</div><div id="stampText">참 잘했어요</div></div>
 
@@ -359,16 +365,16 @@
             <div id="bonusScoreText" style="display:none; color:#e53e3e; font-size:13px; font-weight:bold; margin-top:5px; text-align:right;">🎯 미션 성공! 보너스 점수가 포함되었습니다 (+10)</div>
         </div>
 
-        <div id="feedbackResult" class="feedback-box">검사받기 버튼을 누르면 피드백과 점수가 여기에 등장해요!</div>
+        <div id="feedbackResult" class="feedback-box">내 일기를 보여주면, 여기에 내가 다듬어 준 힌트와 점수가 나타날 거야! 👾</div>
         
         <!-- 레벨업 타이틀 -->
         <div id="levelupTitle" class="levelup-title">⭐ 대단해요! 실력이 레벨업 되었습니다! ⭐</div>
         
         <!-- 다시 도전하기 버튼 -->
-        <button id="btnRetry" onclick="startRewriteMode()" style="display:none; width:100%; margin-top:15px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">✏️ 선생님 힌트로 다시 도전하기!</button>
+        <button id="btnRetry" onclick="startRewriteMode()" style="display:none; width:100%; margin-top:15px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">✏️ AI고치의 힌트로 다시 쓰기!</button>
         
         <!-- 부모님께 자랑하기 버튼 -->
-        <button id="btnShare" onclick="shareReport()" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #48bb78 0%, #38a169 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">💌 부모님께 성장 보고서 자랑하기</button>
+        <button id="btnShare" onclick="shareReport()" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #48bb78 0%, #38a169 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">💌 부모님께 내 일기 자랑하기</button>
     </div>
 </div>
 </div> <!-- end of mainView -->
@@ -377,8 +383,8 @@
 <div id="reportView" style="display: none; width: 700px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); margin: 20px 0; font-family: 'Malgun Gothic', sans-serif;">
     <div style="text-align: center; margin-bottom: 25px;">
         <span style="font-size: 45px;">📝</span>
-        <h1 id="reportTitle" style="color: #2b6cb0; margin: 10px 0 5px 0; font-size: 24px;">[아이]의 똑똑일기 성장 보고서</h1>
-        <p style="color: #718096; margin: 0; font-size: 14px;">선생님의 피드백을 적용해 스스로 레벨업한 자랑스러운 결과입니다!</p>
+        <h1 id="reportTitle" style="color: #2b6cb0; margin: 10px 0 5px 0; font-size: 24px;">[아이]의 AI고치 성장 보고서</h1>
+        <p style="color: #718096; margin: 0; font-size: 14px;">AI고치의 피드백을 반영해 스스로 쑥쑥 성장한 일기 결과입니다!</p>
         <p id="reportDate" style="color: #4a5568; margin: 8px 0 0 0; font-size: 13px; font-weight: bold; background: #edf2f7; display: inline-block; padding: 4px 12px; border-radius: 12px;">📅 작성일: 로딩 중...</p>
     </div>
     
@@ -395,7 +401,7 @@
         </div>
         <div style="width: 2px; height: 40px; background: #bee3f8;"></div>
         <div style="text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center;">
-            <div style="font-size: 13px; color: #e53e3e; font-weight: bold;">💮 칭찬 도장</div>
+            <div style="font-size: 13px; color: #e53e3e; font-weight: bold;">💮 AI고치의 도장</div>
             <div id="reportStamp" style="background: #fff5f5; border: 2px dashed #e53e3e; color: #e53e3e; font-weight: bold; font-size: 14px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; transform: rotate(5deg);">참 잘했어요</div>
         </div>
     </div>
@@ -441,7 +447,7 @@
     <!-- 다시 쓴 일기 (최종 완성본) -->
     <div style="background: #fff; border: 3px solid #b7791f; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(183,121,31,0.08); margin-bottom: 30px; background-image: radial-gradient(#e2e8f0 1px, transparent 0), radial-gradient(#e2e8f0 1px, transparent 0); background-size: 16px 16px; background-position: 0 0, 8px 8px;">
         <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #b7791f; display: flex; align-items: center; gap: 6px;">
-            <span>👑</span> 스스로 피드백을 반영해 다시 쓴 일기
+            <span>👑</span> 스스로 고쳐 쓴 최종 완성본 일기
         </h3>
         <div id="reportSecondContent" style="white-space: pre-wrap; font-size: 15px; line-height: 1.7; color: #2d3748; font-weight: 500;">다시 쓴 일기 내용...</div>
     </div>
@@ -637,6 +643,8 @@
 
     // 프로필 선택 전환
     function selectProfile(id) {
+        const gochiImg = document.getElementById('gochiImg');
+        if (gochiImg) gochiImg.src = 'images/gochi_default.png';
         if (childId === id) return;
 
         saveSession(childId);
@@ -727,7 +735,7 @@
                 lastCorrectedDiary = s.lastCorrectedDiary || '';
 
                 // UI 복원
-                if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = s.feedbackResultHTML || '검사받기 버튼을 누르면 피드백과 점수가 여기에 등장해요!';
+                if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = s.feedbackResultHTML || '내 일기를 보여주면, 여기에 내가 다듬어 준 힌트와 점수가 나타날 거야! 👾';
                 if (document.getElementById('scoreContainer')) document.getElementById('scoreContainer').style.display = s.scoreContainerDisplay || 'none';
                 if (document.getElementById('spellingScoreText')) document.getElementById('spellingScoreText').innerText = s.spellingScoreText || '0점';
                 if (document.getElementById('spellingScoreFill')) document.getElementById('spellingScoreFill').style.width = s.spellingScoreFillWidth || '0%';
@@ -754,7 +762,7 @@
                 } else {
                     if (document.getElementById('rewriteBanner')) document.getElementById('rewriteBanner').style.display = 'none';
                     if (document.getElementById('btnSubmit')) {
-                        document.getElementById('btnSubmit').innerText = '🤖 AI 선생님께 일기 검사받기';
+                        document.getElementById('btnSubmit').innerText = '👾 AI고치에게 일기 보여주기';
                         document.getElementById('btnSubmit').style.background = '#3182ce';
                     }
                 }
@@ -769,6 +777,8 @@
     }
 
     function resetToDefaultSession() {
+        const gochiImg = document.getElementById('gochiImg');
+        if (gochiImg) gochiImg.src = 'images/gochi_default.png';
         const txtInput = document.getElementById('diaryInput');
         const charCount = document.getElementById('charCount');
         if (txtInput) {
@@ -789,7 +799,7 @@
         secondStamp = '';
         rewrittenContent = '';
 
-        if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = '검사받기 버튼을 누르면 피드백과 점수가 여기에 등장해요!';
+        if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = '내 일기를 보여주면, 여기에 내가 다듬어 준 힌트와 점수가 나타날 거야! 👾';
         if (document.getElementById('scoreContainer')) document.getElementById('scoreContainer').style.display = 'none';
         if (document.getElementById('spellingScoreText')) document.getElementById('spellingScoreText').innerText = '0점';
         if (document.getElementById('spellingScoreFill')) document.getElementById('spellingScoreFill').style.width = '0%';
@@ -803,7 +813,7 @@
         if (document.getElementById('btnShare')) document.getElementById('btnShare').style.display = 'none';
         if (document.getElementById('rewriteBanner')) document.getElementById('rewriteBanner').style.display = 'none';
         if (document.getElementById('btnSubmit')) {
-            document.getElementById('btnSubmit').innerText = '🤖 AI 선생님께 일기 검사받기';
+            document.getElementById('btnSubmit').innerText = '👾 AI고치에게 일기 보여주기';
             document.getElementById('btnSubmit').style.background = '#3182ce';
         }
     }
@@ -1202,6 +1212,10 @@
         // UI 뷰 전환
         document.getElementById('normalDiaryArea').style.display = 'none';
         document.getElementById('typingPracticeArea').style.display = 'flex';
+        
+        // 타자 연습 시작 시 인사하는 얼굴로 변경
+        const gochiImg = document.getElementById('gochiImg');
+        if (gochiImg) gochiImg.src = 'images/gochi_greeting.png';
 
         // 분석 텍스트 렌더링
         const container = document.getElementById('typingTargetContainer');
@@ -1381,8 +1395,12 @@
         secondStamp = '참 잘했어요';
         rewrittenContent = typingText;
 
+        // 타자 완료 시 대성공(트로피) 표정으로 변경
+        const gochiImg = document.getElementById('gochiImg');
+        if (gochiImg) gochiImg.src = 'images/gochi_success.png';
+
         // UI에 만점 및 레벨업 완료 상태 렌더링
-        document.getElementById('feedbackResult').innerHTML = `💮 <b>참 잘했어요!</b>\n\n선생님이 수정해 준 글을 완벽히 타자 가이드에 따라 연습 완료해냈습니다!\n정확도: ${accuracy}%, 평균 타수: ${finalWpm}타/분으로 문장 학습을 성공적으로 수료했습니다.\n\n보호자 앱으로 성장 보고서 전송이 완료되었습니다.`;
+        document.getElementById('feedbackResult').innerHTML = `💮 <b>참 잘했어!</b>\n\n내가 다듬어 준 모범 일기를 완벽하게 따라 쓰기 연습을 완료해냈어!\n정확도: ${accuracy}%, 평균 타수: ${finalWpm}타/분으로 문장 학습을 성공적으로 수료했단다!\n\n보호자 앱으로 성장 보고서 전송도 끝마쳤어.`;
         
         document.getElementById('scoreContainer').style.display = 'block';
         document.getElementById('spellingScoreText').innerText = `100점 (이전: ${prevSpellingScore}점 ➡️ 100점) (+${100 - prevSpellingScore}) 🎉`;
@@ -1467,7 +1485,7 @@
         
         // UI 원복
         document.getElementById('rewriteBanner').style.display = 'none';
-        document.getElementById('btnSubmit').innerText = '🤖 AI 선생님께 일기 검사받기';
+        document.getElementById('btnSubmit').innerText = '👾 AI고치에게 일기 보여주기';
         document.getElementById('btnSubmit').style.background = '#3182ce';
         
         if (originalFeedback) {
@@ -1543,9 +1561,13 @@
     async function submitDiary() {
         const content = textarea.value.trim();
         if (!content) {
-            alert('일기 내용을 입력해주세요!');
+            alert('일기 내용을 입력해줘! 😉');
             return;
         }
+        
+        // AI고치 고민 중인 표정으로 변경
+        const gochiImg = document.getElementById('gochiImg');
+        if (gochiImg) gochiImg.src = 'images/gochi_thinking.png';
 
         const loadingText = document.getElementById('loadingText');
         const feedbackResult = document.getElementById('feedbackResult');
@@ -1557,7 +1579,7 @@
         const btnShare = document.getElementById('btnShare');
         
         loadingText.style.display = 'block';
-        feedbackResult.innerText = 'AI 선생님이 일기를 열심히 분석하고 있습니다...';
+        feedbackResult.innerText = '내가 네 일기를 열심히 읽고 분석하는 중이야! 잠시만 기다려줘... 👾';
         scoreContainer.style.display = 'none';
         stampBadge.style.display = 'none';
         bonusScoreText.style.display = 'none';
@@ -1566,7 +1588,7 @@
         btnShare.style.display = 'none';
         
         loadingText.style.display = 'block';
-        feedbackResult.innerText = 'AI 선생님이 일기를 열심히 분석하고 있습니다...';
+        feedbackResult.innerText = '내가 네 일기를 열심히 읽고 분석하는 중이야! 잠시만 기다려줘... 👾';
         scoreContainer.style.display = 'none';
         stampBadge.style.display = 'none';
         bonusScoreText.style.display = 'none';
@@ -1688,9 +1710,21 @@
                     }, 100);
 
                     document.getElementById('stampText').innerText = data.stamp;
-                    if(data.stamp === '참 잘했어요') stampBadge.style.color = stampBadge.style.borderColor = '#e53e3e';
-                    else if(data.stamp === '좋은 시도예요') stampBadge.style.color = stampBadge.style.borderColor = '#dd6b20';
-                    else stampBadge.style.color = stampBadge.style.borderColor = '#3182ce';
+                    
+                    // 점수 결과에 따른 AI고치 포즈 변경
+                    const gochiImg = document.getElementById('gochiImg');
+                    if(data.stamp === '참 잘했어요') {
+                        stampBadge.style.color = stampBadge.style.borderColor = '#e53e3e';
+                        if (gochiImg) gochiImg.src = 'images/gochi_success.png';
+                    }
+                    else if(data.stamp === '좋은 시도예요') {
+                        stampBadge.style.color = stampBadge.style.borderColor = '#dd6b20';
+                        if (gochiImg) gochiImg.src = 'images/gochi_greeting.png';
+                    }
+                    else {
+                        stampBadge.style.color = stampBadge.style.borderColor = '#3182ce';
+                        if (gochiImg) gochiImg.src = 'images/gochi_thinking.png';
+                    }
                     
                     stampBadge.style.display = 'flex';
 
@@ -1727,7 +1761,7 @@
                         .collection("diaries").doc(diaryReportId)
                         .set(uploadData, { merge: true })
                         .then(() => {
-                            console.log("웹 일기 보고서 Firestore 업로드 성공!");
+                            console.log("웹 일기 보고서 Firestore 업로드 성공! (AI고치)");
                         })
                         .catch((e) => {
                             console.error("웹 일기 보고서 Firestore 업로드 실패:", e);
@@ -1973,11 +2007,11 @@
 <!-- 모드 선택 모달 -->
 <div id="modeSelectModal" class="modal-overlay">
     <div style="background: white; padding: 25px; border-radius: 16px; width: 400px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-        <h3 style="margin-top: 0; color: #2b6cb0; font-size: 18px;">✏️ 어떻게 다시 도전할까요?</h3>
-        <p style="font-size: 14px; color: #4a5568; margin-bottom: 20px; line-height: 1.5;">선생님의 힌트를 보고 자유롭게 일기를 수정하거나,<br/>올바른 문장으로 양손 타자 연습을 할 수 있어요.</p>
+        <h3 style="margin-top: 0; color: #2b6cb0; font-size: 18px;">✏️ 어떻게 다시 일기를 써볼까?</h3>
+        <p style="font-size: 14px; color: #4a5568; margin-bottom: 20px; line-height: 1.5;">내가 알려준 힌트를 보고 직접 고쳐 쓰거나,<br/>내가 다듬어 준 완벽한 일기로 자판 연습을 할 수 있어!</p>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button onclick="chooseRewriteMode('free')" style="margin-top: 0; background: #3182ce; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">✏️ 스스로 자유롭게 고쳐 쓰기</button>
-            <button onclick="chooseRewriteMode('typing')" style="margin-top: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">⌨️ 선생님 힌트 따라 쓰기 연습</button>
+            <button onclick="chooseRewriteMode('free')" style="margin-top: 0; background: #3182ce; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">✏️ 스스로 고쳐 쓰기</button>
+            <button onclick="chooseRewriteMode('typing')" style="margin-top: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">⌨️ AI고치 따라 쓰기 연습</button>
             <button onclick="closeModeSelectModal()" style="margin-top: 5px; background: #edf2f7; color: #4a5568; padding: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">취소</button>
         </div>
     </div>

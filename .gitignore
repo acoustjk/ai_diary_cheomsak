@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+serviceAccountKey.json
+.DS_Store
