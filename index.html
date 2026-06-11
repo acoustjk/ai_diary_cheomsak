@@ -752,6 +752,9 @@
         
         <!-- 부모님께 자랑하기 버튼 -->
         <button id="btnShare" onclick="shareReport()" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #48bb78 0%, #38a169 100%); color:white; font-size:16px; border-radius:14px; border:none; padding:14px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(72, 187, 120, 0.2); transition: 0.2s;">💌 부모님께 내 일기 자랑하기</button>
+
+        <!-- 새로운 일기 쓰기 버튼 -->
+        <button id="btnNewDiary" onclick="resetToDefaultSession(); saveSession();" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #718096 0%, #4a5568 100%); color:white; font-size:16px; border-radius:14px; border:none; padding:14px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(113, 128, 150, 0.2); transition: 0.2s;">✏️ 새로운 일기 쓰기</button>
     </div>
 </div>
 </div> <!-- end of mainView -->
@@ -1067,7 +1070,9 @@
             bonusScoreTextDisplay: document.getElementById('bonusScoreText') ? document.getElementById('bonusScoreText').style.display : 'none',
             btnRetryDisplay: document.getElementById('btnRetry') ? document.getElementById('btnRetry').style.display : 'none',
             levelupTitleDisplay: document.getElementById('levelupTitle') ? document.getElementById('levelupTitle').style.display : 'none',
-            btnShareDisplay: document.getElementById('btnShare') ? document.getElementById('btnShare').style.display : 'none'
+            btnShareDisplay: document.getElementById('btnShare') ? document.getElementById('btnShare').style.display : 'none',
+            btnNewDiaryDisplay: document.getElementById('btnNewDiary') ? document.getElementById('btnNewDiary').style.display : 'none',
+            currentDiaryId: currentDiaryId
         };
         localStorage.setItem('diary_session_' + id, JSON.stringify(sessionState));
     }
@@ -1099,6 +1104,7 @@
                 secondStamp = s.secondStamp || '';
                 rewrittenContent = s.rewrittenContent || '';
                 lastCorrectedDiary = s.lastCorrectedDiary || '';
+                currentDiaryId = s.currentDiaryId || '';
 
                 // UI 복원
                 if (document.getElementById('feedbackResult')) document.getElementById('feedbackResult').innerHTML = s.feedbackResultHTML || '내 일기를 보여주면, 여기에 내가 다듬어 준 힌트와 점수가 나타날 거야! 👾';
@@ -1117,6 +1123,7 @@
                 if (document.getElementById('btnRetry')) document.getElementById('btnRetry').style.display = s.btnRetryDisplay || 'none';
                 if (document.getElementById('levelupTitle')) document.getElementById('levelupTitle').style.display = s.levelupTitleDisplay || 'none';
                 if (document.getElementById('btnShare')) document.getElementById('btnShare').style.display = s.btnShareDisplay || 'none';
+                if (document.getElementById('btnNewDiary')) document.getElementById('btnNewDiary').style.display = s.btnNewDiaryDisplay || 'none';
 
                 // 다시 쓰기 모드 UI 복원
                 if (isRewriteMode) {
@@ -1158,6 +1165,7 @@
             if (charCount) charCount.innerText = '0';
         }
         lastCorrectedDiary = '';
+        currentDiaryId = '';
         originalContent = '';
         originalFeedback = '';
         prevSpellingScore = 0;
@@ -1380,6 +1388,7 @@
     
     // 다시 쓰기 상태 관리 변수
     let lastCorrectedDiary = ''; // AI 선생님이 고쳐준 완벽한 일기
+    let currentDiaryId = '';
     // Base64URL 복원 후 Gzip 해제
     async function decompressData(base64url) {
         try {
@@ -1580,6 +1589,7 @@
         const btnRetry = document.getElementById('btnRetry');
         const levelupTitle = document.getElementById('levelupTitle');
         const btnShare = document.getElementById('btnShare');
+        const btnNewDiary = document.getElementById('btnNewDiary');
         
         loadingText.style.display = 'block';
         feedbackResult.innerText = '내가 네 일기를 열심히 읽고 분석하는 중이야! 잠시만 기다려줘... 👾';
@@ -1589,14 +1599,7 @@
         btnRetry.style.display = 'none';
         levelupTitle.style.display = 'none';
         btnShare.style.display = 'none';
-        
-        loadingText.style.display = 'block';
-        feedbackResult.innerText = '내가 네 일기를 열심히 읽고 분석하는 중이야! 잠시만 기다려줘... 👾';
-        scoreContainer.style.display = 'none';
-        stampBadge.style.display = 'none';
-        bonusScoreText.style.display = 'none';
-        btnRetry.style.display = 'none';
-        levelupTitle.style.display = 'none';
+        if (btnNewDiary) btnNewDiary.style.display = 'none';
 
         // 미션 단어 체크 검사
         const missionSuccess = currentMissions.every(word => content.includes(word));
@@ -1688,8 +1691,10 @@
                         prevSpellingScore = finalSpelling;
                         prevExpressionScore = finalExpression;
 
-                        // 부모님 자랑하기 버튼 활성화
+                        // 부모님 자랑하기 및 새 일기 버튼 활성화
                         btnShare.style.display = 'block';
+                        const btnNewDiary = document.getElementById('btnNewDiary');
+                        if (btnNewDiary) btnNewDiary.style.display = 'block';
                     } else {
                         // 첫 제출일 때
                         document.getElementById('spellingScoreText').innerText = finalSpelling + '점';
@@ -1742,7 +1747,10 @@
                     // ----------------------------------------------------
                     // Firestore 실시간 데이터베이스 업로드
                     // ----------------------------------------------------
-                    const diaryReportId = self.crypto.randomUUID();
+                    if (!isRewriteMode || !currentDiaryId) {
+                        currentDiaryId = self.crypto.randomUUID();
+                    }
+                    const diaryReportId = currentDiaryId;
                     const diaryTimestamp = Date.now();
                     const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
                     const uploadData = {
@@ -1815,6 +1823,8 @@
                         text: `💮 ${secondStamp}! 맞춤법과 표현력이 훌륭하게 자랐어요. 우리 아이가 스스로 고쳐 쓴 일기를 확인해 보세요!`,
                         url: shareUrl
                     });
+                    resetToDefaultSession(); // Clear session on success!
+                    saveSession();
                     return; // 공유 성공 시 종료
                 } catch (shareError) {
                     // 사용자가 취소(AbortError)했거나 데스크톱 등 미지원 환경인 경우 클립보드 복사로 폴백
@@ -1828,7 +1838,9 @@
 
             // 클립보드 복사 폴백
             await navigator.clipboard.writeText(shareUrl);
-            alert("부모님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.");
+            alert("부모님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.\n\n확인 버튼을 누르면 새로운 일기를 쓸 수 있게 리셋됩니다.");
+            resetToDefaultSession(); // Clear session on success!
+            saveSession();
         } catch (error) {
             console.error("공유 중 오류", error);
             alert("공유 처리 중 오류가 발생했습니다. 브라우저 설정을 확인해 주세요.");
