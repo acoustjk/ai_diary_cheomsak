@@ -11,115 +11,579 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <!-- Google Fonts & Cute Korean Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cute+Font&family=Dongle:wght@300;400;700&family=Gaegu:wght@300;400;700&family=Gamja+Flower&family=Hi+Melody&family=Jua&family=Nanum+Pen+Script&family=Poor+Story&family=Single+Day&family=Outfit:wght@300;400;600;700;900&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        /* 상단 미션 및 배지 구역 */
-        .top-dashboard { width: 950px; display: flex; gap: 20px; margin-bottom: 15px; }
-        .mission-box { flex: 1; background: #fffaf0; border: 2px dashed #dd6b20; padding: 15px; border-radius: 12px; }
-        .badge-box { flex: 1; background: #ebf8ff; border: 2px solid #3182ce; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px; }
-        .badge-item { opacity: 0.2; text-align: center; font-size: 13px; font-weight: bold; transition: 0.3s; }
-        .badge-item.active { opacity: 1; transform: scale(1.05); }
-        .badge-icon { font-size: 30px; margin-bottom: 4px; }
+        :root {
+            --bg-color: #faf6f0;
+            --text-color: #2d3748;
+            --primary-color: #ff8e72;
+            --primary-hover: #e0745b;
+            --secondary-color: #6c5ce7;
+            --secondary-hover: #5b4bc4;
+            --accent-color: #ffd277;
+            --border-color: #eeddcc;
+            --shadow-soft: 0 10px 30px rgba(183, 157, 137, 0.1);
+            --shadow-hover: 0 15px 35px rgba(183, 157, 137, 0.18);
+        }
 
-        .container { width: 950px; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; gap: 20px; }
-        .left-panel { flex: 1.2; display: flex; flex-direction: column; }
-        .right-panel { flex: 1; background: #fdfdfd; border-left: 2px solid #e2e8f0; padding-left: 20px; display: flex; flex-direction: column; position: relative; }
-        
-        h2 { color: #2b6cb0; margin-top: 0; margin-bottom: 10px; }
-        textarea { width: 100%; height: 220px; padding: 15px; border: 2px solid #cbd5e0; border-radius: 10px; font-size: 16px; resize: none; box-sizing: border-box; }
-        textarea:focus { border-color: #4299e1; outline: none; }
-        .stats { margin-top: 5px; font-size: 14px; color: #4a5568; font-weight: bold; }
-        button { margin-top: 15px; background: #3182ce; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s; font-weight: bold;}
-        button:hover { background: #2b6cb0; }
-        
+        body {
+            font-family: 'Nanum Gothic', 'Pretendard', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0 20px 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(#ebdcd0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
 
+        /* 상단 네비게이션 헤더 */
+        .main-header {
+            width: 100%;
+            max-width: 1020px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 25px;
+            box-sizing: border-box;
+            margin: 20px 0 20px 0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1.5px solid var(--border-color);
+            box-shadow: var(--shadow-soft);
+        }
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .logo-emoji {
+            font-size: 26px;
+            animation: logo-bounce 2s infinite ease-in-out;
+            display: inline-block;
+        }
+        @keyframes logo-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .logo-title {
+            font-family: 'Jua', sans-serif;
+            font-size: 24px;
+            color: var(--secondary-color);
+        }
+        .logo-subtitle {
+            font-size: 12px;
+            color: #8a9ba8;
+            margin-left: 8px;
+            font-weight: bold;
+        }
+        .header-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-        .feedback-box { flex: 1; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; background: #f7fafc; white-space: pre-wrap; overflow-y: auto; font-size: 15px; line-height: 1.6; color: #2d3748; margin-top: 15px;}
-        .loading { display: none; color: #3182ce; font-weight: bold; text-align: center; margin-top: 10px; }
+        /* 미니 페어링 뱃지 */
+        .mini-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            transition: all 0.3s;
+        }
+        .mini-badge.connected {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+        }
+        .mini-badge-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #e53e3e;
+            display: inline-block;
+        }
+        .mini-badge.connected .mini-badge-dot {
+            background: #38a169;
+            animation: pulse-green 1.5s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.7); }
+            70% { box-shadow: 0 0 0 5px rgba(56, 161, 105, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 161, 105, 0); }
+        }
+
+        /* 상단 대시보드 */
+        .top-dashboard {
+            width: 100%;
+            max-width: 1020px;
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .mission-box {
+            flex: 1.1;
+            background: #fffdf5;
+            border: 2px dashed #f6ad55;
+            padding: 16px 20px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+        }
+        .badge-box {
+            flex: 1;
+            background: #f0f8ff;
+            border: 1.5px solid #90cdf4;
+            padding: 16px 20px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: var(--shadow-soft);
+        }
+        .badge-item {
+            opacity: 0.25;
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 6px 8px;
+            flex: 1;
+            border: 1px solid rgba(144, 205, 244, 0.2);
+        }
+        .badge-item.active {
+            opacity: 1;
+            transform: scale(1.04);
+            background: white;
+            border-color: #3182ce;
+            box-shadow: 0 4px 8px rgba(49, 130, 206, 0.1);
+        }
+        .badge-icon {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            width: 100%;
+            max-width: 1020px;
+            display: flex;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+        .left-panel {
+            flex: 1.25;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .right-panel {
+            flex: 0.95;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-sizing: border-box;
+            min-height: 600px;
+        }
+
+        /* 공통 카드 스타일 */
+        .dashboard-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow-soft);
+            box-sizing: border-box;
+        }
+
+        h2 {
+            font-family: 'Jua', sans-serif;
+            color: var(--secondary-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 폰트 셀렉터 */
+        .font-selector-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+            background: #fdfaf7;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1.5px dashed #eeddcc;
+        }
+        .font-selector-label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .font-buttons {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .font-btn {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 5px 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4a5568;
+            font-weight: bold;
+            margin-top: 0 !important;
+        }
+        .font-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+        .font-btn.active {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 3px 8px rgba(255, 142, 114, 0.25);
+        }
+
+        /* 텍스트 영역 */
+        textarea {
+            width: 100%;
+            height: 230px;
+            padding: 18px;
+            border: 2px solid #eeddcc;
+            border-radius: 18px;
+            font-size: 18px;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+            line-height: 1.7;
+            background-color: #fdfdfb;
+            color: var(--text-color);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+            transition: all 0.3s;
+        }
+        textarea:focus {
+            border-color: var(--primary-color);
+            background-color: #ffffff;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01), 0 0 0 4px rgba(255, 142, 114, 0.15);
+        }
+
+        /* 통계 배지 */
+        .stats {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .stat-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .stat-badge.wpm {
+            background: #fffaf0;
+            border: 1px solid #feebc8;
+            color: #dd6b20;
+        }
+        .stat-badge.char {
+            background: #ebf8ff;
+            border: 1px solid #bee3f8;
+            color: #2b6cb0;
+        }
+
+        /* 버튼류 */
+        button {
+            margin-top: 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255, 142, 114, 0.2);
+        }
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 142, 114, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* AI고치의 아기자기한 방 (부스) */
+        .gochi-booth {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 220px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            position: relative;
+            background: radial-gradient(circle, #fdfbfa 30%, #f4eae0 100%);
+            border-radius: 20px;
+            border: 2px solid #eddccb;
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(183, 157, 137, 0.08);
+        }
+        .gochi-booth::before {
+            content: '🏠';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+        .gochi-booth::after {
+            content: 'AI고치의 방';
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #b08050;
+            background: #ffffff;
+            padding: 3px 8px;
+            border-radius: 10px;
+            border: 1px solid #eddccb;
+        }
+
+        .feedback-box {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px;
+            background: #fdfdfb;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            font-size: 15px;
+            line-height: 1.65;
+            color: #2d3748;
+            margin-top: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+            font-family: 'Single Day', 'Nanum Gothic', sans-serif;
+        }
+        .loading {
+            display: none;
+            color: var(--secondary-color);
+            font-weight: bold;
+            text-align: center;
+            margin-top: 12px;
+            font-size: 14px;
+            animation: pulse-loading 1.5s infinite;
+        }
+        @keyframes pulse-loading {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
         
         /* 점수판 */
-        .score-container { display: none; margin-bottom: 10px; background: #ebf8ff; padding: 12px; border-radius: 10px; border: 1px solid #bee3f8; }
-        .score-bar-wrapper { margin: 6px 0; }
-        .score-label { font-size: 14px; color: #2b6cb0; font-weight: bold; display: flex; justify-content: space-between; }
-        .score-bar { background: #e2e8f0; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 4px; }
-        .score-fill { background: #4299e1; height: 100%; width: 0%; transition: width 1s ease-in-out; }
+        .score-container {
+            display: none;
+            margin-bottom: 12px;
+            background: #fffcf5;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1.5px dashed #fbd38d;
+        }
+        .score-bar-wrapper {
+            margin: 8px 0;
+        }
+        .score-label {
+            font-size: 13px;
+            color: #b7791f;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .score-bar {
+            background: #edf2f7;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .score-fill {
+            background: linear-gradient(90deg, #f6ad55 0%, #ecc94b 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
         
         /* 도장 */
         .stamp-badge { 
-            display: none; position: absolute; top: 10px; right: 20px; 
+            display: none; position: absolute; top: 15px; right: 20px; 
             width: 95px; height: 95px; border-radius: 50%; 
             border: 4px dashed #e53e3e; color: #e53e3e;
             text-align: center; font-weight: bold; font-size: 13px;
             transform: rotate(15deg); justify-content: center; align-items: center;
-            flex-direction: column; background-color: rgba(255,255,255,0.9); z-index: 10;
-            animation: stamp-animation 0.4s ease-in-out;
+            flex-direction: column; background-color: rgba(255,255,255,0.92); z-index: 10;
+            animation: stamp-animation 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
         @keyframes stamp-animation { 0% { transform: scale(3) rotate(45deg); opacity: 0; } 100% { transform: scale(1) rotate(15deg); opacity: 1; } }
 
         /* 다시 쓰기 모드 알림 */
-        .rewrite-banner { display: none; background: #faf5ff; border: 2px dashed #805ad5; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 14px; color: #553c9a; align-items: center; justify-content: space-between; }
-        .rewrite-banner button { margin-top: 0; padding: 4px 10px; font-size: 13px; background: #e53e3e; }
-        .rewrite-banner button:hover { background: #c53030; }
+        .rewrite-banner {
+            display: none;
+            background: #faf5ff;
+            border: 1.5px solid #d6bcfa;
+            padding: 12px 16px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #553c9a;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        .rewrite-banner button {
+            margin-top: 0;
+            padding: 4px 12px;
+            font-size: 12px;
+            background: #e53e3e;
+            border-radius: 10px;
+        }
+        .rewrite-banner button:hover {
+            background: #c53030;
+        }
         
         /* 레벨업 칭찬 애니메이션 */
-        .levelup-title { display: none; text-align: center; font-size: 17px; font-weight: bold; color: #b7791f; background: #fefcbf; border: 2px solid #ecc94b; border-radius: 10px; padding: 12px; margin-bottom: 15px; animation: levelup-pulse 0.8s infinite alternate; }
-        @keyframes levelup-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.02); } }
-
-        /* 가상 키보드 & 타자 가이드 스타일 */
-        .key {
-            background: white;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 6px;
-            padding: 7px 0;
-            width: 30px;
+        .levelup-title {
+            display: none;
             text-align: center;
-            font-size: 11px;
+            font-size: 16px;
             font-weight: bold;
+            color: #b7791f;
+            background: #fefcbf;
+            border: 1.5px solid #ecc94b;
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 12px;
+            animation: levelup-pulse 0.8s infinite alternate;
+        }
+        @keyframes levelup-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.03); } }
+
+        /* 프로필 버튼 리스트 */
+        .profile-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #e2e8f0;
+            background-color: #f7fafc;
             color: #4a5568;
-            box-sizing: border-box;
-            transition: all 0.1s;
-            cursor: default;
+            margin-top: 0 !important;
         }
-        .key.active {
-            background: #ecc94b !important;
-            border-color: #d69e2e !important;
-            color: white !important;
-            box-shadow: 0 0 8px #ecc94b;
-            transform: scale(1.08);
+        .profile-btn:hover {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
         }
-        .finger {
-            transition: all 0.15s;
+        .profile-btn.active {
+            background-color: #f0f8ff;
+            border-color: #3182ce;
+            color: #2b6cb0;
+            box-shadow: 0 3px 8px rgba(49, 130, 206, 0.15);
         }
-        .finger.active {
-            background: #ecc94b !important;
-            box-shadow: 0 0 8px #ecc94b;
-            transform: translateY(-3px);
+        .profile-card {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 18px 24px;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .char-span {
-            position: relative;
-            padding: 0 1px;
+        .profile-title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .profile-title {
             font-weight: bold;
-            font-size: 20px;
+            font-size: 15px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        .char-span.active {
-            border-bottom: 3px solid #764ba2;
-            animation: typing-blink 0.8s infinite;
+        .add-profile-btn {
+            margin-top: 0;
+            background: var(--secondary-color);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            transition: all 0.2s;
+            box-shadow: none;
         }
-        @keyframes typing-blink {
-            0%, 100% { border-color: #764ba2; }
-            50% { border-color: transparent; }
+        .add-profile-btn:hover {
+            background: var(--secondary-hover);
+            transform: scale(1.05);
+            box-shadow: none;
         }
-        .char-span.correct {
-            color: #38a169; /* Green */
-            background: transparent;
+        .pairing-card {
+            border-radius: 16px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1.5px solid #feb2b2;
+            background-color: #fff5f5;
+            transition: all 0.3s;
+            box-sizing: border-box;
         }
-        .char-span.incorrect {
-            color: #e53e3e; /* Red */
-            background: #fff5f5;
+        .pairing-card.connected {
+            border-color: #bbf7d0 !important;
+            background-color: #f0fdf4 !important;
         }
 
-        /* 모드 선택 모달 */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -144,21 +608,37 @@
 <body>
 
 <div id="mainView" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+
+<!-- 상단 홈페이지 네비게이션 헤더 -->
+<header class="main-header">
+    <div class="header-logo" onclick="location.reload()">
+        <span class="logo-emoji">👾</span>
+        <span class="logo-title">AI고치</span>
+        <span class="logo-subtitle">나와 함께 성장하는 비밀 일기</span>
+    </div>
+    <div class="header-menu">
+        <div id="miniPairingBadge" class="mini-badge">
+            <span class="mini-badge-dot"></span>
+            <span id="miniPairingText">보호자 연결 대기 중</span>
+        </div>
+    </div>
+</header>
+
 <!-- 상단 게임 대시보드 -->
 <div class="top-dashboard">
     <!-- 미션 단어 상자 -->
     <div class="mission-box">
-        <h3 style="margin:0 0 8px 0; color:#dd6b20; font-size:16px;">🎯 오늘의 비밀 단어 미션</h3>
-        <p style="margin:0 0 8px 0; font-size:14px; color:#4a5568;">아래 단어들을 일기에 모두 포함하면 <strong>보너스 +10점!</strong></p>
-        <div id="missionWords" style="font-weight:bold; color:#cb5a07; font-size:16px; word-spacing: 15px;">단어 로딩 중...</div>
+        <h3 style="margin:0 0 6px 0; color:#cb5a07; font-size:15px; font-family:'Jua', sans-serif;">🎯 오늘의 비밀 단어 미션</h3>
+        <p style="margin:0 0 10px 0; font-size:12px; color:#718096; font-weight:bold;">아래 단어들을 일기에 모두 포함하면 <strong>보너스 +10점!</strong></p>
+        <div id="missionWords" style="font-weight:bold; color:#dd6b20; font-size:15px; word-spacing: 12px; font-family:'Jua', sans-serif;">단어 로딩 중...</div>
     </div>
     <!-- 출석부 배지 상자 -->
     <div class="badge-box">
-        <div>
-            <h3 style="margin:0 0 5px 0; color:#2b6cb0; font-size:16px;">🔥 연속 일기 작가 배지</h3>
-            <p style="margin:0; font-size:13px; color:#4a5568;">현재 연속 <span id="streakCount" style="color:#e53e3e; font-weight:bold;">0</span>일째 도전 중!</p>
+        <div style="flex:1;">
+            <h3 style="margin:0 0 4px 0; color:#2b6cb0; font-size:15px; font-family:'Jua', sans-serif;">🔥 연속 일기 작가 배지</h3>
+            <p style="margin:0; font-size:12px; color:#718096; font-weight:bold;">현재 연속 <span id="streakCount" style="color:#e53e3e; font-weight:bold;">0</span>일째 도전 중!</p>
         </div>
-        <div style="display:flex; gap:15px; margin-left:auto;">
+        <div style="display:flex; gap:10px; margin-left:auto; flex: 1.5; justify-content: flex-end;">
             <div id="badge1" class="badge-item"><div class="badge-icon">🌱</div>새싹 작가(1일)</div>
             <div id="badge3" class="badge-item"><div class="badge-icon">🪵</div>꾸준한 작가(3일)</div>
             <div id="badge5" class="badge-item"><div class="badge-icon">👑</div>일기 마스터(5일)</div>
@@ -169,63 +649,83 @@
 <div class="container">
     <div class="left-panel">
         <!-- ✍️ 작가 프로필 선택기 카드 -->
-        <div id="profileSwitcherCard" style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; box-sizing: border-box; text-align: left;">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span style="font-weight: bold; font-size: 14px; color: #2d3748;">👦 현재 일기 쓰고 있는 어린이</span>
-                <button onclick="addNewProfilePrompt()" style="margin-top: 0; background: #3182ce; color: white; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none;">+ 새 친구 추가</button>
+        <div id="profileSwitcherCard" class="profile-card dashboard-card">
+            <div class="profile-title-bar">
+                <span class="profile-title">👦 현재 일기 쓰고 있는 어린이</span>
+                <button type="button" onclick="addNewProfilePrompt()" class="add-profile-btn">+ 새 친구 추가</button>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px;" id="profileListArea">
                 <!-- 자녀 프로필 선택 버튼들이 여기에 렌더링됩니다 -->
             </div>
         </div>
 
-        <div id="normalDiaryArea" style="display: flex; flex-direction: column;">
-        <!-- 👦 어린이 작가 이름 입력 카드 -->
-        <div style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; box-sizing: border-box;">
-            <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #2d3748; white-space: nowrap;">👦 어린이 이름:</label>
-            <input type="text" id="childNameInput" placeholder="이름을 입력해 주세요" style="flex: 1; padding: 8px 12px; border: 2.5px solid #cbd5e0; border-radius: 6px; font-size: 14px; color: #000000; font-weight: bold;">
-        </div>
-
-        <!-- 🔗 부모님 연결 상태 카드 -->
-        <div id="pairingCard" style="border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; border: 2px solid #feb2b2; background-color: #fff5f5; transition: 0.3s; box-sizing: border-box;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span id="pairingEmoji" style="font-size: 20px;">⚠️</span>
-                <div style="text-align: left;">
-                    <div id="pairingStatusText" style="font-weight: bold; font-size: 14px; color: #c53030;">부모님 앱과 연결되어 있지 않아요</div>
-                    <div id="pairingSubText" style="font-size: 12px; color: #9b2c2c; margin-top: 2px;">우측 버튼을 눌러 연결 코드(6자리)를 발급받으세요.</div>
-                </div>
+        <div id="normalDiaryArea" style="display: flex; flex-direction: column; gap: 15px;">
+            <!-- 👦 어린이 작가 이름 입력 카드 -->
+            <div class="dashboard-card" style="display: flex; align-items: center; gap: 12px; padding: 12px 20px;">
+                <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #4a5568; white-space: nowrap;">👦 어린이 이름:</label>
+                <input type="text" id="childNameInput" placeholder="이름을 입력해 주세요" style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e0; border-radius: 10px; font-size: 14px; color: #2d3748; font-weight: bold; outline: none;">
             </div>
-            <button id="btnGetPairingCode" onclick="generatePairingCode()" style="margin-top: 0; background: #e53e3e; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: bold; border: none; white-space: nowrap;">코드 생성</button>
-        </div>
 
-        <!-- 페어링 코드 표시 구역 (평소 숨김) -->
-        <div id="pairingCodeDisplay" style="display: none; background: #edf2f7; border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center; border: 1px solid #cbd5e0;">
-            <div style="font-size: 11px; color: #718096; margin-bottom: 4px; font-weight: bold;">부모님 앱에 입력할 연결 코드 (10분 유효)</div>
-            <div id="webPairingCode" style="font-size: 32px; font-weight: bold; color: #2b6cb0; letter-spacing: 2px;">000 000</div>
-        </div>
+            <!-- 🔗 부모님 연결 상태 카드 -->
+            <div id="pairingCard" class="pairing-card dashboard-card">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span id="pairingEmoji" style="font-size: 20px;">⚠️</span>
+                    <div style="text-align: left;">
+                        <div id="pairingStatusText" style="font-weight: bold; font-size: 14px; color: #c53030;">부모님 앱과 연결되어 있지 않아요</div>
+                        <div id="pairingSubText" style="font-size: 12px; color: #9b2c2c; margin-top: 2px;">우측 버튼을 눌러 연결 코드(6자리)를 발급받으세요.</div>
+                    </div>
+                </div>
+                <button id="btnGetPairingCode" onclick="generatePairingCode()" style="margin-top: 0; background: #e53e3e; color: white; padding: 6px 14px; border-radius: 10px; font-size: 12px; cursor: pointer; font-weight: bold; border: none; white-space: nowrap;">코드 생성</button>
+            </div>
 
-        <h2>✍️ AI고치와 일기 쓰기</h2>
-        
-        <!-- 다시 쓰기 모드 알림 배너 -->
-        <div id="rewriteBanner" class="rewrite-banner">
-            <span>💡 <strong>선생님 피드백 반영해서 고쳐 쓰는 중!</strong> 아래 입력창에서 일기를 수정하고 다시 검사받아 보세요.</span>
-            <button onclick="cancelRewriteMode()">취소</button>
-        </div>
+            <!-- 페어링 코드 표시 구역 (평소 숨김) -->
+            <div id="pairingCodeDisplay" class="dashboard-card" style="display: none; text-align: center; background: #edf2f7; border: 1px solid #cbd5e0; padding: 15px;">
+                <div style="font-size: 11px; color: #718096; margin-bottom: 4px; font-weight: bold;">부모님 앱에 입력할 연결 코드 (10분 유효)</div>
+                <div id="webPairingCode" style="font-size: 32px; font-weight: bold; color: #2b6cb0; letter-spacing: 2px;">000 000</div>
+            </div>
 
-        <textarea id="diaryInput" spellcheck="false" placeholder="오늘 하루는 어땠어? 오늘의 비밀 단어를 넣어서 신나게 일기를 써봐! 내가 도와줄게!"></textarea>
-        <div class="stats"><span id="typingSpeedArea" style="margin-right: 15px; display: none;">⌨️ 타수: <span id="typingSpeedText">0</span>타/분</span>⏱️ 글자 수: <span id="charCount">0</span>자</div>
-        
-        <button id="btnSubmit" onclick="submitDiary()">👾 AI고치에게 일기 보여주기</button>
-        <div id="loadingText" class="loading">⏳ AI고치가 머리를 맞대고 열심히 고민하는 중... (약 5초 소요)</div>
-        </div>
+            <!-- 일기 작성 구역 카드 -->
+            <div class="diary-card dashboard-card">
+                <h2>✍️ AI고치와 일기 쓰기</h2>
+                
+                <!-- 다시 쓰기 모드 알림 배너 -->
+                <div id="rewriteBanner" class="rewrite-banner">
+                    <span>💡 <strong>선생님 피드백 반영해서 고쳐 쓰는 중!</strong> 아래 입력창에서 일기를 수정하고 다시 검사받아 보세요.</span>
+                    <button onclick="cancelRewriteMode()">취소</button>
+                </div>
 
+                <!-- 폰트 셀렉터 툴바 -->
+                <div class="font-selector-container">
+                    <span class="font-selector-label">✏️ 일기장 글씨체 고르기:</span>
+                    <div class="font-buttons">
+                        <button type="button" class="font-btn active" data-font="Jua" style="font-family: 'Jua', sans-serif;" onclick="changeFont('Jua')">주아체</button>
+                        <button type="button" class="font-btn" data-font="Gaegu" style="font-family: 'Gaegu', sans-serif;" onclick="changeFont('Gaegu')">개구체</button>
+                        <button type="button" class="font-btn" data-font="Nanum Pen Script" style="font-family: 'Nanum Pen Script', cursive;" onclick="changeFont('Nanum Pen Script')">펜글씨체</button>
+                        <button type="button" class="font-btn" data-font="Dongle" style="font-family: 'Dongle', sans-serif;" onclick="changeFont('Dongle')">동글체</button>
+                        <button type="button" class="font-btn" data-font="Single Day" style="font-family: 'Single Day', sans-serif;" onclick="changeFont('Single Day')">싱글데이체</button>
+                        <button type="button" class="font-btn" data-font="Basic" style="font-family: sans-serif;" onclick="changeFont('Basic')">기본체</button>
+                    </div>
+                </div>
+
+                <textarea id="diaryInput" spellcheck="false" placeholder="오늘 하루는 어땠어? 오늘의 비밀 단어를 넣어서 신나게 일기를 써봐! 내가 도와줄게!"></textarea>
+                
+                <div class="stats">
+                    <span id="typingSpeedArea" class="stat-badge wpm" style="display: none;">⌨️ 타수: <span id="typingSpeedText">0</span>타/분</span>
+                    <span class="stat-badge char">⏱️ 글자 수: <span id="charCount">0</span>자</span>
+                </div>
+                
+                <button id="btnSubmit" class="submit-btn" onclick="submitDiary()">👾 AI고치에게 일기 보여주기</button>
+                <div id="loadingText" class="loading">⏳ AI고치가 머리를 맞대고 열심히 고민하는 중... (약 5초 소요)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <h2><img src="images/gochi_avatar.png" style="width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 8px; border: 2px solid #ff8e72; object-fit: cover; background: white;">내 친구 AI고치</h2>
         
-<div class="right-panel">
-        <h2><img src="images/gochi_avatar.png" style="width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 8px; border: 2px solid #3182ce; object-fit: cover; background: white;">내 친구 AI고치</h2>
-        
-        <!-- 👾 AI고치 캐릭터 감정/포즈 시각화 구역 -->
-        <div id="gochiCharacterArea" style="display: flex; justify-content: center; align-items: flex-end; height: 220px; margin-top: 10px; margin-bottom: 15px; position: relative;">
-            <img id="gochiImg" src="images/gochi_default.png" style="height: 210px; width: auto; border-radius: 12px; transition: all 0.3s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));">
+        <!-- 👾 AI고치 캐릭터 감정/포즈 시각화 구역 (부스 스타일) -->
+        <div id="gochiCharacterArea" class="gochi-booth">
+            <img id="gochiImg" src="images/gochi_default.png" style="height: 210px; width: auto; border-radius: 12px; transition: all 0.3s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12)); z-index: 2;">
         </div>
         
         <div id="stampBadge" class="stamp-badge"><div style="font-size:20px;">💮</div><div id="stampText">참 잘했어요</div></div>
@@ -239,7 +739,7 @@
                 <div class="score-label"><span>💡 표현력 점수</span><span id="expressionScoreText">0점</span></div>
                 <div class="score-bar"><div id="expressionScoreFill" class="score-fill"></div></div>
             </div>
-            <div id="bonusScoreText" style="display:none; color:#e53e3e; font-size:13px; font-weight:bold; margin-top:5px; text-align:right;">🎯 미션 성공! 보너스 점수가 포함되었습니다 (+10)</div>
+            <div id="bonusScoreText" style="display:none; color:#e53e3e; font-size:12px; font-weight:bold; margin-top:5px; text-align:right;">🎯 미션 성공! 보너스 점수가 포함되었습니다 (+10)</div>
         </div>
 
         <div id="feedbackResult" class="feedback-box">내 일기를 보여주면, 여기에 내가 다듬어 준 힌트와 점수가 나타날 거야! 👾</div>
@@ -248,10 +748,10 @@
         <div id="levelupTitle" class="levelup-title">⭐ 대단해요! 실력이 레벨업 되었습니다! ⭐</div>
         
         <!-- 다시 도전하기 버튼 -->
-        <button id="btnRetry" onclick="startRewriteMode()" style="display:none; width:100%; margin-top:15px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">✏️ AI고치의 힌트로 다시 쓰기!</button>
+        <button id="btnRetry" onclick="startRewriteMode()" style="display:none; width:100%; margin-top:15px; background:linear-gradient(135deg, #6c5ce7 0%, #5b4bc4 100%); color:white; font-size:16px; border-radius:14px; border:none; padding:14px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2); transition: 0.2s;">✏️ AI고치의 힌트로 다시 쓰기!</button>
         
         <!-- 부모님께 자랑하기 버튼 -->
-        <button id="btnShare" onclick="shareReport()" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #48bb78 0%, #38a169 100%); color:white; font-size:16px; border-radius:8px; border:none; padding:12px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s;">💌 부모님께 내 일기 자랑하기</button>
+        <button id="btnShare" onclick="shareReport()" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #48bb78 0%, #38a169 100%); color:white; font-size:16px; border-radius:14px; border:none; padding:14px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(72, 187, 120, 0.2); transition: 0.2s;">💌 부모님께 내 일기 자랑하기</button>
     </div>
 </div>
 </div> <!-- end of mainView -->
@@ -425,25 +925,7 @@
         profiles.forEach(p => {
             const isActive = p.id === childId;
             const chip = document.createElement('div');
-            chip.style.display = 'inline-flex';
-            chip.style.alignItems = 'center';
-            chip.style.padding = '6px 12px';
-            chip.style.borderRadius = '20px';
-            chip.style.fontSize = '13px';
-            chip.style.fontWeight = 'bold';
-            chip.style.cursor = 'pointer';
-            chip.style.transition = 'all 0.2s';
-            chip.style.border = '2px solid';
-
-            if (isActive) {
-                chip.style.backgroundColor = '#ebf8ff';
-                chip.style.borderColor = '#3182ce';
-                chip.style.color = '#2b6cb0';
-            } else {
-                chip.style.backgroundColor = '#f7fafc';
-                chip.style.borderColor = '#e2e8f0';
-                chip.style.color = '#4a5568';
-            }
+            chip.className = isActive ? 'profile-btn active' : 'profile-btn';
 
             chip.onclick = (e) => {
                 if (e.target.classList.contains('delete-btn')) return;
@@ -658,6 +1140,10 @@
         } else {
             resetToDefaultSession();
         }
+        
+        // 폰트 상태 복원
+        const savedFont = localStorage.getItem('selected_font_' + id) || 'Jua';
+        changeFont(savedFont);
     }
 
     function resetToDefaultSession() {
@@ -729,15 +1215,19 @@
                     const reviewers = data.pairedReviewers || [];
                     if (reviewers.length > 0) {
                         const names = reviewers.map(r => r.name || "보호자").join(", ");
-                        pairingCard.style.backgroundColor = "#f0fdf4";
-                        pairingCard.style.borderColor = "#bbf7d0";
+                        pairingCard.classList.add('connected');
                         pairingEmoji.innerText = "✅";
                         pairingStatusText.innerText = "부모님 앱과 연결되었습니다";
-                        pairingStatusText.style.color = "#15803d";
                         pairingSubText.innerText = `연결된 보호자: ${names} (일기가 자동으로 전송됩니다)`;
-                        pairingSubText.style.color = "#166534";
-                        btnGetPairingCode.style.background = "#166534";
                         btnGetPairingCode.innerText = "코드 재발급";
+
+                        // 헤더 미니 배지 업데이트
+                        const miniBadge = document.getElementById('miniPairingBadge');
+                        const miniText = document.getElementById('miniPairingText');
+                        if (miniBadge && miniText) {
+                            miniBadge.classList.add('connected');
+                            miniText.innerText = `보호자 연결됨: ${names}`;
+                        }
                     } else {
                         resetPairingCardUI();
                     }
@@ -758,6 +1248,7 @@
 
         if (!pairingCard) return;
 
+        pairingCard.classList.remove('connected');
         pairingCard.style.backgroundColor = "#fff5f5";
         pairingCard.style.borderColor = "#feb2b2";
         pairingEmoji.innerText = "⚠️";
@@ -767,6 +1258,14 @@
         pairingSubText.style.color = "#9b2c2c";
         btnGetPairingCode.style.background = "#e53e3e";
         btnGetPairingCode.innerText = "코드 생성";
+
+        // 헤더 미니 배지 업데이트
+        const miniBadge = document.getElementById('miniPairingBadge');
+        const miniText = document.getElementById('miniPairingText');
+        if (miniBadge && miniText) {
+            miniBadge.classList.remove('connected');
+            miniText.innerText = "보호자 연결 대기 중";
+        }
     }
 
     // 페어링 코드 발급 함수
@@ -815,6 +1314,69 @@
 
     const textarea = document.getElementById('diaryInput');
     const charCount = document.getElementById('charCount');
+    
+    // ----------------------------------------------------
+    // 폰트 셀렉션 엔진
+    // ----------------------------------------------------
+    function changeFont(fontName) {
+        const txtInput = document.getElementById('diaryInput');
+        if (!txtInput) return;
+        
+        let fontFamily = '';
+        let fontSize = '18px';
+        let lineHeight = '1.7';
+        
+        switch (fontName) {
+            case 'Jua':
+                fontFamily = "'Jua', sans-serif";
+                fontSize = '20px';
+                lineHeight = '1.6';
+                break;
+            case 'Gaegu':
+                fontFamily = "'Gaegu', sans-serif";
+                fontSize = '20px';
+                lineHeight = '1.6';
+                break;
+            case 'Nanum Pen Script':
+                fontFamily = "'Nanum Pen Script', cursive";
+                fontSize = '24px';
+                lineHeight = '1.5';
+                break;
+            case 'Dongle':
+                fontFamily = "'Dongle', sans-serif";
+                fontSize = '28px';
+                lineHeight = '1.1';
+                break;
+            case 'Single Day':
+                fontFamily = "'Single Day', sans-serif";
+                fontSize = '20px';
+                lineHeight = '1.6';
+                break;
+            case 'Basic':
+            default:
+                fontFamily = "sans-serif";
+                fontSize = '16px';
+                lineHeight = '1.7';
+                fontName = 'Basic';
+                break;
+        }
+        
+        txtInput.style.fontFamily = fontFamily;
+        txtInput.style.fontSize = fontSize;
+        txtInput.style.lineHeight = lineHeight;
+        
+        // 버튼 활성화 상태 업데이트
+        document.querySelectorAll('.font-btn').forEach(btn => {
+            if (btn.getAttribute('data-font') === fontName) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        // 로컬 스토리지 저장
+        localStorage.setItem('selected_font_' + childId, fontName);
+    }
     
     // 다시 쓰기 상태 관리 변수
     let lastCorrectedDiary = ''; // AI 선생님이 고쳐준 완벽한 일기
@@ -1279,7 +1841,7 @@
     async function renderParentReport(reportParam) {
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('reportView').style.display = 'block';
-        document.body.style.backgroundColor = '#f0f4f8';
+        document.body.style.backgroundColor = '#faf6f0';
 
         const decompressed = await decompressData(reportParam);
         if (!decompressed) {
