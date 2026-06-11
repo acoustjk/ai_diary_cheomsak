@@ -9,7 +9,8 @@ from pydantic import BaseModel
 from google import genai
 from google.genai import types
 import firebase_admin
-from firebase_admin import credentials, messaging
+from firebase_admin import credentials, messaging, firestore
+
 
 # Initialize Firebase Admin SDK
 firebase_creds_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
@@ -143,6 +144,44 @@ AI_REWRITE_PROMPT = """
 async def check_diary(data: DiaryInput):
     if not data.content.strip():
         raise HTTPException(status_code=400, detail="일기 내용을 입력해주세요.")
+    
+    # 크레딧 검증 및 차감 로직 (1차 작성 시에만 차감)
+    is_rewrite = bool(data.original_content and data.feedback)
+    if not is_rewrite and data.child_id:
+        try:
+            db_client = firestore.client()
+            child_ref = db_client.collection("children").document(data.child_id)
+            doc = child_ref.get()
+            if doc.exists:
+                doc_data = doc.to_dict()
+                credits = doc_data.get("credits")
+                if credits is None:
+                    # 크레딧 필드가 없으면 기본 3개에서 현재 사용한 1개를 뺀 2개로 초기화
+                    child_ref.update({
+                        "credits": 2,
+                        "totalCreditsGranted": 3
+                    })
+                elif credits <= 0:
+                    raise HTTPException(status_code=403, detail="크레딧이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
+                else:
+                    child_ref.update({
+                        "credits": credits - 1
+                    })
+            else:
+                # 문서가 없으면 생성하고 기본 3개에서 현재 사용한 1개를 뺀 2개로 초기화
+                child_ref.set({
+                    "childId": data.child_id,
+                    "childName": data.child_name or "무명 어린이",
+                    "credits": 2,
+                    "totalCreditsGranted": 3,
+                    "pairedReviewers": []
+                })
+        except HTTPException as he:
+            raise he
+        except Exception as e:
+            print(f"Firestore credit verification/deduction error: {e}")
+            # Firebase 연동 에러로 인해 완전히 막히지 않도록 로그를 출력하고 우회합니다.
+
     
     try:
         api_key = data.api_key or os.environ.get("GEMINI_API_KEY")
