@@ -191,13 +191,13 @@ async def check_diary(data: DiaryInput):
             if doc.exists:
                 doc_data = doc.to_dict()
                 credits = doc_data.get("credits")
-                if credits is None:
-                    # 크레딧 필드가 없으면 기본 3개에서 현재 사용한 1개를 뺀 2개로 초기화
-                    child_ref.update({
-                        "credits": 2,
-                        "totalCreditsGranted": 3
-                    })
-                elif credits <= 0:
+                if credits is None or credits <= 0:
+                    # Initialize credits field to 0 if it doesn't exist
+                    if credits is None:
+                        child_ref.update({
+                            "credits": 0,
+                            "totalCreditsGranted": 0
+                        })
                     raise HTTPException(status_code=403, detail="크레딧이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
                 else:
                     new_credits = credits - 1
@@ -211,14 +211,15 @@ async def check_diary(data: DiaryInput):
                         except Exception as ne:
                             print(f"Failed to send auto low credit notification: {ne}")
             else:
-                # 문서가 없으면 생성하고 기본 3개에서 현재 사용한 1개를 뺀 2개로 초기화
+                # 문서가 없으면 생성하고 기본 0개로 초기화하여 403 반환
                 child_ref.set({
                     "childId": data.child_id,
                     "childName": data.child_name or "무명 어린이",
-                    "credits": 2,
-                    "totalCreditsGranted": 3,
+                    "credits": 0,
+                    "totalCreditsGranted": 0,
                     "pairedReviewers": []
                 })
+                raise HTTPException(status_code=403, detail="크레딧이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
         except HTTPException as he:
             raise he
         except Exception as e:

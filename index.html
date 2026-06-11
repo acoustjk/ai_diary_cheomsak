@@ -619,7 +619,7 @@
     <div class="header-menu">
         <div id="webCreditsBadge" class="mini-badge" style="background: #fffdf5; border-color: #fbd38d; color: #b7791f; display: none; align-items: center; gap: 6px; margin-right: 8px;">
             <span>🪙</span>
-            <span>남은 크레딧: <strong id="webCreditsCount">3</strong>개</span>
+            <span>남은 크레딧: <strong id="webCreditsCount">0</strong>개</span>
         </div>
         <div id="miniPairingBadge" class="mini-badge">
             <span class="mini-badge-dot"></span>
@@ -1205,7 +1205,7 @@
     // ----------------------------------------------------
     // 실시간 페어링 연동 리스너
     // ----------------------------------------------------
-    let webCredits = 3;
+    let webCredits = 0;
     let pairingListener = null;
 
     function updateCreditsUI() {
@@ -1243,10 +1243,10 @@
                     } else {
                         // credits 필드가 없으면 초기화
                         db.collection("children").doc(childId).update({
-                            credits: 3,
-                            totalCreditsGranted: 3
+                            credits: 0,
+                            totalCreditsGranted: 0
                         });
-                        webCredits = 3;
+                        webCredits = 0;
                     }
                     updateCreditsUI();
 
@@ -1275,11 +1275,11 @@
                     db.collection("children").doc(childId).set({
                         childId: childId,
                         childName: currentName,
-                        credits: 3,
-                        totalCreditsGranted: 3,
+                        credits: 0,
+                        totalCreditsGranted: 0,
                         pairedReviewers: []
                     });
-                    webCredits = 3;
+                    webCredits = 0;
                     updateCreditsUI();
                     resetPairingCardUI();
                 }
