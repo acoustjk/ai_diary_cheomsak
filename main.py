@@ -165,16 +165,31 @@ async def check_diary(data: DiaryInput):
             prompt = data.content
             system_instruction = AI_TEACHER_PROMPT
 
-        # 1. 일기 분석 및 텍스트/점수 생성
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                system_instruction=system_instruction,
-                temperature=0.3,
-                response_mime_type="application/json"
-            )
-        )
+        # 1. 일기 분석 및 텍스트/점수 생성 (503 에러 발생 시 자동 재시도 적용)
+        import time
+        max_retries = 3
+        retry_delay = 1.0
+        response = None
+        for attempt in range(max_retries):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_instruction,
+                        temperature=0.3,
+                        response_mime_type="application/json"
+                    )
+                )
+                break
+            except Exception as e:
+                err_str = str(e)
+                if ("503" in err_str or "UNAVAILABLE" in err_str or "high demand" in err_str) and attempt < max_retries - 1:
+                    print(f"Gemini API returned 503. Retrying in {retry_delay}s... (Attempt {attempt + 1}/{max_retries})")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2.0
+                else:
+                    raise e
         
         result = json.loads(response.text)
         
