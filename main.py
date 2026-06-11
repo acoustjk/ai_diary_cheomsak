@@ -45,7 +45,7 @@ def send_fcm_notification(child_id: str, child_name: str):
     message = messaging.Message(
         notification=messaging.Notification(
             title="✍️ 일기 작성 완료!",
-            body=f"{display_name}이가 AI고치와 함께 일기 작성을 완료했어! 결과를 확인해봐."
+            body=f"{display_name}이가 AI고치와 함께 일기 작성을 완료했어요! 결과를 확인해 보세요. 😊"
         ),
         data={
             "childId": child_id,
