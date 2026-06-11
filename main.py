@@ -61,6 +61,42 @@ def send_fcm_notification(child_id: str, child_name: str):
     except Exception as e:
         print(f"Failed to send FCM message: {e}")
 
+def send_credit_notification(child_id: str, child_name: str, notification_type: str, credits_left: int = 0):
+    if not firebase_admin._apps:
+        print("Firebase Admin is not initialized. Skipping notification.")
+        return
+    
+    topic = f"child_{child_id}"
+    display_name = child_name or "아이"
+    
+    if notification_type == "low_credit":
+        title = "🔋 크레딧 부족 안내"
+        body = f"{display_name}이의 남은 크레딧이 {credits_left}개입니다. 끊김 없는 일기 작성을 위해 충전해 주세요! 🔌"
+    elif notification_type == "request_credit":
+        title = "🪙 크레딧 충전 요청!"
+        body = f"{display_name}이가 일기 작성을 위해 크레딧 충전을 요청했어요! 지금 충전해 주세요. ⚡"
+    else:
+        return
+
+    message = messaging.Message(
+        notification=messaging.Notification(
+            title=title,
+            body=body
+        ),
+        data={
+            "childId": child_id,
+            "childName": child_name or "",
+            "type": "credit_alert"
+        },
+        topic=topic,
+    )
+    
+    try:
+        response = messaging.send(message)
+        print(f"Successfully sent credit notification to topic {topic}: {response}")
+    except Exception as e:
+        print(f"Failed to send credit FCM message: {e}")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -164,9 +200,16 @@ async def check_diary(data: DiaryInput):
                 elif credits <= 0:
                     raise HTTPException(status_code=403, detail="크레딧이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
                 else:
+                    new_credits = credits - 1
                     child_ref.update({
-                        "credits": credits - 1
+                        "credits": new_credits
                     })
+                    # 자동 크레딧 경고 발송 (1 이하 도달 시)
+                    if new_credits <= 1:
+                        try:
+                            send_credit_notification(data.child_id, data.child_name, "low_credit", new_credits)
+                        except Exception as ne:
+                            print(f"Failed to send auto low credit notification: {ne}")
             else:
                 # 문서가 없으면 생성하고 기본 3개에서 현재 사용한 1개를 뺀 2개로 초기화
                 child_ref.set({
@@ -268,6 +311,20 @@ async def send_notification(data: NotificationInput):
         raise HTTPException(status_code=400, detail="child_id가 필요합니다.")
     try:
         send_fcm_notification(data.child_id, data.child_name)
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class CreditRequestInput(BaseModel):
+    child_id: str
+    child_name: str
+
+@app.post("/request-credits")
+async def request_credits(data: CreditRequestInput):
+    if not data.child_id:
+        raise HTTPException(status_code=400, detail="child_id가 필요합니다.")
+    try:
+        send_credit_notification(data.child_id, data.child_name, "request_credit")
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
