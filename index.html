@@ -386,6 +386,88 @@
             border: 1px solid #eddccb;
         }
 
+        /* AI고치 말풍선 */
+        .gochi-bubble {
+            position: relative;
+            background: linear-gradient(135deg, #ffffff 0%, #fffcfb 100%);
+            border: 2px solid #ffb5a7;
+            border-radius: 20px;
+            padding: 14px 18px;
+            font-size: 15px;
+            font-family: 'Jua', sans-serif;
+            color: #5c3f30;
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 24px rgba(255, 181, 167, 0.25), 0 2px 4px rgba(255, 181, 167, 0.1);
+            animation: bubbleFloat 3.5s ease-in-out infinite;
+            word-break: keep-all;
+            z-index: 10;
+        }
+        .gochi-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px 10px 0;
+            border-style: solid;
+            border-color: #ffb5a7 transparent;
+            display: block;
+            width: 0;
+        }
+        .gochi-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: #ffffff transparent;
+            display: block;
+            width: 0;
+            z-index: 11;
+        }
+        @keyframes bubbleFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        /* AI고치 캐릭터 이미지 호버 및 클릭 애니메이션 */
+        #gochiImg {
+            cursor: pointer;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+        #gochiImg:hover {
+            transform: scale(1.08) translateY(-5px) !important;
+            filter: drop-shadow(0 8px 16px rgba(255, 142, 114, 0.25)) !important;
+        }
+        .bounce {
+            animation: gochiBounce 0.6s ease;
+        }
+        @keyframes gochiBounce {
+            0%, 100% {
+                transform: scale(1) translateY(0);
+            }
+            20% {
+                transform: scale(1.15, 0.85) translateY(0);
+            }
+            40% {
+                transform: scale(0.9, 1.15) translateY(-20px);
+            }
+            60% {
+                transform: scale(1.05, 0.95) translateY(0);
+            }
+            80% {
+                transform: scale(0.98, 1.02) translateY(-4px);
+            }
+        }
+
         .feedback-box {
             flex: 1;
             border: 1px solid var(--border-color);
@@ -727,6 +809,11 @@
     <div class="right-panel">
         <h2><img src="images/gochi_avatar.png" style="width: 28px; height: 28px; border-radius: 50%; vertical-align: middle; margin-right: 8px; border: 2px solid #ff8e72; object-fit: cover; background: white;">내 친구 AI고치</h2>
         
+        <!-- 말풍선 (Gochi Speech Bubble) -->
+        <div id="gochiBubble" class="gochi-bubble">
+            안녕! 일기 쓸 준비 됐어? 오늘 하루는 어땠는지 나한테 들려줘! ✏️
+        </div>
+
         <!-- 👾 AI고치 캐릭터 감정/포즈 시각화 구역 (부스 스타일) -->
         <div id="gochiCharacterArea" class="gochi-booth">
             <img id="gochiImg" src="images/gochi_default.png" style="height: 210px; width: auto; border-radius: 12px; transition: all 0.3s; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.12)); z-index: 2;">
@@ -1016,6 +1103,7 @@
     function selectProfile(id) {
         const gochiImg = document.getElementById('gochiImg');
         if (gochiImg) gochiImg.src = 'images/gochi_default.png';
+        updateGochiBubble('default');
         typingStrokes = 0; activeTypingTimeMs = 0; lastKeystrokeTime = null; currentWpm = 0;
         document.getElementById('typingSpeedArea').style.display = 'none';
         if (childId === id) return;
@@ -1144,6 +1232,26 @@
                     }
                 }
 
+                // AI고치 상태 복원
+                const gochiImg = document.getElementById('gochiImg');
+                const stampText = s.stampText || (document.getElementById('stampText') ? document.getElementById('stampText').innerText : '');
+                const stampDisplay = s.stampBadgeDisplay || (document.getElementById('stampBadge') ? document.getElementById('stampBadge').style.display : 'none');
+                
+                if (stampDisplay === 'flex' && stampText) {
+                    if (gochiImg) {
+                        if (stampText === '참 잘했어요') gochiImg.src = 'images/gochi_success.png';
+                        else if (stampText === '좋은 시도예요') gochiImg.src = 'images/gochi_greeting.png';
+                        else gochiImg.src = 'images/gochi_thinking.png';
+                    }
+                    updateGochiBubble('result', stampText);
+                } else if (isRewriteMode) {
+                    if (gochiImg) gochiImg.src = 'images/gochi_thinking.png';
+                    updateGochiBubble('rewrite');
+                } else {
+                    if (gochiImg) gochiImg.src = 'images/gochi_default.png';
+                    updateGochiBubble('typing', txtInput ? txtInput.value.length : 0);
+                }
+
             } catch (err) {
                 console.error("Failed to parse saved session for child: " + id, err);
                 resetToDefaultSession();
@@ -1157,9 +1265,57 @@
         changeFont(savedFont);
     }
 
+    // AI고치 말풍선 상태 업데이트 함수
+    function updateGochiBubble(state, detail = null) {
+        const bubble = document.getElementById('gochiBubble');
+        if (!bubble) return;
+
+        let message = "";
+        switch (state) {
+            case 'default':
+                message = "안녕! 일기 쓸 준비 됐어? 오늘 하루는 어땠는지 나한테 들려줘! ✏️";
+                break;
+            case 'typing':
+                const len = detail || 0;
+                if (len === 0) {
+                    message = "안녕! 일기 쓸 준비 됐어? 오늘 하루는 어땠는지 나한테 들려줘! ✏️";
+                } else if (len < 10) {
+                    message = "좋은 시작이야! 어떤 일이 있었는지 조금만 더 자세히 써볼래? 🐾";
+                } else if (len < 30) {
+                    message = "와, 아주 잘 쓰고 있어! 그 일에 대해 너의 생각이나 기분은 어땠어? 💭";
+                } else if (len < 60) {
+                    message = "점점 멋진 일기가 되어가고 있어! 문장을 차근차근 이어가봐! ✨";
+                } else {
+                    message = "우와! 정말 길고 자세하게 잘 썼구나! 다 썼으면 나한테 보여줘! 🎉";
+                }
+                break;
+            case 'analyzing':
+                message = "음... 아주 멋진 일기인걸? 어디 고칠 곳이 있나 돋보기를 대고 꼼꼼히 읽어볼게! 🔍";
+                break;
+            case 'result':
+                const stamp = detail;
+                if (stamp === '참 잘했어요') {
+                    message = "우와! 정말 완벽한 일기야! '참 잘했어요' 도장을 줄게! 💮 백 점 만점에 만 점! 💯";
+                } else if (stamp === '좋은 시도예요') {
+                    message = "오! 아주 좋은 시도였어! 조금만 고쳐보면 더 멋진 일기가 될 거야! 화이팅! ⭐";
+                } else {
+                    message = "조금 헷갈리는 문장이 있네! 내 피드백을 보고 한 번 더 연습해볼까? ✏️";
+                }
+                break;
+            case 'rewrite':
+                message = "오, 피드백을 보면서 더 완성도 높은 일기로 고쳐 쓰는구나! 함께 더 멋지게 만들어보자! 🛠️";
+                break;
+            case 'random':
+                message = detail;
+                break;
+        }
+        bubble.innerText = message;
+    }
+
     function resetToDefaultSession() {
         const gochiImg = document.getElementById('gochiImg');
         if (gochiImg) gochiImg.src = 'images/gochi_default.png';
+        updateGochiBubble('default');
         typingStrokes = 0; activeTypingTimeMs = 0; lastKeystrokeTime = null; currentWpm = 0;
         document.getElementById('typingSpeedArea').style.display = 'none';
         const txtInput = document.getElementById('diaryInput');
@@ -1358,6 +1514,32 @@
             renderProfiles();
             loadSession(childId);
             updateStreakAndBadges(false);
+
+            // AI고치 이미지 클릭 반응 (애니메이션 및 랜덤 멘트)
+            const gochiImg = document.getElementById('gochiImg');
+            if (gochiImg) {
+                gochiImg.addEventListener('click', () => {
+                    gochiImg.classList.add('bounce');
+                    setTimeout(() => {
+                        gochiImg.classList.remove('bounce');
+                    }, 600);
+
+                    const quotes = [
+                        "앗! 간지러워! 😆 더 신나게 일기를 써보자!",
+                        "일기를 쓰면 생각하는 힘이 쑥쑥 자란단다! 🌱",
+                        "틀려도 괜찮아! 나랑 같이 고쳐나가면 되니까! 💪",
+                        "오늘 가장 기억에 남는 순간은 뭐야? 일기에 다 적어줘! 📝",
+                        "너의 일기를 읽는 시간은 언제나 정말 즐거워! 💖",
+                        "우와, 타자 치는 속도가 정말 빠르구나! 멋져! ⚡",
+                        "조금씩 꾸준히 하다 보면 글쓰기 왕이 될 수 있어! 👑",
+                        "배고프다... 아니, 맛있는 일기를 먹고 싶어! 챱챱 😋",
+                        "혹시 생각이 안 나면, 오늘 먹은 맛있는 음식에 대해 써봐! 🍕",
+                        "내가 항상 네 곁에서 응원하고 있다는 걸 기억해! 🍀"
+                    ];
+                    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+                    updateGochiBubble('random', randomQuote);
+                });
+            }
         });
     }
 
@@ -1480,6 +1662,11 @@
         document.getElementById('btnSubmit').innerText = '✨ 고친 일기 다시 보여주기';
         document.getElementById('btnSubmit').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
         document.getElementById('btnRetry').style.display = 'none';
+
+        // Gochi bubble update
+        const gochiImg = document.getElementById('gochiImg');
+        if (gochiImg) gochiImg.src = 'images/gochi_default.png';
+        updateGochiBubble('rewrite');
         
         // Reset typing stats for rewrite phase
         typingStrokes = 0;
@@ -1507,6 +1694,22 @@
         document.getElementById('rewriteBanner').style.display = 'none';
         document.getElementById('btnSubmit').innerText = '👾 AI고치에게 일기 보여주기';
         document.getElementById('btnSubmit').style.background = '#3182ce';
+
+        // Gochi bubble restore
+        const stampText = document.getElementById('stampText') ? document.getElementById('stampText').innerText : '';
+        const stampDisplay = document.getElementById('stampBadge') ? document.getElementById('stampBadge').style.display : 'none';
+        const gochiImg = document.getElementById('gochiImg');
+        if (stampDisplay === 'flex' && stampText) {
+            if (gochiImg) {
+                if (stampText === '참 잘했어요') gochiImg.src = 'images/gochi_success.png';
+                else if (stampText === '좋은 시도예요') gochiImg.src = 'images/gochi_greeting.png';
+                else gochiImg.src = 'images/gochi_thinking.png';
+            }
+            updateGochiBubble('result', stampText);
+        } else {
+            if (gochiImg) gochiImg.src = 'images/gochi_default.png';
+            updateGochiBubble('typing', textarea.value.length);
+        }
         
         if (originalFeedback) {
             document.getElementById('btnRetry').style.display = 'block';
@@ -1582,6 +1785,16 @@
     textarea.addEventListener('input', () => {
         charCount.innerText = textarea.value.length;
         saveSession(childId);
+        if (!isRewriteMode) {
+            updateGochiBubble('typing', textarea.value.length);
+        } else {
+            const len = textarea.value.length;
+            if (len > 0) {
+                updateGochiBubble('random', "고쳐 쓰기도 척척 해내는구나! 너의 노력이 멋져! 👍");
+            } else {
+                updateGochiBubble('rewrite');
+            }
+        }
     });
 
     // 임시 설정: true인 경우 복사/붙여넣기 허용 (테스트용), 나중에 false로 바꾸면 차단 기능이 활성화됩니다.
@@ -1647,6 +1860,7 @@
         // AI고치 고민 중인 표정으로 변경
         const gochiImg = document.getElementById('gochiImg');
         if (gochiImg) gochiImg.src = 'images/gochi_thinking.png';
+        updateGochiBubble('analyzing');
 
         const loadingText = document.getElementById('loadingText');
         const feedbackResult = document.getElementById('feedbackResult');
@@ -1809,6 +2023,7 @@
                         stampBadge.style.color = stampBadge.style.borderColor = '#3182ce';
                         if (gochiImg) gochiImg.src = 'images/gochi_thinking.png';
                     }
+                    updateGochiBubble('result', data.stamp);
                     
                     stampBadge.style.display = 'flex';
 
@@ -1864,6 +2079,9 @@
 
         } catch (error) {
             feedbackResult.innerText = '인터넷 연결 오류가 발생했습니다: ' + error.message;
+            updateGochiBubble('random', "인터넷 연결에 문제가 있나 봐! 다시 시도해봐! 🔌");
+            const gochiImg = document.getElementById('gochiImg');
+            if (gochiImg) gochiImg.src = 'images/gochi_default.png';
         } finally {
             loadingText.style.display = 'none';
         }
