@@ -690,6 +690,7 @@
 <body>
 
 <!-- 보호자 연결 필요 오버레이 (0 크레딧 & 미연결 상태일 때 강제 표시) -->
+<!-- 보호자 연결 필요 오버레이 (0 크레딧 & 미연결 상태일 때 강제 표시) -->
 <div id="webPairingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 244, 248, 0.96); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); max-width: 480px; width: 100%; text-align: center; border: 1px solid #e2e8f0; animation: overlayFadeIn 0.5s ease-out;">
         <div style="font-size: 50px; margin-bottom: 20px; animation: bounce 2s infinite;">🔗</div>
@@ -698,6 +699,11 @@
             AI고치 일기장을 사용하려면 부모님 기기와의 연결이 필요합니다.<br><br>
             부모님 앱에 연결이 완료되면 일기를 쓸 수 있는 <strong>'웰컴 선물 크레딧'</strong>이 지급됩니다! 🎁
         </p>
+        <!-- 이름 입력 필드 추가 -->
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label for="overlayChildNameInput" style="display: block; font-weight: bold; font-size: 14px; color: #4a5568; margin-bottom: 8px;">어린이 이름</label>
+            <input type="text" id="overlayChildNameInput" placeholder="이름을 입력해 주세요" style="width: 100%; padding: 12px; border: 1.5px solid #cbd5e0; border-radius: 10px; font-size: 14px; box-sizing: border-box; color: #2d3748; outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#3182ce'" onblur="this.style.borderColor='#cbd5e0'">
+        </div>
         <div id="overlayCodeContainer" style="display: none; background: #f7fafc; border: 1px dashed #cbd5e0; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
             <div style="font-size: 12px; color: #718096; margin-bottom: 8px; font-weight: bold;">인증 연결 코드 (10분간 유효)</div>
             <div id="overlayPairingCode" style="font-size: 36px; font-weight: bold; color: #2b6cb0; letter-spacing: 3px; font-family: monospace;">--- ---</div>
@@ -707,6 +713,7 @@
         </button>
     </div>
 </div>
+
 
 <style>
 @keyframes overlayFadeIn {
@@ -991,14 +998,14 @@
     // ----------------------------------------------------
     let profiles = [];
     try {
-        profiles = JSON.parse(localStorage.getItem('child_profiles') || '[]');
+        profiles = JSON.parse(sessionStorage.getItem('child_profiles') || '[]');
     } catch (e) {
         console.error("Failed to parse child_profiles, reset to empty", e);
     }
 
     // 마이그레이션: 기존 childId가 있고 profiles가 비어있으면 마이그레이션 진행
-    let legacyChildId = localStorage.getItem('child_id');
-    let legacyChildName = localStorage.getItem('child_name') || '';
+    let legacyChildId = sessionStorage.getItem('child_id');
+    let legacyChildName = sessionStorage.getItem('child_name') || '';
     
     if (profiles.length === 0) {
         if (legacyChildId) {
@@ -1008,33 +1015,68 @@
             profiles = [{ id: defaultId, name: '어린이 작가' }];
             legacyChildId = defaultId;
         }
-        localStorage.setItem('child_profiles', JSON.stringify(profiles));
+        sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
     }
 
     // 활성 childId 결정
-    let childId = localStorage.getItem('child_id');
+    let childId = sessionStorage.getItem('child_id');
     if (!childId || !profiles.some(p => p.id === childId)) {
-        childId = profiles[0].id;
-        localStorage.setItem('child_id', childId);
+        childId = profiles[0] ? profiles[0].id : '';
+        if (childId) sessionStorage.setItem('child_id', childId);
     }
-    
-    let childName = profiles.find(p => p.id === childId)?.name || '어린이 작가';
+    let childName = sessionStorage.getItem('child_name') || '';
+    if (!childName && childId) {
+        const foundProf = profiles.find(p => p.id === childId);
+        childName = foundProf ? foundProf.name : '\uc5b4\ub9b0\uc774';
+    }
+    let nameUpdateTimeout = null;
+
+    function syncChildName(newName) {
+        childName = newName;
+        sessionStorage.setItem('child_name', newName);
+
+        const childNameInput = document.getElementById('childNameInput');
+        if (childNameInput && childNameInput.value !== newName) {
+            childNameInput.value = newName;
+        }
+
+        const overlayChildNameInput = document.getElementById('overlayChildNameInput');
+        if (overlayChildNameInput && overlayChildNameInput.value !== newName) {
+            overlayChildNameInput.value = newName;
+        }
+
+        const profile = profiles.find(p => p.id === childId);
+        if (profile) {
+            profile.name = newName || '\uc5b4\ub9b0\uc774'; // "어린이"
+            sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+            renderProfiles();
+        }
+
+        // Debounced Firestore Update
+        clearTimeout(nameUpdateTimeout);
+        nameUpdateTimeout = setTimeout(() => {
+            if (childId && newName) {
+                db.collection("children").doc(childId).update({
+                    childName: newName
+                }).then(() => {
+                    console.log("Firestore name sync success:", newName);
+                }).catch(err => {
+                    console.error("Firestore name sync error:", err);
+                });
+            }
+        }, 1000);
+    }
+
 
     // UI 요소 연동
     const childNameInput = document.getElementById('childNameInput');
     if (childNameInput) {
         childNameInput.value = childName;
         childNameInput.addEventListener('input', (e) => {
-            childName = e.target.value.trim();
-            // 프로필 리스트 업데이트
-            const profile = profiles.find(p => p.id === childId);
-            if (profile) {
-                profile.name = childName || '어린이 작가';
-                localStorage.setItem('child_profiles', JSON.stringify(profiles));
-                renderProfiles();
-            }
+            syncChildName(e.target.value.trim());
         });
     }
+
 
     // 프로필 렌더링
     function renderProfiles() {
@@ -1085,7 +1127,7 @@
 
         const newId = self.crypto.randomUUID();
         profiles.push({ id: newId, name: name.trim() });
-        localStorage.setItem('child_profiles', JSON.stringify(profiles));
+        sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
 
         selectProfile(newId);
     }
@@ -1100,16 +1142,16 @@
             return;
         }
 
-        localStorage.removeItem('diary_session_' + id);
-        localStorage.removeItem('diary_streak_' + id);
-        localStorage.removeItem('diary_last_date_' + id);
+        sessionStorage.removeItem('diary_session_' + id);
+        sessionStorage.removeItem('diary_streak_' + id);
+        sessionStorage.removeItem('diary_last_date_' + id);
 
         profiles = profiles.filter(p => p.id !== id);
-        localStorage.setItem('child_profiles', JSON.stringify(profiles));
+        sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
 
         if (childId === id) {
             childId = profiles[0].id;
-            localStorage.setItem('child_id', childId);
+            sessionStorage.setItem('child_id', childId);
             childName = profiles[0].name;
             const childNameInput = document.getElementById('childNameInput');
             if (childNameInput) childNameInput.value = childName;
@@ -1137,7 +1179,7 @@
         saveSession(childId);
 
         childId = id;
-        localStorage.setItem('child_id', childId);
+        sessionStorage.setItem('child_id', childId);
         const currentProfile = profiles.find(p => p.id === childId);
         childName = currentProfile ? currentProfile.name : '어린이 작가';
 
@@ -1192,13 +1234,13 @@
             btnNewDiaryDisplay: document.getElementById('btnNewDiary') ? document.getElementById('btnNewDiary').style.display : 'none',
             currentDiaryId: currentDiaryId
         };
-        localStorage.setItem('diary_session_' + id, JSON.stringify(sessionState));
+        sessionStorage.setItem('diary_session_' + id, JSON.stringify(sessionState));
     }
 
     // 세션 상태 복원 함수
     function loadSession(id) {
         if (!id) return;
-        const saved = localStorage.getItem('diary_session_' + id);
+        const saved = sessionStorage.getItem('diary_session_' + id);
         const txtInput = document.getElementById('diaryInput');
         const charCount = document.getElementById('charCount');
         
@@ -1287,7 +1329,7 @@
         }
         
         // 폰트 상태 복원
-        const savedFont = localStorage.getItem('selected_font_' + id) || 'Jua';
+        const savedFont = sessionStorage.getItem('selected_font_' + id) || 'Jua';
         changeFont(savedFont);
     }
 
@@ -1402,6 +1444,11 @@
     }
 
     function startPairingListener() {
+        if (!childId) {
+            const overlay = document.getElementById('webPairingOverlay');
+            if (overlay) overlay.style.display = 'none';
+            return;
+        }
         if (pairingListener) {
             pairingListener();
         }
@@ -1434,16 +1481,28 @@
 
                     const reviewers = data.pairedReviewers || [];
                     
-                    // 보호자 연결 필요 오버레이 노출 여부 제어
+                    // 보호자 연결 필요 오버레이 노출 제어
                     const overlay = document.getElementById('webPairingOverlay');
                     if (overlay) {
                         if (reviewers.length === 0 && webCredits === 0) {
                             overlay.style.display = 'flex';
+                            
+                            const overlayChildNameInput = document.getElementById('overlayChildNameInput');
+                            if (overlayChildNameInput) {
+                                overlayChildNameInput.value = childName || "";
+                                if (!overlayChildNameInput.dataset.listenerAdded) {
+                                    overlayChildNameInput.addEventListener('input', (e) => {
+                                        syncChildName(e.target.value.trim());
+                                    });
+                                    overlayChildNameInput.dataset.listenerAdded = "true";
+                                }
+                            }
+
                             if (data.pairingCode && data.pairingCodeExpires && (data.pairingCodeExpires > Date.now() / 1000)) {
                                 document.getElementById('overlayPairingCode').innerText = `${data.pairingCode.substring(0, 3)} ${data.pairingCode.substring(3, 6)}`;
                                 document.getElementById('overlayCodeContainer').style.display = 'block';
                                 const btn = document.getElementById('btnOverlayGenerateCode');
-                                if (btn) btn.innerText = "새로운 연결 코드 재발급";
+                                if (btn) btn.innerText = "\uc0c8\ub85c\uc6b4\u0020\uc5f0\uacb0\u0020\ucd54\ub4dc\u0020\uc7ac\ubc1c\uae09"; // "새로운 연결 코드 재발급"
                             }
                         } else {
                             overlay.style.display = 'none';
@@ -1470,7 +1529,7 @@
                     }
                 } else {
                     // 문서가 존재하지 않는 경우 초기화
-                    const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+                    const currentName = childNameInput ? childNameInput.value.trim() : "\ubb34\ubb85\u0020\uc5b4\ub9b0\uc774"; // "무명 어린이"
                     db.collection("children").doc(childId).set({
                         childId: childId,
                         childName: currentName,
@@ -1486,8 +1545,14 @@
                     if (overlay) {
                         overlay.style.display = 'flex';
                         document.getElementById('overlayCodeContainer').style.display = 'none';
+                        
+                        const overlayChildNameInput = document.getElementById('overlayChildNameInput');
+                        if (overlayChildNameInput) {
+                            overlayChildNameInput.value = childName || "";
+                        }
+                        
                         const btn = document.getElementById('btnOverlayGenerateCode');
-                        if (btn) btn.innerText = "연결 코드 발급받기";
+                        if (btn) btn.innerText = "\uc5f0\uacb0\u0020\ucd54\ub4dc\u0020\ubc1c\uae09\ubc1b\uae30"; // "연결 코드 발급받기"
                     }
                 }
             }, (error) => {
@@ -1557,7 +1622,15 @@
     }
 
     async function generateOverlayPairingCode() {
-        const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+        const overlayNameInput = document.getElementById('overlayChildNameInput');
+        const currentName = overlayNameInput ? overlayNameInput.value.trim() : "\ubb34\ubb85\u0020\uc5b4\ub9b0\uc774"; // "무명 어린이"
+        if (!currentName) {
+            alert("\uc774\ub984\uc744\u0020\uc785\ub825\ud574\u0020\uc8fc\uc138\uc694\u0021"); // "이름을 입력해 주세요!"
+            return;
+        }
+
+        syncChildName(currentName);
+
         const newCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expires = Math.floor(Date.now() / 1000) + 600; // 10 minutes
 
@@ -1575,13 +1648,13 @@
             
             const btn = document.getElementById('btnOverlayGenerateCode');
             if (btn) {
-                btn.innerText = "새로운 연결 코드 재발급";
+                btn.innerText = "\uc0c8\ub85c\uc6b4\u0020\uc5f0\uacb0\u0020\ucd54\ub4dc\u0020\uc7ac\ubc1c\uae09"; // "새로운 연결 코드 재발급"
             }
 
-            alert('페어링 코드가 발급되었습니다! 10분간 유효합니다.');
+            alert("\uc5f0\uacb0\u0020\ucd54\ub4dc\uac00\u0020\ubc1c\uae09\ubc1d\uc544\uc9c0\uc5c8\uc2b5\ubc48\ub2e4\u002e\u0020\u0031\u0030\ubd84\uac04\u0020\uc720\ud6a8\ud569\ub2c8\ub2e4\u002e"); // "연결 코드가 발급되었습니다. 10분간 유효합니다."
         } catch (error) {
             console.error("Failed to generate overlay pairing code:", error);
-            alert("코드 발급 중 오류가 발생했습니다: " + error.message);
+            alert("\ucd54\ub4dc\u0020\ubc1c\uae09\u0020\uc913\u0020\uc624\ub958\uac00\u0020\ubc1c\uc0dd\ud588\uc2b5\ubc48\ub2e4\u003a\u0020" + error.message); // "코드 발급 중 오류가 발생했습니다: "
         }
     }
 
@@ -1686,7 +1759,7 @@
         });
         
         // 로컬 스토리지 저장
-        localStorage.setItem('selected_font_' + childId, fontName);
+        sessionStorage.setItem('selected_font_' + childId, fontName);
     }
     
     // 다시 쓰기 상태 관리 변수
@@ -1808,8 +1881,8 @@
 
     // 출석 체크 및 배지 시스템 로직 (브라우저 메모리 사용)
     function updateStreakAndBadges(isNewWrite) {
-        let streak = parseInt(localStorage.getItem('diary_streak_' + childId) || '0');
-        let lastDate = localStorage.getItem('diary_last_date_' + childId);
+        let streak = parseInt(sessionStorage.getItem('diary_streak_' + childId) || '0');
+        let lastDate = sessionStorage.getItem('diary_last_date_' + childId);
         const todayStr = new Date().toLocaleDateString();
 
         if (isNewWrite) {
@@ -1822,8 +1895,8 @@
                 // 연속이 깨졌거나 처음이면 1일로 초기화
                 streak = 1;
             }
-            localStorage.setItem('diary_streak_' + childId, streak);
-            localStorage.setItem('diary_last_date_' + childId, todayStr);
+            sessionStorage.setItem('diary_streak_' + childId, streak);
+            sessionStorage.setItem('diary_last_date_' + childId, todayStr);
         }
 
         document.getElementById('streakCount').innerText = streak;
