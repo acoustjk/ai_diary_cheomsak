@@ -2338,39 +2338,42 @@
                     btnRetry.style.display = 'block';
 
                     // ----------------------------------------------------
-                    // Firestore 실시간 데이터베이스 업로드
+                    // Firestore 실시간 데이터베이스 업로드 (2차 고쳐쓰기 완료 시에만 부모용 연동 전송)
                     // ----------------------------------------------------
                     if (!isRewriteMode || !currentDiaryId) {
                         currentDiaryId = self.crypto.randomUUID();
                     }
-                    const diaryReportId = currentDiaryId;
-                    const diaryTimestamp = Date.now();
-                    const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
-                    const uploadData = {
-                        diaryId: diaryReportId,
-                        timestamp: diaryTimestamp,
-                        name: currentName,
-                        originalContent: isRewriteMode ? originalContent : content,
-                        originalFeedback: isRewriteMode ? originalFeedback : data.feedback,
-                        rewrittenContent: isRewriteMode ? content : "",
-                        firstSpellingScore: isRewriteMode ? prevSpellingScore : finalSpelling,
-                        firstExpressionScore: isRewriteMode ? prevExpressionScore : finalExpression,
-                        secondSpellingScore: isRewriteMode ? finalSpelling : 0,
-                        secondExpressionScore: isRewriteMode ? finalExpression : 0,
-                        stamp: data.stamp,
-                        improved: data.improved || false,
-                        wpm: currentWpm
-                    };
 
-                    db.collection("children").doc(childId)
-                        .collection("diaries").doc(diaryReportId)
-                        .set(uploadData, { merge: true })
-                        .then(() => {
-                            console.log("웹 일기 보고서 Firestore 업로드 성공! (AI고치)");
-                        })
-                        .catch((e) => {
-                            console.error("웹 일기 보고서 Firestore 업로드 실패:", e);
-                        });
+                    if (isRewriteMode) {
+                        const diaryReportId = currentDiaryId;
+                        const diaryTimestamp = Date.now();
+                        const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+                        const uploadData = {
+                            diaryId: diaryReportId,
+                            timestamp: diaryTimestamp,
+                            name: currentName,
+                            originalContent: originalContent,
+                            originalFeedback: originalFeedback,
+                            rewrittenContent: content,
+                            firstSpellingScore: prevSpellingScore,
+                            firstExpressionScore: prevExpressionScore,
+                            secondSpellingScore: finalSpelling,
+                            secondExpressionScore: finalExpression,
+                            stamp: data.stamp,
+                            improved: data.improved || false,
+                            wpm: currentWpm
+                        };
+
+                        db.collection("children").doc(childId)
+                            .collection("diaries").doc(diaryReportId)
+                            .set(uploadData, { merge: true })
+                            .then(() => {
+                                console.log("웹 일기 보고서 Firestore 업로드 성공! (AI고치)");
+                            })
+                            .catch((e) => {
+                                console.error("웹 일기 보고서 Firestore 업로드 실패:", e);
+                            });
+                    }
 
                 } else {
                     feedbackResult.innerText = '오류 발생: ' + (data.detail || JSON.stringify(data));
