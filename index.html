@@ -980,6 +980,16 @@
 </div>
 
 <script>
+    // Check navigation type to clear sessionStorage on new navigation (e.g. typing URL, bookmark, session restore)
+    try {
+        const perfEntries = performance.getEntriesByType("navigation");
+        if (perfEntries.length > 0 && perfEntries[0].type !== "reload") {
+            sessionStorage.clear();
+        }
+    } catch (e) {
+        console.error("Navigation check failed:", e);
+    }
+
     // ----------------------------------------------------
     // Firebase 설정 및 초기화
     // ----------------------------------------------------
