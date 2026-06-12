@@ -3,7 +3,7 @@ import json
 import urllib.request
 import urllib.parse
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
@@ -487,6 +487,217 @@ async def shorten(url: str):
     except Exception as e:
         print(f"URL Shortening failed: {e}")
         return {"shorturl": url}
+
+@app.get("/terms", response_class=HTMLResponse)
+async def get_terms():
+    html_content = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI고치 서비스 이용약관</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #F7FAFC;
+            color: #2D3748;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1A365D;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2B6CB0;
+            border-bottom: 2px solid #E2E8F0;
+            padding-bottom: 8px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+        }
+        p, li {
+            font-size: 15px;
+            color: #4A5568;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #A0AEC0;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI고치 서비스 이용약관</h1>
+        <div class="subtitle">시행일자: 2026년 6월 12일</div>
+        
+        <h2>제 1 조 (목적)</h2>
+        <p>본 약관은 "AI고치"(이하 "서비스")가 제공하는 아동 일기 첨삭 및 보호자 관리 기능의 이용 조건 및 절차, 회사와 회원 간의 권리, 의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+        
+        <h2>제 2 조 (용어의 정의)</h2>
+        <p>본 약관에서 사용하는 용어의 정의는 다음과 같습니다:</p>
+        <ul>
+            <li><strong>회원(보호자)</strong>: 본 약관에 동의하고 카카오 소셜 로그인을 통해 계정을 생성하여 서비스를 이용하는 자를 말합니다.</li>
+            <li><strong>자녀(학생)</strong>: 회원의 연결 코드를 통해 서비스에 연동되어 일기 작성 및 첨삭 지도를 받는 아동을 말합니다.</li>
+            <li><strong>크레딧</strong>: 일기 분석 및 첨삭 서비스를 이용하기 위해 사용하는 서비스 내 디지털 화폐를 말합니다.</li>
+        </ul>
+        
+        <h2>제 3 조 (약관의 효력 및 변경)</h2>
+        <p>본 약관은 회원이 서비스 화면에 게시하거나 카카오 로그인 시 동의함으로써 효력이 발생합니다. 서비스는 관련 법령을 위배하지 않는 범위에서 본 약관을 개정할 수 있으며, 변경된 약관은 공지사항 또는 이메일을 통해 공지합니다.</p>
+        
+        <h2>제 4 조 (서비스 이용 및 크레딧)</h2>
+        <ul>
+            <li>회원은 자녀의 앱을 자신의 계정과 연동하여 크레딧을 충전하고 결제를 관리할 수 있습니다.</li>
+            <li>일기 분석 및 AI 피드백 1회 작성 시 1 크레딧이 차감됩니다.</li>
+            <li>기타 충전 및 환불 규정은 관계 법령 및 플랫폼 결제 가이드라인을 준수합니다.</li>
+        </ul>
+        
+        <h2>제 5 조 (의무 및 책임)</h2>
+        <p>회원은 카카오 계정의 관리 책임을 가지며, 타인에게 계정을 대여하거나 누출해서는 안 됩니다. 또한 자녀가 서비스를 이용하는 과정에서 부적절한 언어를 사용하지 않도록 성실히 지도하여야 합니다.</p>
+        
+        <div class="footer">
+            © 2026 AI고치. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>"""
+    return html_content
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def get_privacy():
+    html_content = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI고치 개인정보 처리방침</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #F7FAFC;
+            color: #2D3748;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1A365D;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2B6CB0;
+            border-bottom: 2px solid #E2E8F0;
+            padding-bottom: 8px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+        }
+        p, li {
+            font-size: 15px;
+            color: #4A5568;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #A0AEC0;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI고치 개인정보 처리방침</h1>
+        <div class="subtitle">시행일자: 2026년 6월 12일</div>
+        
+        <h2>1. 개인정보의 수집 및 이용 목적</h2>
+        <p>서비스는 다음의 목적을 위해 최소한의 개인정보를 수집하고 이용합니다. 수집된 개인정보는 목적 외의 용도로 사용되지 않으며, 목적이 변경될 경우 사전에 동의를 구합니다.</p>
+        <ul>
+            <li><strong>회원 가입 및 식별</strong>: 카카오 소셜 로그인을 통한 회원제 서비스 제공, 본인 확인 및 연동 관계 생성</li>
+            <li><strong>AI 서비스 제공</strong>: 자녀의 일기 데이터 분석 및 맞춤 피드백 작성</li>
+            <li><strong>알림 및 푸시 메시지</strong>: 일기 첨삭 완료 실시간 푸시 알림 발송</li>
+        </ul>
+        
+        <h2>2. 수집하는 개인정보의 항목</h2>
+        <p>서비스는 회원 가입 및 자녀 연동 시 아래와 같은 정보를 수집할 수 있습니다:</p>
+        <ul>
+            <li><strong>보호자(회원)</strong>: 카카오 고유 UID, 프로필 이메일 주소, 프로필 닉네임</li>
+            <li><strong>자녀(학생)</strong>: 자녀의 닉네임, 작성한 일기 원본 및 AI 첨삭 결과 일기 데이터</li>
+            <li><strong>자동 생성 정보</strong>: 푸시 알림 토큰(FCM), 기기 식별값(ID)</li>
+        </ul>
+        
+        <h2>3. 개인정보의 보유 및 이용 기간</h2>
+        <p>이용자의 개인정보는 서비스 탈퇴 시 즉시 파기하는 것을 원칙으로 합니다. 다만 관계 법령의 규정에 따라 일정 기간 보존할 필요가 있는 경우 해당 법령에 따라 보관합니다.</p>
+        
+        <h2>4. 개인정보의 파기 절차 및 방법</h2>
+        <p>전자적 파일 형태로 저장된 개인정보는 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제하며, 종이 문서에 출력된 개인정보는 분쇄기로 분쇄하여 파기합니다.</p>
+        
+        <h2>5. 정보주체의 권리 행사 방법</h2>
+        <p>회원은 언제든지 자신의 개인정보를 열람, 수정할 수 있으며 회원 탈퇴(연결 해제 및 계정 삭제)를 요구할 권리가 있습니다. 회원 탈퇴는 앱 내 설정 메뉴에서 간편하게 처리하실 수 있습니다.</p>
+        
+        <div class="footer">
+            © 2026 AI고치. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>"""
+    return html_content
 
 @app.get("/")
 async def read_index():
