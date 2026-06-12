@@ -1502,7 +1502,7 @@
                                 document.getElementById('overlayPairingCode').innerText = `${data.pairingCode.substring(0, 3)} ${data.pairingCode.substring(3, 6)}`;
                                 document.getElementById('overlayCodeContainer').style.display = 'block';
                                 const btn = document.getElementById('btnOverlayGenerateCode');
-                                if (btn) btn.innerText = "\uc0c8\ub85c\uc6b4\u0020\uc5f0\uacb0\u0020\ucd54\ub4dc\u0020\uc7ac\ubc1c\uae09"; // "새로운 연결 코드 재발급"
+                                if (btn) btn.innerText = "\uc0c8\ub85c\uc6b4\u0020\uc5f0\uacb0\u0020\ucf54\ub4dc\u0020\uc7ac\ubc1c\uae09"; // "새로운 연결 코드 재발급"
                             }
                         } else {
                             overlay.style.display = 'none';
@@ -1552,7 +1552,7 @@
                         }
                         
                         const btn = document.getElementById('btnOverlayGenerateCode');
-                        if (btn) btn.innerText = "\uc5f0\uacb0\u0020\ucd54\ub4dc\u0020\ubc1c\uae09\ubc1b\uae30"; // "연결 코드 발급받기"
+                        if (btn) btn.innerText = "\uc5f0\uacb0\u0020\ucf54\ub4dc\u0020\ubc1c\uae09\ubc1b\uae30"; // "연결 코드 발급받기"
                     }
                 }
             }, (error) => {
@@ -1648,13 +1648,13 @@
             
             const btn = document.getElementById('btnOverlayGenerateCode');
             if (btn) {
-                btn.innerText = "\uc0c8\ub85c\uc6b4\u0020\uc5f0\uacb0\u0020\ucd54\ub4dc\u0020\uc7ac\ubc1c\uae09"; // "새로운 연결 코드 재발급"
+                btn.innerText = "\uc0c8\ub85c\uc6b4\u0020\uc5f0\uacb0\u0020\ucf54\ub4dc\u0020\uc7ac\ubc1c\uae09"; // "새로운 연결 코드 재발급"
             }
 
-            alert("\uc5f0\uacb0\u0020\ucd54\ub4dc\uac00\u0020\ubc1c\uae09\ubc1d\uc544\uc9c0\uc5c8\uc2b5\ubc48\ub2e4\u002e\u0020\u0031\u0030\ubd84\uac04\u0020\uc720\ud6a8\ud569\ub2c8\ub2e4\u002e"); // "연결 코드가 발급되었습니다. 10분간 유효합니다."
+            alert("\uc5f0\uacb0\u0020\ucf54\ub4dc\uac00\u0020\ubc1c\uae09\ubc1d\uc544\uc9c0\uc5c8\uc2b5\ubc48\ub2e4\u002e\u0020\u0031\u0030\ubd84\uac04\u0020\uc720\ud6a8\ud569\ub2c8\ub2e4\u002e"); // "연결 코드가 발급되었습니다. 10분간 유효합니다."
         } catch (error) {
             console.error("Failed to generate overlay pairing code:", error);
-            alert("\ucd54\ub4dc\u0020\ubc1c\uae09\u0020\uc913\u0020\uc624\ub958\uac00\u0020\ubc1c\uc0dd\ud588\uc2b5\ubc48\ub2e4\u003a\u0020" + error.message); // "코드 발급 중 오류가 발생했습니다: "
+            alert("\ucf54\ub4dc\u0020\ubc1c\uae09\u0020\uc913\u0020\uc624\ub958\uac00\u0020\ubc1c\uc0dd\ud588\uc2b5\ubc48\ub2e4\u003a\u0020" + error.message); // "코드 발급 중 오류가 발생했습니다: "
         }
     }
 
