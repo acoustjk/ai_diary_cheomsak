@@ -690,24 +690,40 @@
 <body>
 
 <!-- 웹 간편 로그인 QR 코드 오버레이 (비로그인 상태일 때 강제 표시) -->
-<div id="webLoginOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); z-index: 20000; align-items: center; justify-content: center; padding: 20px; font-family: 'Jua', sans-serif;">
-    <div style="background: white; padding: 45px 35px; border-radius: 28px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06); max-width: 440px; width: 100%; text-align: center; border: 1.5px solid #e2e8f0; animation: overlayFadeIn 0.5s ease-out;">
-        <div style="font-size: 56px; margin-bottom: 20px; animation: bounce 2s infinite;">💻</div>
-        <h2 style="color: #2b6cb0; margin-top: 0; margin-bottom: 12px; font-size: 28px; letter-spacing: -0.5px;">컴퓨터로 일기쓰기 로그인</h2>
-        <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 28px; word-break: keep-all; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
-            어린이 스마트폰 앱에서 <strong style="color: #3182ce;">[컴퓨터로 일기쓰기]</strong> 버튼을 누르고<br>아래 QR 코드를 스캔해 주세요!
-        </p>
+<div id="webLoginOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #ffefe9 0%, #eef3ff 50%, #e9fbf6 100%); background-size: 400% 400%; animation: gradientBG 15s ease infinite; z-index: 20000; align-items: center; justify-content: center; padding: 20px; font-family: 'Jua', sans-serif; box-sizing: border-box;">
+    <!-- 아기자기한 다이어리 배경 모티프 격자 -->
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: radial-gradient(rgba(108, 92, 231, 0.06) 1px, transparent 1px); background-size: 24px 24px; pointer-events: none; z-index: 1;"></div>
+    
+    <div style="position: relative; z-index: 2; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 35px 30px; border-radius: 32px; box-shadow: 0 24px 60px rgba(108, 92, 231, 0.08); max-width: 440px; width: 100%; text-align: center; border: 2px solid rgba(255, 255, 255, 0.6); animation: overlayFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); box-sizing: border-box;">
         
-        <!-- QR 코드 영역 -->
-        <div style="background: #f7fafc; border: 2px dashed #cbd5e0; border-radius: 20px; padding: 24px; margin-bottom: 28px; display: inline-block; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
-            <img id="webLoginQRImg" src="" alt="로그인 QR 코드" style="width: 200px; height: 200px; display: block; margin: 0 auto; border-radius: 10px; background: white;">
+        <!-- 캐릭터 영역 및 광원 -->
+        <div style="position: relative; width: 130px; height: 130px; margin: 0 auto 12px auto; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 142, 114, 0.2) 0%, rgba(108, 92, 231, 0.05) 70%); animation: pulseLight 3s ease-in-out infinite;"></div>
+            <img src="images/gochi_greeting.png" alt="AI고치 환영 인사" style="height: 120px; width: auto; z-index: 2; filter: drop-shadow(0 8px 16px rgba(183, 157, 137, 0.15)); animation: gochiFloat 3s ease-in-out infinite; transition: transform 0.3s ease;">
         </div>
 
-        <div style="font-size: 12px; color: #718096; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; margin-bottom: 20px;">
+        <!-- AI고치 말풍선 -->
+        <div class="gochi-speech-bubble" style="position: relative; background: #ffffff; border: 2px solid #ffb5a7; border-radius: 16px; padding: 10px 14px; font-size: 14px; color: #5c3f30; margin-bottom: 24px; box-shadow: 0 6px 16px rgba(255, 181, 167, 0.15); line-height: 1.4; word-break: keep-all; display: inline-block; max-width: 90%; animation: bubbleFloat 3.5s ease-in-out infinite;">
+            안녕! 컴퓨터 일기장을 켤 시간이야! <br>내 스마트폰 앱으로 나를 비춰줘! 👾
+            <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: #ffb5a7 transparent; display: block; width: 0;"></div>
+            <div style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 6px 6px 0; border-style: solid; border-color: #ffffff transparent; display: block; width: 0; z-index: 1;"></div>
+        </div>
+
+        <h2 style="color: #6c5ce7; margin-top: 0; margin-bottom: 8px; font-size: 24px; letter-spacing: -0.5px;">컴퓨터로 일기쓰기 로그인</h2>
+        <p style="color: #718096; font-size: 13px; line-height: 1.5; margin-bottom: 24px; word-break: keep-all; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
+            자녀용 앱 하단의 <span style="color: #ff8e72;">[컴퓨터로 일기쓰기]</span> 버튼을<br>눌러 아래 QR 코드를 카메라로 스캔하세요.
+        </p>
+        
+        <!-- QR 코드 카드 영역 -->
+        <div style="background: rgba(255, 255, 255, 0.9); border: 2px dashed #eeddcc; border-radius: 24px; padding: 20px; margin-bottom: 24px; display: inline-block; box-shadow: 0 10px 30px rgba(183, 157, 137, 0.05);">
+            <img id="webLoginQRImg" src="" alt="로그인 QR 코드" style="width: 180px; height: 180px; display: block; margin: 0 auto; border-radius: 12px; background: white; transition: opacity 0.5s ease; opacity: 0;" onload="this.style.opacity='1'">
+        </div>
+
+        <div style="font-size: 11px; color: #a0aec0; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; margin-bottom: 18px;">
             ⚠️ QR 코드가 보이지 않거나 만료된 경우,<br>아래 [QR 코드 새로고침] 버튼을 눌러주세요.
         </div>
 
-        <button type="button" onclick="initQRLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #3182ce, #2b6cb0); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(49,130,206,0.3); font-family: 'Jua', sans-serif;">
+        <button type="button" onclick="initQRLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #5b4bc4); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25); font-family: 'Jua', sans-serif; margin-top: 0;">
             QR 코드 새로고침
         </button>
     </div>
@@ -747,6 +763,23 @@
 @keyframes overlayFadeIn {
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
+}
+@keyframes gochiFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(2deg); }
+}
+@keyframes pulseLight {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 0.95; }
+}
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes bubbleFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
 }
 </style>
 
