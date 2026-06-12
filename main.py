@@ -48,6 +48,13 @@ def send_fcm_notification(child_id: str, child_name: str):
             title="✍️ 일기 작성 완료!",
             body=f"{display_name}이가 AI고치와 함께 일기 작성을 완료했어요! 결과를 확인해 보세요. 😊"
         ),
+        android=messaging.AndroidConfig(
+            priority="high",
+            notification=messaging.AndroidNotification(
+                channel_id="diary_notification_channel",
+                sound="default"
+            )
+        ),
         data={
             "childId": child_id,
             "childName": child_name or ""
@@ -82,6 +89,13 @@ def send_credit_notification(child_id: str, child_name: str, notification_type: 
         notification=messaging.Notification(
             title=title,
             body=body
+        ),
+        android=messaging.AndroidConfig(
+            priority="high",
+            notification=messaging.AndroidNotification(
+                channel_id="diary_notification_channel",
+                sound="default"
+            )
         ),
         data={
             "childId": child_id,
@@ -134,6 +148,12 @@ AI_TEACHER_PROMPT = """
 }
 """
 
+def is_valid_content(content: str) -> bool:
+    if not content:
+        return False
+    c = content.strip()
+    return bool(c and c.lower() not in ("null", "none", "undefined", ""))
+
 class DiaryInput(BaseModel):
     content: str
     original_content: str = None
@@ -182,7 +202,7 @@ async def check_diary(data: DiaryInput):
         raise HTTPException(status_code=400, detail="일기 내용을 입력해주세요.")
     
     # 크레딧 검증 및 차감 로직 (1차 작성 시에만 차감)
-    is_rewrite = bool(data.original_content and data.feedback)
+    is_rewrite = bool(is_valid_content(data.original_content) and is_valid_content(data.feedback))
     if not is_rewrite and data.child_id:
         try:
             db_client = firestore.client()
@@ -277,7 +297,7 @@ async def check_diary(data: DiaryInput):
         result = json.loads(response.text)
         
         # 만약 고쳐 쓰기 완료(original_content가 있는 경우)이고 child_id가 전달된 경우 FCM 알림 전송
-        if data.original_content and data.child_id:
+        if is_valid_content(data.original_content) and data.child_id:
             try:
                 send_fcm_notification(data.child_id, data.child_name)
             except Exception as e:
