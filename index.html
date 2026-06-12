@@ -689,6 +689,30 @@
 </head>
 <body>
 
+<!-- 웹 간편 로그인 QR 코드 오버레이 (비로그인 상태일 때 강제 표시) -->
+<div id="webLoginOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%); z-index: 20000; align-items: center; justify-content: center; padding: 20px; font-family: 'Jua', sans-serif;">
+    <div style="background: white; padding: 45px 35px; border-radius: 28px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06); max-width: 440px; width: 100%; text-align: center; border: 1.5px solid #e2e8f0; animation: overlayFadeIn 0.5s ease-out;">
+        <div style="font-size: 56px; margin-bottom: 20px; animation: bounce 2s infinite;">💻</div>
+        <h2 style="color: #2b6cb0; margin-top: 0; margin-bottom: 12px; font-size: 28px; letter-spacing: -0.5px;">컴퓨터로 일기쓰기 로그인</h2>
+        <p style="color: #4a5568; font-size: 14px; line-height: 1.6; margin-bottom: 28px; word-break: keep-all; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
+            어린이 스마트폰 앱에서 <strong style="color: #3182ce;">[컴퓨터로 일기쓰기]</strong> 버튼을 누르고<br>아래 QR 코드를 스캔해 주세요!
+        </p>
+        
+        <!-- QR 코드 영역 -->
+        <div style="background: #f7fafc; border: 2px dashed #cbd5e0; border-radius: 20px; padding: 24px; margin-bottom: 28px; display: inline-block; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+            <img id="webLoginQRImg" src="" alt="로그인 QR 코드" style="width: 200px; height: 200px; display: block; margin: 0 auto; border-radius: 10px; background: white;">
+        </div>
+
+        <div style="font-size: 12px; color: #718096; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; margin-bottom: 20px;">
+            ⚠️ QR 코드가 보이지 않거나 만료된 경우,<br>아래 [QR 코드 새로고침] 버튼을 눌러주세요.
+        </div>
+
+        <button type="button" onclick="initQRLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #3182ce, #2b6cb0); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(49,130,206,0.3); font-family: 'Jua', sans-serif;">
+            QR 코드 새로고침
+        </button>
+    </div>
+</div>
+
 <!-- 보호자 연결 필요 오버레이 (0 크레딧 & 미연결 상태일 때 강제 표시) -->
 <!-- 보호자 연결 필요 오버레이 (0 크레딧 & 미연결 상태일 때 강제 표시) -->
 <div id="webPairingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 244, 248, 0.96); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
@@ -740,10 +764,13 @@
             <span>🪙</span>
             <span>남은 크레딧: <strong id="webCreditsCount">0</strong>개</span>
         </div>
-        <div id="miniPairingBadge" class="mini-badge">
+        <div id="miniPairingBadge" class="mini-badge" style="margin-right: 8px;">
             <span class="mini-badge-dot"></span>
             <span id="miniPairingText">보호자 연결 대기 중</span>
         </div>
+        <button id="headerLogoutBtn" style="padding: 6px 12px; background: #fff5f5; color: #c53030; border: 1.5px solid #feb2b2; border-radius: 10px; font-size: 12px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: 'Jua', sans-serif;" onclick="handleLogout()" onmouseover="this.style.background='#c53030'; this.style.color='white'; this.style.borderColor='#c53030';" onmouseout="this.style.background='#fff5f5'; this.style.color='#c53030'; this.style.borderColor='#feb2b2';">
+            <span>🚪</span>로그아웃
+        </button>
     </div>
 </header>
 
@@ -1011,37 +1038,31 @@
     // 다중 프로필 관리 시스템 (Option 1)
     // ----------------------------------------------------
     let profiles = [];
-    try {
-        profiles = JSON.parse(sessionStorage.getItem('child_profiles') || '[]');
-    } catch (e) {
-        console.error("Failed to parse child_profiles, reset to empty", e);
-    }
-
-    // 마이그레이션: 기존 childId가 있고 profiles가 비어있으면 마이그레이션 진행
-    let legacyChildId = sessionStorage.getItem('child_id');
-    let legacyChildName = sessionStorage.getItem('child_name') || '';
-    
-    if (profiles.length === 0) {
-        if (legacyChildId) {
-            profiles = [{ id: legacyChildId, name: legacyChildName || '어린이 작가' }];
-        } else {
-            const defaultId = self.crypto.randomUUID();
-            profiles = [{ id: defaultId, name: '어린이 작가' }];
-            legacyChildId = defaultId;
-        }
-        sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
-    }
-
-    // 활성 childId 결정
     let childId = sessionStorage.getItem('child_id');
-    if (!childId || !profiles.some(p => p.id === childId)) {
-        childId = profiles[0] ? profiles[0].id : '';
-        if (childId) sessionStorage.setItem('child_id', childId);
-    }
     let childName = sessionStorage.getItem('child_name') || '';
-    if (!childName && childId) {
-        const foundProf = profiles.find(p => p.id === childId);
-        childName = foundProf ? foundProf.name : '\uc5b4\ub9b0\uc774';
+
+    // child_id가 존재하는 로그인 상태인 경우에만 프로필 복원 진행
+    if (childId) {
+        try {
+            profiles = JSON.parse(sessionStorage.getItem('child_profiles') || '[]');
+        } catch (e) {
+            console.error("Failed to parse child_profiles, reset to empty", e);
+        }
+
+        if (profiles.length === 0) {
+            profiles = [{ id: childId, name: childName || '어린이 작가' }];
+            sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+        }
+
+        if (!profiles.some(p => p.id === childId)) {
+            childId = profiles[0] ? profiles[0].id : '';
+            sessionStorage.setItem('child_id', childId);
+        }
+
+        if (!childName && childId) {
+            const foundProf = profiles.find(p => p.id === childId);
+            childName = foundProf ? foundProf.name : '\uc5b4\ub9b0\uc774';
+        }
     }
     let nameUpdateTimeout = null;
 
@@ -1441,6 +1462,76 @@
     }
 
     // ----------------------------------------------------
+    // \ub85c\uadf8\uc544\uc6c3\u0020\ubc0f\u0020\u0051\u0052\u0020\uac04\ud3b8\u0020\ub85c\uadf8\uc778\u0020\ucc98\ub9ac\u0020\ub85c\uc9c1
+    // ----------------------------------------------------
+    let currentWebSessionId = null;
+    let webLoginListener = null;
+
+    function handleLogout() {
+        sessionStorage.clear();
+        location.reload();
+    }
+
+    function initQRLogin() {
+        const overlay = document.getElementById('webLoginOverlay');
+        if (!overlay) return;
+
+        overlay.style.display = 'flex';
+
+        // session_ \uc811\ub450\uc0ac\ub9bc\u0020\ubd99\uc740\u0020\uc784\uc758\uc758\u0020\uc138\uc158\u0020\uc544\uc774\ub514\u0020\uc0dd\uc131
+        currentWebSessionId = "session_" + self.crypto.randomUUID();
+
+        // Firestore\uc5d0\u0020\uc138\uc158\u0020\ub4f1\ub85d
+        db.collection("webSessions").doc(currentWebSessionId).set({
+            status: "pending",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+            console.log("Web login session registered:", currentWebSessionId);
+
+            const qrImg = document.getElementById('webLoginQRImg');
+            if (qrImg) {
+                qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + encodeURIComponent(currentWebSessionId);
+            }
+
+            if (webLoginListener) {
+                webLoginListener();
+            }
+
+            webLoginListener = db.collection("webSessions").doc(currentWebSessionId)
+                .onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        if (data.status === "approved" && data.childId) {
+                            console.log("Web login approved by app:", data.childId);
+                            
+                            sessionStorage.setItem('child_id', data.childId);
+                            sessionStorage.setItem('child_name', data.childName || '\uc5b4\ub9b0\uc774\u0020\uc791\uac00');
+
+                            let currentProfiles = [];
+                            try {
+                                currentProfiles = JSON.parse(sessionStorage.getItem('child_profiles') || '[]');
+                            } catch (e) {}
+
+                            if (!currentProfiles.some(p => p.id === data.childId)) {
+                                currentProfiles.push({ id: data.childId, name: data.childName || '\uc5b4\ub9b0\uc774\u0020\uc791\uac00' });
+                                sessionStorage.setItem('child_profiles', JSON.stringify(currentProfiles));
+                            }
+
+                            if (webLoginListener) {
+                                webLoginListener();
+                            }
+                            location.reload();
+                        }
+                    }
+                }, (error) => {
+                    console.error("Web session snapshot error:", error);
+                });
+        }).catch((error) => {
+            console.error("Firestore webSession creation failed:", error);
+        });
+    }
+
+    // ----------------------------------------------------
     // 실시간 페어링 연동 리스너
     // ----------------------------------------------------
     let webCredits = 0;
@@ -1672,15 +1763,23 @@
         }
     }
 
-    // 리스너 시작 (공유 모드가 아닐 때만 시작)
+    // \ub9ac\uc2a4\ub108\u0020\uc2dc\uc791\u0020\u0028\uacf5\uc720\u0020\ubaa8\ub4dc\uac00\u0020\uc544\ub2d0\u0020\ub54c\ubacc\uc2dc\uc791\u0029
     const isReportModeOnStart = new URLSearchParams(window.location.search).has('r') || new URLSearchParams(window.location.search).has('report');
     if (!isReportModeOnStart) {
-        // DOM 로드 완료 후 실행되도록 지연 처리
         window.addEventListener('DOMContentLoaded', () => {
-            startPairingListener();
-            renderProfiles();
-            loadSession(childId);
-            updateStreakAndBadges(false);
+            if (!childId) {
+                // childId\uac00\u0020\uc5c6\uc73c\uba74\u0020\u0051\u0052\u0020\ub85c\uadf8\uc778\u0020\uc624\ubc84\ub808\uc774\u0020\uac00\ub3d9
+                initQRLogin();
+            } else {
+                // childId\uac00\u0020\uc874\uc7ac\ud558\uba74\u0020\uba54\uc778\u0020\u0055\u0049\u0020\uc5f0\ub3d9\u0020\ud65c\uc131\ud654
+                const loginOverlay = document.getElementById('webLoginOverlay');
+                if (loginOverlay) loginOverlay.style.display = 'none';
+
+                startPairingListener();
+                renderProfiles();
+                loadSession(childId);
+                updateStreakAndBadges(false);
+            }
 
             // AI고치 이미지 클릭 반응 (애니메이션 및 랜덤 멘트)
             const gochiImg = document.getElementById('gochiImg');
