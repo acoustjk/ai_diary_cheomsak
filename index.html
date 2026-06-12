@@ -689,6 +689,32 @@
 </head>
 <body>
 
+<!-- 보호자 연결 필요 오버레이 (0 크레딧 & 미연결 상태일 때 강제 표시) -->
+<div id="webPairingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 244, 248, 0.96); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); max-width: 480px; width: 100%; text-align: center; border: 1px solid #e2e8f0; animation: overlayFadeIn 0.5s ease-out;">
+        <div style="font-size: 50px; margin-bottom: 20px; animation: bounce 2s infinite;">🔗</div>
+        <h2 style="font-family: 'Jua', sans-serif; color: #2d3748; margin-top: 0; margin-bottom: 16px; font-size: 26px; letter-spacing: -0.5px;">보호자(부모님) 연결 필요</h2>
+        <p style="color: #4a5568; font-size: 15px; line-height: 1.6; margin-bottom: 28px; word-break: keep-all;">
+            AI고치 일기장을 사용하려면 부모님 기기와의 연결이 필요합니다.<br><br>
+            부모님 앱에 연결이 완료되면 일기를 쓸 수 있는 <strong>'웰컴 선물 크레딧'</strong>이 지급됩니다! 🎁
+        </p>
+        <div id="overlayCodeContainer" style="display: none; background: #f7fafc; border: 1px dashed #cbd5e0; border-radius: 12px; padding: 18px; margin-bottom: 24px;">
+            <div style="font-size: 12px; color: #718096; margin-bottom: 8px; font-weight: bold;">인증 연결 코드 (10분간 유효)</div>
+            <div id="overlayPairingCode" style="font-size: 36px; font-weight: bold; color: #2b6cb0; letter-spacing: 3px; font-family: monospace;">--- ---</div>
+        </div>
+        <button id="btnOverlayGenerateCode" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #48bb78, #38a169); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 12px rgba(72,187,120,0.3);" onclick="generateOverlayPairingCode()">
+            연결 코드 발급받기
+        </button>
+    </div>
+</div>
+
+<style>
+@keyframes overlayFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+</style>
+
 <div id="mainView" style="width:100%; display:flex; flex-direction:column; align-items:center;">
 
 <!-- 상단 홈페이지 네비게이션 헤더 -->
@@ -1407,6 +1433,23 @@
                     updateCreditsUI();
 
                     const reviewers = data.pairedReviewers || [];
+                    
+                    // 보호자 연결 필요 오버레이 노출 여부 제어
+                    const overlay = document.getElementById('webPairingOverlay');
+                    if (overlay) {
+                        if (reviewers.length === 0 && webCredits === 0) {
+                            overlay.style.display = 'flex';
+                            if (data.pairingCode && data.pairingCodeExpires && (data.pairingCodeExpires > Date.now() / 1000)) {
+                                document.getElementById('overlayPairingCode').innerText = `${data.pairingCode.substring(0, 3)} ${data.pairingCode.substring(3, 6)}`;
+                                document.getElementById('overlayCodeContainer').style.display = 'block';
+                                const btn = document.getElementById('btnOverlayGenerateCode');
+                                if (btn) btn.innerText = "새로운 연결 코드 재발급";
+                            }
+                        } else {
+                            overlay.style.display = 'none';
+                        }
+                    }
+
                     if (reviewers.length > 0) {
                         const names = reviewers.map(r => r.name || "보호자").join(", ");
                         pairingCard.classList.add('connected');
@@ -1438,6 +1481,14 @@
                     webCredits = 0;
                     updateCreditsUI();
                     resetPairingCardUI();
+
+                    const overlay = document.getElementById('webPairingOverlay');
+                    if (overlay) {
+                        overlay.style.display = 'flex';
+                        document.getElementById('overlayCodeContainer').style.display = 'none';
+                        const btn = document.getElementById('btnOverlayGenerateCode');
+                        if (btn) btn.innerText = "연결 코드 발급받기";
+                    }
                 }
             }, (error) => {
                 console.error("Pairing snapshot listener error:", error);
@@ -1501,6 +1552,35 @@
             alert('페어링 코드가 발급되었습니다! 10분간 유효합니다.');
         } catch (error) {
             console.error("Failed to generate pairing code:", error);
+            alert("코드 발급 중 오류가 발생했습니다: " + error.message);
+        }
+    }
+
+    async function generateOverlayPairingCode() {
+        const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+        const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = Math.floor(Date.now() / 1000) + 600; // 10 minutes
+
+        try {
+            await db.collection("children").doc(childId).set({
+                childId: childId,
+                childName: currentName,
+                pairingCode: newCode,
+                pairingCodeExpires: expires
+            }, { merge: true });
+
+            const formattedCode = `${newCode.substring(0, 3)} ${newCode.substring(3, 6)}`;
+            document.getElementById('overlayPairingCode').innerText = formattedCode;
+            document.getElementById('overlayCodeContainer').style.display = 'block';
+            
+            const btn = document.getElementById('btnOverlayGenerateCode');
+            if (btn) {
+                btn.innerText = "새로운 연결 코드 재발급";
+            }
+
+            alert('페어링 코드가 발급되었습니다! 10분간 유효합니다.');
+        } catch (error) {
+            console.error("Failed to generate overlay pairing code:", error);
             alert("코드 발급 중 오류가 발생했습니다: " + error.message);
         }
     }

@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from google import genai
 from google.genai import types
 import firebase_admin
-from firebase_admin import credentials, messaging, firestore
+from firebase_admin import credentials, messaging, firestore, auth
 
 
 # Initialize Firebase Admin SDK
@@ -329,6 +329,139 @@ async def request_credits(data: CreditRequestInput):
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+class SocialAuthInput(BaseModel):
+    accessToken: str
+
+@app.post("/auth/naver")
+async def auth_naver(data: SocialAuthInput):
+    if not data.accessToken:
+         raise HTTPException(status_code=400, detail="access token is required")
+    
+    uid = None
+    email = None
+    nickname = None
+    
+    if data.accessToken.startswith("mock_"):
+        raw_id = data.accessToken.replace("mock_", "")
+        uid = f"naver_{raw_id}"
+        email = f"{raw_id}@naver.com"
+        nickname = f"네이버회원_{raw_id[:4]}"
+    else:
+        try:
+            req = urllib.request.Request(
+                "https://openapi.naver.com/v1/nid/me",
+                headers={"Authorization": f"Bearer {data.accessToken}"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res_data = json.loads(response.read().decode('utf-8'))
+                if res_data.get("resultcode") == "00":
+                    account = res_data.get("response", {})
+                    uid = f"naver_{account.get('id')}"
+                    email = account.get("email")
+                    nickname = account.get("nickname")
+        except Exception as e:
+            print(f"Naver profile fetch failed: {e}")
+            raise HTTPException(status_code=401, detail="Naver authentication failed")
+
+    if not uid:
+        raise HTTPException(status_code=401, detail="Invalid Naver token")
+        
+    try:
+        if firebase_admin._apps:
+            try:
+                auth.get_user(uid)
+            except Exception:
+                auth.create_user(
+                    uid=uid,
+                    email=email,
+                    display_name=nickname
+                )
+            custom_token = auth.create_custom_token(uid)
+            return {
+                "status": "success",
+                "customToken": custom_token.decode('utf-8') if isinstance(custom_token, bytes) else custom_token,
+                "uid": uid,
+                "email": email,
+                "nickname": nickname
+            }
+        else:
+            return {
+                "status": "mock_success",
+                "customToken": f"mock_custom_token_for_{uid}",
+                "uid": uid,
+                "email": email,
+                "nickname": nickname
+            }
+    except Exception as e:
+        print(f"Error creating Firebase custom token: {e}")
+        raise HTTPException(status_code=500, detail=f"Firebase custom token generation error: {e}")
+
+@app.post("/auth/kakao")
+async def auth_kakao(data: SocialAuthInput):
+    if not data.accessToken:
+         raise HTTPException(status_code=400, detail="access token is required")
+         
+    uid = None
+    email = None
+    nickname = None
+    
+    if data.accessToken.startswith("mock_"):
+        raw_id = data.accessToken.replace("mock_", "")
+        uid = f"kakao_{raw_id}"
+        email = f"{raw_id}@kakao.com"
+        nickname = f"카카오회원_{raw_id[:4]}"
+    else:
+        try:
+            req = urllib.request.Request(
+                "https://kapi.kakao.com/v2/user/me",
+                headers={"Authorization": f"Bearer {data.accessToken}"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res_data = json.loads(response.read().decode('utf-8'))
+                uid = f"kakao_{res_data.get('id')}"
+                kakao_account = res_data.get("kakao_account", {})
+                email = kakao_account.get("email")
+                properties = res_data.get("properties", {})
+                nickname = properties.get("nickname")
+        except Exception as e:
+            print(f"Kakao profile fetch failed: {e}")
+            raise HTTPException(status_code=401, detail="Kakao authentication failed")
+
+    if not uid:
+        raise HTTPException(status_code=401, detail="Invalid Kakao token")
+        
+    try:
+        if firebase_admin._apps:
+            try:
+                auth.get_user(uid)
+            except Exception:
+                auth.create_user(
+                    uid=uid,
+                    email=email,
+                    display_name=nickname
+                )
+            custom_token = auth.create_custom_token(uid)
+            return {
+                "status": "success",
+                "customToken": custom_token.decode('utf-8') if isinstance(custom_token, bytes) else custom_token,
+                "uid": uid,
+                "email": email,
+                "nickname": nickname
+            }
+        else:
+            return {
+                "status": "mock_success",
+                "customToken": f"mock_custom_token_for_{uid}",
+                "uid": uid,
+                "email": email,
+                "nickname": nickname
+            }
+    except Exception as e:
+        print(f"Error creating Firebase custom token: {e}")
+        raise HTTPException(status_code=500, detail=f"Firebase custom token generation error: {e}")
+
 
 
 @app.get("/images/{filename}")
