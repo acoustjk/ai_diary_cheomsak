@@ -835,22 +835,16 @@
 
 <div class="container">
     <div class="left-panel">
-        <!-- ✍️ 작가 프로필 선택기 카드 -->
-        <div id="profileSwitcherCard" class="profile-card dashboard-card">
-            <div class="profile-title-bar">
-                <span class="profile-title">👦 현재 일기 쓰고 있는 어린이</span>
-            </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px;" id="profileListArea">
-                <!-- 자녀 프로필 선택 버튼들이 여기에 렌더링됩니다 -->
+        <!-- 👦 현재 로그인한 어린이 프로필 카드 -->
+        <div id="profileCard" class="dashboard-card" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px;">
+            <div style="font-size: 32px;">👦</div>
+            <div style="text-align: left;">
+                <div style="font-size: 12px; color: #718096; font-weight: bold;">현재 일기 쓰고 있는 어린이</div>
+                <div id="displayChildName" style="font-size: 18px; font-weight: bold; color: #2d3748; margin-top: 2px;">로딩 중...</div>
             </div>
         </div>
 
         <div id="normalDiaryArea" style="display: flex; flex-direction: column; gap: 15px;">
-            <!-- 👦 어린이 작가 이름 입력 카드 -->
-            <div class="dashboard-card" style="display: flex; align-items: center; gap: 12px; padding: 12px 20px;">
-                <label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #4a5568; white-space: nowrap;">👦 어린이 이름:</label>
-                <input type="text" id="childNameInput" placeholder="이름을 입력해 주세요" style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e0; border-radius: 10px; font-size: 14px; color: #2d3748; font-weight: bold; outline: none;">
-            </div>
 
             <!-- 🔗 부모님 연결 상태 카드 -->
             <div id="pairingCard" class="pairing-card dashboard-card">
@@ -1155,44 +1149,12 @@
     }
 
 
-    // 프로필 렌더링
+    // 프로필 렌더링 (단일 어린이 이름 정보 노출)
     function renderProfiles() {
-        const listArea = document.getElementById('profileListArea');
-        if (!listArea) return;
-        listArea.innerHTML = '';
-
-        profiles.forEach(p => {
-            const isActive = p.id === childId;
-            const chip = document.createElement('div');
-            chip.className = isActive ? 'profile-btn active' : 'profile-btn';
-
-            chip.onclick = (e) => {
-                if (e.target.classList.contains('delete-btn')) return;
-                selectProfile(p.id);
-            };
-
-            const nameSpan = document.createElement('span');
-            nameSpan.innerText = '👦 ' + (p.name || '새 작가');
-            chip.appendChild(nameSpan);
-
-            if (profiles.length > 1) {
-                const deleteBtn = document.createElement('span');
-                deleteBtn.className = 'delete-btn';
-                deleteBtn.innerText = ' ×';
-                deleteBtn.style.marginLeft = '8px';
-                deleteBtn.style.color = '#e53e3e';
-                deleteBtn.style.fontSize = '14px';
-                deleteBtn.style.cursor = 'pointer';
-                deleteBtn.style.fontWeight = 'bold';
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    deleteProfilePrompt(p.id, p.name);
-                };
-                chip.appendChild(deleteBtn);
-            }
-
-            listArea.appendChild(chip);
-        });
+        const display = document.getElementById('displayChildName');
+        if (display) {
+            display.innerText = childName || "무명 어린이";
+        }
     }
 
     // 프로필 추가 프롬프트
@@ -1408,6 +1370,7 @@
         // 폰트 상태 복원
         const savedFont = sessionStorage.getItem('selected_font_' + id) || 'Jua';
         changeFont(savedFont);
+        updateTextareaState();
     }
 
     // AI고치 말풍선 상태 업데이트 함수
@@ -1457,6 +1420,23 @@
         bubble.innerText = message;
     }
 
+    function updateTextareaState() {
+        const txtInput = document.getElementById('diaryInput');
+        if (!txtInput) return;
+        
+        const btnRetry = document.getElementById('btnRetry');
+        const btnNewDiary = document.getElementById('btnNewDiary');
+        
+        const isRetryVisible = btnRetry && btnRetry.style.display === 'block';
+        const isNewDiaryVisible = btnNewDiary && btnNewDiary.style.display === 'block';
+        
+        if (isRetryVisible || isNewDiaryVisible) {
+            txtInput.disabled = true;
+        } else {
+            txtInput.disabled = false;
+        }
+    }
+
     function resetToDefaultSession() {
         const gochiImg = document.getElementById('gochiImg');
         if (gochiImg) gochiImg.src = 'images/gochi_default.png';
@@ -1501,6 +1481,7 @@
             document.getElementById('btnSubmit').innerText = '👾 AI고치에게 일기 보여주기';
             document.getElementById('btnSubmit').style.background = '#3182ce';
         }
+        updateTextareaState();
     }
 
     // ----------------------------------------------------
@@ -1676,7 +1657,7 @@
                     }
                 } else {
                     // 문서가 존재하지 않는 경우 초기화
-                    const currentName = childNameInput ? childNameInput.value.trim() : "\ubb34\ubb85\u0020\uc5b4\ub9b0\uc774"; // "무명 어린이"
+                    const currentName = childName || "\ubb34\ubb85\u0020\uc5b4\ub9b0\uc774"; // "무명 어린이"
                     db.collection("children").doc(childId).set({
                         childId: childId,
                         childName: currentName,
@@ -1739,7 +1720,7 @@
     // 페어링 코드 발급 함수
     let pairingCodeTimer = null;
     async function generatePairingCode() {
-        const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+        const currentName = childName || "무명 어린이";
         const newCode = Math.floor(100000 + Math.random() * 900000).toString();
         const expires = Math.floor(Date.now() / 1000) + 600; // 10 minutes
 
@@ -1984,6 +1965,7 @@
         document.getElementById('typingSpeedArea').style.display = 'none';
         
         alert('일기 고쳐 쓰기 시작! 😉 내가 알려준 피드백을 보고 일기를 고쳐서 다시 보여줘!');
+        updateTextareaState();
     }
 
     function updateTypingSpeedUI() {
@@ -2022,6 +2004,7 @@
         if (originalFeedback) {
             document.getElementById('btnRetry').style.display = 'block';
         }
+        updateTextareaState();
     }
     
     // 오늘의 미션 단어 리스트 자동 생성
@@ -2148,7 +2131,7 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             child_id: childId,
-                            child_name: document.getElementById('childNameInput') ? document.getElementById('childNameInput').value.trim() : "어린이"
+                            child_name: childName || "어린이"
                         })
                     }).then(res => {
                         if (res.ok) {
@@ -2189,6 +2172,8 @@
         levelupTitle.style.display = 'none';
         if (btnNewDiary) btnNewDiary.style.display = 'none';
 
+        textarea.disabled = true; // 분석 중 수정 방지
+
         // 미션 단어 체크 검사
         const missionSuccess = currentMissions.every(word => content.includes(word));
 
@@ -2201,7 +2186,7 @@
             const payload = { 
                 content: content,
                 child_id: childId,
-                child_name: childNameInput ? childNameInput.value.trim() : "무명 어린이"
+                child_name: childName || "무명 어린이"
             };
             if (isRewriteMode) {
                 payload.original_content = originalContent;
@@ -2351,7 +2336,7 @@
                     if (wasRewriteMode) {
                         const diaryReportId = currentDiaryId;
                         const diaryTimestamp = Date.now();
-                        const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
+                        const currentName = childName || "무명 어린이";
                         const uploadData = {
                             diaryId: diaryReportId,
                             timestamp: diaryTimestamp,
@@ -2378,6 +2363,7 @@
                                 console.error("웹 일기 보고서 Firestore 업로드 실패:", e);
                             });
                     }
+                    updateTextareaState();
 
                 } else {
                     feedbackResult.innerText = '오류 발생: ' + (data.detail || JSON.stringify(data));
@@ -2393,6 +2379,7 @@
             if (gochiImg) gochiImg.src = 'images/gochi_default.png';
         } finally {
             loadingText.style.display = 'none';
+            updateTextareaState();
         }
     }
 
