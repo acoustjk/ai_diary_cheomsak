@@ -730,10 +730,101 @@
         <button type="button" onclick="initQRLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #5b4bc4); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25); font-family: 'Jua', sans-serif; margin-top: 0;">
             QR 코드 새로고침
         </button>
+
+        <div style="margin-top: 15px;">
+            <a href="javascript:void(0)" onclick="openGuideModal()" style="color: #6c5ce7; font-size: 13px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s;" onmouseover="this.style.color='#ff8e72'" onmouseout="this.style.color='#6c5ce7'">
+                💡 AI고치 소개 및 사용법 안내
+            </a>
+        </div>
     </div>
 </div>
 
-<!-- 보호자 연결 필요 오버레이 (0 크레딧 & 미연결 상태일 때 강제 표시) -->
+<!-- 사용법 및 캐릭터 소개 모달 팝업 -->
+<div id="guideModal" class="guide-modal-backdrop" style="display: none;" onclick="handleGuideModalClick(event)">
+    <div class="guide-modal-card">
+        <span class="guide-modal-close" onclick="closeGuideModal()">&times;</span>
+        
+        <div class="guide-tab-header">
+            <button class="guide-tab-btn active" onclick="switchGuideTab('charIntro', event)">👾 AI고치 캐릭터 소개</button>
+            <button class="guide-tab-btn" onclick="switchGuideTab('userGuide', event)">📖 사용 방법 안내</button>
+        </div>
+        
+        <!-- 탭 1: 캐릭터 소개 -->
+        <div id="tab-charIntro" class="guide-tab-content active">
+            <h3 style="margin: 0 0 10px 0; color: #2d3748; font-size: 18px; font-family: 'Jua', sans-serif;">내 비밀 일기 친구, AI고치!</h3>
+            <p style="margin: 0 0 16px 0; font-size: 13px; color: #718096; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
+                AI고치는 어린이의 일기 쓰기를 돕고 함께 어휘력과 표현력을 키워주는 단짝 요정이에요. 일기 내용과 결과에 따라 네 가지 다채로운 표정을 짓는답니다!
+            </p>
+            
+            <div class="guide-gochi-grid">
+                <div class="guide-gochi-item">
+                    <img src="images/gochi_default.png" style="height: 70px; width: auto; margin-bottom: 6px;" alt="기본">
+                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">😃 기본 포즈</div>
+                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">일기를 쓸 준비를 하고 곁에서 얌전히 기다려요!</div>
+                </div>
+                <div class="guide-gochi-item">
+                    <img src="images/gochi_greeting.png" style="height: 70px; width: auto; margin-bottom: 6px;" alt="인사">
+                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">👋 인사 포즈</div>
+                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">일기 쓰러 온 어린이를 반갑게 맞이하며 환영해요!</div>
+                </div>
+                <div class="guide-gochi-item">
+                    <img src="images/gochi_thinking.png" style="height: 70px; width: auto; margin-bottom: 6px;" alt="고민">
+                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">🤔 고민 포즈</div>
+                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">더 좋은 일기를 선물하기 위해 열심히 생각을 해요!</div>
+                </div>
+                <div class="guide-gochi-item">
+                    <img src="images/gochi_success.png" style="height: 70px; width: auto; margin-bottom: 6px;" alt="성공">
+                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">🎉 성공 포즈</div>
+                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">미션을 성공하거나 멋진 일기를 썼을 때 신나서 춤을 춰요!</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 탭 2: 사용방법 -->
+        <div id="tab-userGuide" class="guide-tab-content">
+            <h3 style="margin: 0 0 16px 0; color: #2d3748; font-size: 18px; font-family: 'Jua', sans-serif;">AI고치 일기장 사용 순서</h3>
+            
+            <div class="guide-timeline">
+                <div class="guide-timeline-step">
+                    <div class="guide-step-num">1</div>
+                    <div class="guide-step-text">
+                        <strong>앱 스캔 로그인</strong><br>
+                        스마트폰 자녀용 앱 하단의 <b>[컴퓨터로 일기쓰기]</b> 메뉴를 실행하여 화면의 QR 코드를 스캔하세요.
+                    </div>
+                </div>
+                <div class="guide-timeline-step">
+                    <div class="guide-step-num">2</div>
+                    <div class="guide-step-text">
+                        <strong>부모님 앱 연결</strong><br>
+                        첫 시작 시 부모님 스마트폰 앱의 6자리 코드를 입력해 연결하면 일기 작성용 <b>웰컴 크레딧 🪙</b>이 지급됩니다.
+                    </div>
+                </div>
+                <div class="guide-timeline-step">
+                    <div class="guide-step-num">3</div>
+                    <div class="guide-step-text">
+                        <strong>비밀 단어 미션 & 일기 작성</strong><br>
+                        매일 새롭게 주어지는 3개의 비밀 미션 단어를 일기에 모두 포함해서 직접 키보드로 일기를 타이핑해 써봅니다.
+                    </div>
+                </div>
+                <div class="guide-timeline-step">
+                    <div class="guide-step-num">4</div>
+                    <div class="guide-step-text">
+                        <strong>피드백 확인 및 고쳐 쓰기 (필수)</strong><br>
+                        AI고치가 주는 맞춤법 힌트와 예쁜 도장, 점수를 확인한 뒤 <b>[AI고치의 힌트로 다시 쓰기!]</b>를 눌러 피드백을 반영해 고쳐 써보세요!
+                    </div>
+                </div>
+                <div class="guide-timeline-step" style="margin-bottom: 0;">
+                    <div class="guide-step-num">5</div>
+                    <div class="guide-step-text">
+                        <strong>최종 완성 및 보고서 발송</strong><br>
+                        고쳐 쓴 최종본을 제출하면 부모님 앱으로 정성 어린 <b>성장 보고서 📝</b>가 자동으로 전송되어 소식을 공유합니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- 보호자 연결 필요 오버레이 (0 크레딧 & 미연결 상태일 때 강제 표시) -->
 <div id="webPairingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 244, 248, 0.96); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); max-width: 480px; width: 100%; text-align: center; border: 1px solid #e2e8f0; animation: overlayFadeIn 0.5s ease-out;">
@@ -784,6 +875,140 @@
 @keyframes bubbleFloat {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-4px); }
+}
+
+/* 가이드 모달용 스타일 */
+.guide-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 30000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.guide-modal-card {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    max-width: 500px;
+    width: 100%;
+    border-radius: 28px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.15);
+    padding: 30px;
+    position: relative;
+    box-sizing: border-box;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    animation: overlayFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.guide-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 22px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #a0aec0;
+    transition: color 0.2s;
+    line-height: 1;
+}
+.guide-modal-close:hover {
+    color: #e53e3e;
+}
+.guide-tab-header {
+    display: flex;
+    border-bottom: 2px solid #edf2f7;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+.guide-tab-btn {
+    padding: 8px 4px 12px 4px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #a0aec0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    font-family: 'Jua', sans-serif;
+    outline: none;
+}
+.guide-tab-btn:hover {
+    color: #718096;
+}
+.guide-tab-btn.active {
+    color: #6c5ce7;
+    border-bottom: 3px solid #6c5ce7;
+}
+.guide-tab-content {
+    display: none;
+}
+.guide-tab-content.active {
+    display: block;
+    animation: overlayFadeIn 0.3s ease-out;
+}
+.guide-gochi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 15px;
+}
+.guide-gochi-item {
+    background: #f7fafc;
+    border: 1.5px solid #edf2f7;
+    border-radius: 20px;
+    padding: 14px;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.guide-gochi-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+}
+.guide-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 15px;
+}
+.guide-timeline-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+.guide-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c5ce7 0%, #5b4bc4 100%);
+    color: white;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+    font-family: 'Jua', sans-serif;
+    box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
+}
+.guide-step-text {
+    font-size: 13px;
+    color: #4a5568;
+    line-height: 1.6;
+    font-family: 'Nanum Gothic', sans-serif;
+    font-weight: bold;
+}
+.guide-step-text strong {
+    color: #6c5ce7;
+    font-family: 'Jua', sans-serif;
 }
 </style>
 
@@ -1482,6 +1707,53 @@
             document.getElementById('btnSubmit').style.background = '#3182ce';
         }
         updateTextareaState();
+    }
+
+    // ----------------------------------------------------
+    // 사용법 및 캐릭터 소개 모달 팝업 제어 로직
+    // ----------------------------------------------------
+    function openGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            switchGuideTab('charIntro'); // 기본 첫 번째 탭 노출
+        }
+    }
+
+    function closeGuideModal() {
+        const modal = document.getElementById('guideModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    function handleGuideModalClick(e) {
+        if (e.target.id === 'guideModal') {
+            closeGuideModal();
+        }
+    }
+
+    function switchGuideTab(tabId, event = null) {
+        const contents = document.querySelectorAll('.guide-tab-content');
+        contents.forEach(content => content.classList.remove('active'));
+        
+        const buttons = document.querySelectorAll('.guide-tab-btn');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        
+        const targetContent = document.getElementById('tab-' + tabId);
+        if (targetContent) {
+            targetContent.classList.add('active');
+        }
+        
+        if (event && event.target) {
+            event.target.classList.add('active');
+        } else {
+            const buttonsArray = Array.from(buttons);
+            const index = tabId === 'charIntro' ? 0 : 1;
+            if (buttonsArray[index]) {
+                buttonsArray[index].classList.add('active');
+            }
+        }
     }
 
     // ----------------------------------------------------
