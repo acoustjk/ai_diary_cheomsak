@@ -1404,6 +1404,40 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
             padding: 40px;
             font-size: 15px;
         }
+        .btn-charge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: none;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            margin-left: 6px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+        .btn-charge:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+        }
+        .btn-link-child {
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            color: #a78bfa;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-link-child:hover {
+            background: #8b5cf6;
+            color: white;
+            box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -1479,9 +1513,176 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                 }
             });
         }
+
+        function chargeCredit(childId, childName) {
+            const amountStr = prompt(`👦 [${childName}] 어린이에게 지급할 크레딧 수량을 입력하세요:`, "10");
+            if (amountStr === null) return;
+            const amount = parseInt(amountStr, 10);
+            if (isNaN(amount) || amount <= 0) {
+                alert("올바른 수량을 입력하세요 (1 이상의 정수).");
+                return;
+            }
+            
+            fetch('/admin/add-credit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ child_id: childId, amount: amount })
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
+                    window.location.reload();
+                    return;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    const countEl = document.getElementById(`credit-count-${childId}`);
+                    const totalEl = document.getElementById(`total-count-${childId}`);
+                    if (countEl) countEl.innerText = data.new_credits;
+                    if (totalEl) totalEl.innerText = data.new_total;
+                    alert(`[${childName}] 어린이에게 ${amount} 크레딧을 성공적으로 지급했습니다!`);
+                } else {
+                    alert("크레딧 지급 중 오류가 발생했습니다.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버 통신 오류가 발생했습니다.");
+            });
+        }
+
+        function linkChild(reviewerUid) {
+            const childId = prompt("연결할 자녀의 고유 ID(childId)를 입력하세요:");
+            if (!childId) return;
+            const cleanId = childId.trim();
+            if (cleanId.length < 3) {
+                alert("올바른 자녀 ID를 입력하세요.");
+                return;
+            }
+            
+            fetch('/admin/link-child', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reviewer_uid: reviewerUid, child_id: cleanId })
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
+                    window.location.reload();
+                    return;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    alert("자녀 연결이 성공적으로 완료되었습니다!");
+                    window.location.reload();
+                } else {
+                    alert("자녀 연결 중 오류가 발생했습니다.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버 통신 오류가 발생했습니다.");
+            });
+        }
     </script>
 </body>
 </html>"""
+
+class AddCreditInput(BaseModel):
+    child_id: str
+    amount: int
+
+class LinkChildInput(BaseModel):
+    reviewer_uid: str
+    child_id: str
+
+@app.post("/admin/add-credit")
+async def admin_add_credit(request: Request, data: AddCreditInput):
+    session = request.cookies.get("admin_session")
+    if session not in ACTIVE_ADMIN_SESSIONS:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    try:
+        db_client = firestore.client()
+        child_ref = db_client.collection("children").document(data.child_id)
+        doc = child_ref.get()
+        if not doc.exists:
+            # Create a new child document with the given credits if it doesn't exist
+            child_ref.set({
+                "childId": data.child_id,
+                "childName": "등록 대기 자녀",
+                "credits": data.amount,
+                "totalCreditsGranted": data.amount,
+                "pairedReviewers": []
+            })
+            return {"status": "success", "new_credits": data.amount, "new_total": data.amount}
+        
+        doc_data = doc.to_dict()
+        current_credits = doc_data.get("credits") or 0
+        current_total = doc_data.get("totalCreditsGranted") or 0
+        
+        new_credits = current_credits + data.amount
+        new_total = current_total + data.amount
+        
+        child_ref.update({
+            "credits": new_credits,
+            "totalCreditsGranted": new_total
+        })
+        return {"status": "success", "new_credits": new_credits, "new_total": new_total}
+    except Exception as e:
+        print(f"Error adding credit: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/admin/link-child")
+async def admin_link_child(request: Request, data: LinkChildInput):
+    session = request.cookies.get("admin_session")
+    if session not in ACTIVE_ADMIN_SESSIONS:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    try:
+        db_client = firestore.client()
+        reviewer_ref = db_client.collection("reviewers").document(data.reviewer_uid)
+        doc = reviewer_ref.get()
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Reviewer not found")
+        
+        reviewer_data = doc.to_dict()
+        paired = reviewer_data.get("pairedChildren") or []
+        if data.child_id not in paired:
+            paired.append(data.child_id)
+            reviewer_ref.update({"pairedChildren": paired})
+            
+        # Also update child's pairedReviewers
+        child_ref = db_client.collection("children").document(data.child_id)
+        child_doc = child_ref.get()
+        if child_doc.exists:
+            child_data = child_doc.to_dict()
+            reviewers = child_data.get("pairedReviewers") or []
+            if data.reviewer_uid not in reviewers:
+                reviewers.append(data.reviewer_uid)
+                child_ref.update({"pairedReviewers": reviewers})
+        else:
+            # Pre-create child doc if it doesn't exist
+            child_ref.set({
+                "childId": data.child_id,
+                "childName": "등록 대기 자녀",
+                "credits": 0,
+                "totalCreditsGranted": 0,
+                "pairedReviewers": [data.reviewer_uid]
+            })
+            
+        return {"status": "success"}
+    except Exception as e:
+        print(f"Error linking child: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/admin/login", response_class=HTMLResponse)
 async def get_admin_login(request: Request):
@@ -1555,13 +1756,15 @@ async def get_admin_dashboard(request: Request):
             name = data.get("name") or "보호자"
             paired_children_ids = data.get("pairedChildren") or []
             
-            # Fetch email and last login from Firebase Auth
+            # Fetch email, nickname and last login from Firebase Auth
             email = "이메일 정보 없음"
             last_login = "기록 없음"
+            display_name = ""
             if firebase_admin._apps:
                 try:
                     user_record = auth.get_user(uid)
                     email = user_record.email or "이메일 정보 없음"
+                    display_name = user_record.display_name or ""
                     metadata = user_record.user_metadata
                     if metadata and metadata.last_sign_in_timestamp:
                         from datetime import datetime, timezone, timedelta
@@ -1574,6 +1777,10 @@ async def get_admin_dashboard(request: Request):
             
             total_users += 1
             
+            display_name_badge = ""
+            if display_name and display_name != name:
+                display_name_badge = f'<span style="font-size: 11px; background: rgba(139, 92, 246, 0.2); padding: 2px 6px; border-radius: 4px; color: #a78bfa; margin-left: 6px;">카카오: {display_name}</span>'
+            
             # Build children badges html
             children_html = ""
             if paired_children_ids:
@@ -1583,13 +1790,15 @@ async def get_admin_dashboard(request: Request):
                         children_html += f'''
                         <span class="child-badge">
                             👦 {c_info['childName']} 
-                            <span class="credit-badge">🪙 {c_info['credits']}/{c_info['totalCredits']}</span>
+                            <span class="credit-badge">🪙 <span id="credit-count-{c_info['childId']}">{c_info['credits']}</span>/<span id="total-count-{c_info['childId']}">{c_info['totalCredits']}</span></span>
+                            <button class="btn-charge" onclick="chargeCredit('{c_info['childId']}', '{c_info['childName']}')" title="크레딧 지급">+</button>
                         </span>
                         '''
                     else:
                         children_html += f'''
                         <span class="child-badge" style="background: rgba(156, 163, 175, 0.12); border-color: rgba(156, 163, 175, 0.25); color: #9ca3af;">
-                            🔗 연결 대기 중 (ID: {cid[:6]}...)
+                            🔗 연결 대기 (ID: <span id="credit-count-{cid}" style="display:none;">0</span><span id="total-count-{cid}" style="display:none;">0</span>{cid[:6]}...)
+                            <button class="btn-charge" onclick="chargeCredit('{cid}', '연결 대기 자녀')" title="크레딧 지급">+</button>
                         </span>
                         '''
             else:
@@ -1598,8 +1807,11 @@ async def get_admin_dashboard(request: Request):
             table_rows += f"""
             <tr>
                 <td>
-                    <div class="user-name">{name}</div>
+                    <div class="user-name">{name} {display_name_badge}</div>
                     <div class="user-email">{email}</div>
+                    <div style="margin-top: 8px;">
+                        <button class="btn-link-child" onclick="linkChild('{uid}')">🔗 자녀 연결</button>
+                    </div>
                 </td>
                 <td>
                     <div class="last-login-time">{last_login}</div>
