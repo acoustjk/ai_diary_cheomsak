@@ -719,6 +719,288 @@ async def get_privacy():
 </html>"""
     return html_content
 
+@app.get("/naverf43348555ee55db3290df887a97ee7ea.html")
+async def naver_verification():
+    return FileResponse("naverf43348555ee55db3290df887a97ee7ea.html")
+
+@app.get("/licenses", response_class=HTMLResponse)
+async def get_licenses():
+    html_content = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI고치 오픈소스 라이선스 고지</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cute+Font&family=Dongle:wght@300;400;700&family=Gaegu:wght@300;400;700&family=Gamja+Flower&family=Hi+Melody&family=Jua&family=Nanum+Pen+Script&family=Poor+Story&family=Single+Day&family=Outfit:wght@300;400;600;700;900&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', 'Pretendard', sans-serif;
+            background-color: #faf6f0;
+            color: #2d3748;
+            margin: 0;
+            padding: 40px 20px;
+            line-height: 1.6;
+            background-image: radial-gradient(#ebdcd0 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 24px;
+            border: 1.5px solid #eeddcc;
+            box-shadow: 0 10px 30px rgba(183, 157, 137, 0.1);
+        }
+        h1 {
+            font-family: 'Jua', sans-serif;
+            font-size: 32px;
+            color: #6c5ce7;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8a9ba8;
+            margin-bottom: 30px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .intro {
+            font-size: 15px;
+            color: #4a5568;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .license-card {
+            background: #fdfdfb;
+            border: 1.5px solid #eeddcc;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px rgba(183, 157, 137, 0.03);
+            text-align: left;
+        }
+        .license-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px dashed #eeddcc;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .license-name {
+            font-family: 'Jua', sans-serif;
+            font-size: 20px;
+            color: #ff8e72;
+        }
+        .license-type {
+            font-family: 'Outfit', sans-serif;
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .license-body {
+            font-family: 'Outfit', 'Courier New', Courier, monospace;
+            background: #faf8f5;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #4a5568;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border: 1px solid #e2e8f0;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 13px;
+            color: #A0AEC0;
+            border-top: 1.5px solid #eeddcc;
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👾 AI고치 오픈소스 라이선스</h1>
+        <div class="subtitle">Open Source Software Notice</div>
+        <div class="intro">AI고치 서비스 개발에 힘이 되어준 자랑스러운 오픈소스 소프트웨어 라이선스 목록입니다.</div>
+        
+        <!-- FastAPI -->
+        <div class="license-card">
+            <div class="license-header">
+                <span class="license-name">FastAPI</span>
+                <span class="license-type">MIT License</span>
+            </div>
+            <div class="license-body">Copyright (c) 2018 Sebastián Ramírez
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</div>
+        </div>
+
+        <!-- Uvicorn -->
+        <div class="license-card">
+            <div class="license-header">
+                <span class="license-name">Uvicorn</span>
+                <span class="license-type">BSD 3-Clause License</span>
+            </div>
+            <div class="license-body">Copyright (c) 2017-present, Tom Christie. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+* Redistributions of source code must retain the above copyright notice, this
+  list of conditions and the following disclaimer.
+
+* Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+
+* Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</div>
+        </div>
+
+        <!-- Firebase Python Admin SDK -->
+        <div class="license-card">
+            <div class="license-header">
+                <span class="license-name">Firebase Admin Python SDK</span>
+                <span class="license-type">Apache 2.0 License</span>
+            </div>
+            <div class="license-body">Copyright 2017 Google Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</div>
+        </div>
+
+        <!-- Google GenAI SDK -->
+        <div class="license-card">
+            <div class="license-header">
+                <span class="license-name">Google GenAI SDK</span>
+                <span class="license-type">Apache 2.0 License</span>
+            </div>
+            <div class="license-body">Copyright 2024 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</div>
+        </div>
+
+        <!-- html2canvas -->
+        <div class="license-card">
+            <div class="license-header">
+                <span class="license-name">html2canvas</span>
+                <span class="license-type">MIT License</span>
+            </div>
+            <div class="license-body">Copyright (c) 2012 Niklas von Hertzen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</div>
+        </div>
+
+        <!-- Firebase JS SDK -->
+        <div class="license-card">
+            <div class="license-header">
+                <span class="license-name">Firebase JS SDK</span>
+                <span class="license-type">Apache 2.0 License</span>
+            </div>
+            <div class="license-body">Copyright 2020 Google LLC
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</div>
+        </div>
+
+        <!-- Google Fonts -->
+        <div class="license-card">
+            <div class="license-header">
+                <span class="license-name">Google Fonts (Jua, Gaegu, Nanum Gothic, Dongle, Single Day, Outfit, etc.)</span>
+                <span class="license-type">SIL Open Font License 1.1</span>
+            </div>
+            <div class="license-body">This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is available with a FAQ at: http://scripts.sil.org/OFL</div>
+        </div>
+
+        <div class="footer">
+            © 2026 AI고치. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>"""
+    return html_content
+
 @app.get("/")
 async def read_index():
     return FileResponse("index.html")
