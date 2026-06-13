@@ -2132,7 +2132,8 @@
             alert('일기 내용을 입력해줘! 😉');
             return;
         }
-        if (webCredits <= 0 && !isRewriteMode) {
+        const wasRewriteMode = isRewriteMode;
+        if (webCredits <= 0 && !wasRewriteMode) {
             const requestRecharge = confirm('크레딧을 모두 사용했어요! 🪙\n\n부모님 스마트폰 앱에 크레딧 충전을 요청해 볼까요? 😊');
             if (requestRecharge) {
                 try {
@@ -2238,7 +2239,7 @@
                     scoreContainer.style.display = 'block';
                     
                     // 다시 쓰기 결과 렌더링
-                    if (isRewriteMode) {
+                    if (wasRewriteMode) {
                         // 이전 점수와 비교
                         let spellingDiff = finalSpelling - prevSpellingScore;
                         let expressionDiff = finalExpression - prevExpressionScore;
@@ -2340,11 +2341,11 @@
                     // ----------------------------------------------------
                     // Firestore 실시간 데이터베이스 업로드 (2차 고쳐쓰기 완료 시에만 부모용 연동 전송)
                     // ----------------------------------------------------
-                    if (!isRewriteMode || !currentDiaryId) {
+                    if (!wasRewriteMode || !currentDiaryId) {
                         currentDiaryId = self.crypto.randomUUID();
                     }
 
-                    if (isRewriteMode) {
+                    if (wasRewriteMode) {
                         const diaryReportId = currentDiaryId;
                         const diaryTimestamp = Date.now();
                         const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";
