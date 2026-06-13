@@ -1592,9 +1592,713 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                 alert("서버 통신 오류가 발생했습니다.");
             });
         }
+
+        function chargeParentCredit(parentUid, parentName) {
+            const amountStr = prompt(`👩 [${parentName}] 보호자에게 지급할 크레딧 수량을 입력하세요:`, "10");
+            if (amountStr === null) return;
+            const amount = parseInt(amountStr, 10);
+            if (isNaN(amount) || amount <= 0) {
+                alert("올바른 수량을 입력하세요 (1 이상의 정수).");
+                return;
+            }
+            
+            fetch('/admin/add-parent-credit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ parent_uid: parentUid, amount: amount })
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
+                    window.location.reload();
+                    return;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    const countEl = document.getElementById(`parent-credit-${parentUid}`);
+                    if (countEl) countEl.innerText = data.new_credits;
+                    alert(`[${parentName}] 보호자에게 ${amount} 크레딧을 성공적으로 지급했습니다!`);
+                } else {
+                    alert("크레딧 지급 중 오류가 발생했습니다.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버 통신 오류가 발생했습니다.");
+            });
+        }
     </script>
 </body>
 </html>"""
+
+PARENT_LOGIN_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI고치 보호자 충전소 로그인</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --primary-color: #f59e0b;
+            --primary-hover: #d97706;
+            --glass-bg: rgba(17, 24, 39, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .logo {
+            font-size: 50px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #fde047, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(31, 41, 55, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+            background: rgba(31, 41, 55, 0.8);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), #ec4899);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            margin-top: 10px;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+        .demo-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #d1d5db;
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+        .demo-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">🪙</div>
+        <h1>AI고치 충전소</h1>
+        <div class="subtitle">카카오 계정 고유 UID로 로그인해주세요.</div>
+        <form action="/purchase/login" method="POST">
+            <div class="input-group">
+                <label for="uid">Kakao UID</label>
+                <input type="text" id="uid" name="uid" placeholder="예: kakao_test_parent" required value="kakao_test_parent">
+            </div>
+            <button type="submit" class="btn-submit">로그인</button>
+        </form>
+        <button onclick="location.href='/purchase?uid=kakao_test_parent'" class="demo-btn">데모 계정으로 바로 시작</button>
+    </div>
+</body>
+</html>"""
+
+PARENT_PURCHASE_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI고치 보호자 크레딧 충전소</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(17, 24, 39, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #f59e0b;
+            --primary-light: #fbbf24;
+            --secondary: #ec4899;
+            --accent: #10b981;
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-logout {
+            padding: 8px 16px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-logout:hover {
+            background: #ef4444;
+            color: white;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media(max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .profile-info h3 { margin: 0; font-size: 18px; }
+        .profile-info p { margin: 3px 0 0 0; font-size: 13px; color: #9ca3af; }
+        
+        .balance-badge {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            padding: 15px 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .balance-label { font-size: 14px; color: #fbbf24; font-weight: 600; }
+        .balance-value { font-size: 28px; font-weight: 700; color: white; display: flex; align-items: center; gap: 8px; }
+        
+        /* Package grid */
+        .packages-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+        .package-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .package-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .package-details { display: flex; flex-direction: column; gap: 4px; }
+        .package-name { font-size: 16px; font-weight: 700; color: white; }
+        .package-price { font-size: 13px; color: #9ca3af; }
+        .btn-buy {
+            padding: 10px 18px;
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        
+        /* Form controls */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; color: #9ca3af; margin-bottom: 8px; font-weight: 600; }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 14px;
+            background: rgba(31, 41, 55, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        select:focus, input[type="number"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+        .btn-transfer {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+            transition: all 0.3s ease;
+        }
+        .btn-transfer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: #111827;
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            box-sizing: border-box;
+            animation: modalSlide 0.3s ease-out;
+        }
+        @keyframes modalSlide {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; color: white; }
+        .modal-desc { font-size: 13px; color: #9ca3af; margin-bottom: 25px; }
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .method-card {
+            border: 1.5px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+        .method-card:hover { border-color: var(--primary); background: rgba(255, 255, 255, 0.05); }
+        .method-card.active { border-color: var(--primary); background: rgba(245, 158, 11, 0.1); color: var(--primary-light); }
+        .btn-pay-submit {
+            width: 100%;
+            padding: 14px;
+            background: #3b82f6;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+        .btn-pay-submit:hover { background: #2563eb; }
+        .btn-cancel {
+            background: none; border: none; color: #9ca3af; cursor: pointer; font-size: 13px; margin-top: 15px; text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>AI고치 보호자 충전소</h1>
+                <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">UID: {parent_uid}</div>
+            </div>
+            <form action="/purchase/logout" method="POST" style="margin: 0;">
+                <button type="submit" class="btn-logout">로그아웃</button>
+            </form>
+        </header>
+
+        <div class="grid">
+            <!-- Left Side: Balance & Top up -->
+            <div class="card">
+                <div class="profile-section">
+                    <div class="avatar">👩</div>
+                    <div class="profile-info">
+                        <h3>{parent_name} 보호자님</h3>
+                        <p>{parent_email}</p>
+                    </div>
+                </div>
+
+                <div class="balance-badge">
+                    <span class="balance-label">나의 보유 크레딧</span>
+                    <span class="balance-value">🪙 <span id="parent-credits-val">{parent_credits}</span></span>
+                </div>
+
+                <div class="packages-title">💳 크레딧 패키지 구매</div>
+                
+                <div class="package-item" onclick="openPaymentModal(10, 9900)">
+                    <div class="package-details">
+                        <span class="package-name">🪙 10 크레딧</span>
+                        <span class="package-price">₩ 9,900 (VAT 포함)</span>
+                    </div>
+                    <button class="btn-buy">구매</button>
+                </div>
+
+                <div class="package-item" onclick="openPaymentModal(30, 27000)">
+                    <div class="package-details">
+                        <span class="package-name">🪙 30 크레딧</span>
+                        <span class="package-price">₩ 27,000 (10% 할인)</span>
+                    </div>
+                    <button class="btn-buy">구매</button>
+                </div>
+
+                <div class="package-item" onclick="openPaymentModal(50, 40000)">
+                    <div class="package-details">
+                        <span class="package-name">🪙 50 크레딧</span>
+                        <span class="package-price">₩ 40,000 (20% 할인)</span>
+                    </div>
+                    <button class="btn-buy">구매</button>
+                </div>
+            </div>
+
+            <!-- Right Side: Transfer -->
+            <div class="card">
+                <h2 style="font-size: 20px; font-weight: 700; margin-top: 0; background: linear-gradient(135deg, #34d399, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🪙 자녀에게 크레딧 보내기</h2>
+                <p style="font-size: 13px; color: #9ca3af; line-height: 1.6; margin-bottom: 30px;">
+                    보호자님이 보유하신 크레딧을 연동된 자녀의 계정으로 전송합니다. 전송 즉시 자녀 앱에서 일기를 작성할 때 사용할 수 있습니다.
+                </p>
+
+                <div class="form-group">
+                    <label for="childSelect">자녀 선택</label>
+                    <select id="childSelect">
+                        {children_options}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="transferAmount">보낼 크레딧 수량</label>
+                    <input type="number" id="transferAmount" min="1" value="10" placeholder="수량 입력">
+                </div>
+
+                <button class="btn-transfer" onclick="executeTransfer()">보내기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toss/KakaoPay Simulator Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">💳 안전한 가상 결제</div>
+            <div class="modal-desc">결제 수단을 선택하신 뒤 승인을 누르면 모킹(Mock) 충전이 완료됩니다.</div>
+            
+            <div style="font-size: 15px; font-weight: bold; margin-bottom: 20px; color: #fbbf24;">
+                선택 상품: 크레딧 <span id="modal-credits">0</span>개 (₩<span id="modal-price">0</span>)
+            </div>
+
+            <div class="payment-methods">
+                <div class="method-card active" onclick="selectMethod(this, 'card')">신용카드</div>
+                <div class="method-card" onclick="selectMethod(this, 'kakaopay')">카카오페이</div>
+            </div>
+
+            <button class="btn-pay-submit" onclick="submitMockPayment()">결제 승인</button>
+            <button class="btn-cancel" onclick="closePaymentModal()">결제 취소</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPurchaseCredits = 0;
+        let currentPurchasePrice = 0;
+        let selectedPaymentMethod = 'card';
+
+        function openPaymentModal(credits, price) {
+            currentPurchaseCredits = credits;
+            currentPurchasePrice = price;
+            document.getElementById('modal-credits').innerText = credits;
+            document.getElementById('modal-price').innerText = price.toLocaleString();
+            document.getElementById('paymentModal').style.display = 'flex';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+        }
+
+        function selectMethod(el, method) {
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            selectedPaymentMethod = method;
+        }
+
+        function submitMockPayment() {
+            fetch('/credits/purchase-mock', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    parent_uid: '{parent_uid}',
+                    amount: currentPurchaseCredits
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.status === 'success') {
+                    document.getElementById('parent-credits-val').innerText = data.new_credits;
+                    alert(`가상 결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 크레딧이 충전되었습니다.`);
+                    closePaymentModal();
+                } else {
+                    alert("가상 결제 처리 중 오류가 발생했습니다.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버 연결 실패로 결제를 완료할 수 없습니다.");
+            });
+        }
+
+        function executeTransfer() {
+            const childId = document.getElementById('childSelect').value;
+            if (!childId) {
+                alert("크레딧을 전송할 자녀를 먼저 선택해 주세요.");
+                return;
+            }
+            const amountStr = document.getElementById('transferAmount').value;
+            const amount = parseInt(amountStr, 10);
+            if (isNaN(amount) || amount <= 0) {
+                alert("보낼 크레딧 수량을 올바르게 입력해 주세요 (1 이상의 정수).");
+                return;
+            }
+
+            const currentVal = parseInt(document.getElementById('parent-credits-val').innerText, 10);
+            if (amount > currentVal) {
+                alert("보유하신 크레딧 잔액이 부족합니다.");
+                return;
+            }
+
+            fetch('/credits/transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    parent_uid: '{parent_uid}',
+                    child_id: childId,
+                    amount: amount
+                })
+            })
+            .then(res => {
+                if (res.status === 400) {
+                    return res.json().then(d => { throw new Error(d.detail || "크레딧이 부족합니다."); });
+                } else if (res.status === 403) {
+                    throw new Error("자녀와 연결 권한이 없습니다.");
+                } else if (!res.ok) {
+                    throw new Error("서버에서 에러가 발생했습니다.");
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    document.getElementById('parent-credits-val').innerText = data.parent_credits;
+                    alert(`자녀에게 성공적으로 🪙 ${amount} 크레딧을 전송했습니다!`);
+                    window.location.reload();
+                }
+            })
+            .catch(err => {
+                alert("크레딧 전송 실패: " + err.message);
+            });
+        }
+    </script>
+</body>
+</html>"""
+
+@app.get("/purchase", response_class=HTMLResponse)
+async def get_purchase(request: Request, uid: str = None):
+    response = None
+    if uid:
+        response = RedirectResponse(url="/purchase", status_code=303)
+        response.set_cookie(key="parent_session", value=uid, httponly=True)
+        return response
+        
+    session = request.cookies.get("parent_session")
+    if not session:
+        return HTMLResponse(content=PARENT_LOGIN_HTML)
+        
+    try:
+        db_client = firestore.client()
+        
+        parent_ref = db_client.collection("reviewers").document(session)
+        parent_doc = parent_ref.get()
+        if not parent_doc.exists:
+            parent_ref.set({
+                "reviewerUid": session,
+                "name": "테스트 보호자",
+                "credits": 0,
+                "pairedChildren": []
+            })
+            parent_doc = parent_ref.get()
+            
+        parent_data = parent_doc.to_dict()
+        parent_name = parent_data.get("name") or "보호자"
+        parent_credits = parent_data.get("credits") or 0
+        paired_children = parent_data.get("pairedChildren") or []
+        
+        parent_email = "이메일 정보 없음"
+        if firebase_admin._apps:
+            try:
+                user_record = auth.get_user(session)
+                parent_email = user_record.email or "이메일 정보 없음"
+                parent_name = user_record.display_name or parent_name
+            except Exception:
+                pass
+                
+        children_options_html = ""
+        for cid in paired_children:
+            child_doc = db_client.collection("children").document(cid).get()
+            cname = "등록 대기 자녀"
+            ccredits = 0
+            if child_doc.exists:
+                cdata = child_doc.to_dict()
+                cname = cdata.get("childName") or "무명 자녀"
+                ccredits = cdata.get("credits") or 0
+            children_options_html += f'<option value="{cid}">👦 {cname} (현재: {ccredits}🪙, ID: {cid[:6]}...)</option>'
+            
+        if not paired_children:
+            children_options_html = '<option value="" disabled selected>연결된 자녀가 없습니다.</option>'
+            
+        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session).replace("{parent_name}", parent_name).replace("{parent_email}", parent_email).replace("{parent_credits}", str(parent_credits)).replace("{children_options}", children_options_html)
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        print(f"Purchase page error: {e}")
+        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session).replace("{parent_name}", "데모 보호자").replace("{parent_email}", "demo@kakao.com").replace("{parent_credits}", "0").replace("{children_options}", '<option value="mock_child">👦 데모 자녀 (현재: 0🪙)</option>')
+        return HTMLResponse(content=html_content)
+
+@app.post("/purchase/login")
+async def post_purchase_login(uid: str = Form(...)):
+    resp = RedirectResponse(url="/purchase", status_code=303)
+    resp.set_cookie(key="parent_session", value=uid, httponly=True)
+    return resp
+
+@app.post("/purchase/logout")
+async def post_purchase_logout():
+    resp = RedirectResponse(url="/purchase", status_code=303)
+    resp.delete_cookie(key="parent_session")
+    return resp
 
 class AddCreditInput(BaseModel):
     child_id: str
@@ -1684,6 +2388,143 @@ async def admin_link_child(request: Request, data: LinkChildInput):
         print(f"Error linking child: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+class ParentPurchaseInput(BaseModel):
+    parent_uid: str
+    amount: int
+
+class CreditTransferInput(BaseModel):
+    parent_uid: str
+    child_id: str
+    amount: int
+
+class AddParentCreditInput(BaseModel):
+    parent_uid: str
+    amount: int
+
+@app.post("/credits/purchase-mock")
+async def credits_purchase_mock(data: ParentPurchaseInput):
+    if not data.parent_uid or data.amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid data")
+    
+    try:
+        db_client = firestore.client()
+        parent_ref = db_client.collection("reviewers").document(data.parent_uid)
+        doc = parent_ref.get()
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Parent not found")
+        
+        doc_data = doc.to_dict()
+        current_credits = doc_data.get("credits") or 0
+        new_credits = current_credits + data.amount
+        
+        parent_ref.update({
+            "credits": new_credits
+        })
+        return {"status": "success", "new_credits": new_credits}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Error mock purchasing credits: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/credits/transfer")
+async def credits_transfer(data: CreditTransferInput):
+    if not data.parent_uid or not data.child_id or data.amount <= 0:
+        raise HTTPException(status_code=400, detail="Invalid data")
+        
+    try:
+        db_client = firestore.client()
+        parent_ref = db_client.collection("reviewers").document(data.parent_uid)
+        child_ref = db_client.collection("children").document(data.child_id)
+        
+        @firestore.transactional
+        def transfer_transaction(transaction, p_ref, c_ref, transfer_amount):
+            p_snapshot = p_ref.get(transaction=transaction)
+            if not p_snapshot.exists:
+                raise HTTPException(status_code=404, detail="보호자를 찾을 수 없습니다.")
+                
+            p_data = p_snapshot.to_dict()
+            
+            paired = p_data.get("pairedChildren") or []
+            if data.child_id not in paired:
+                raise HTTPException(status_code=403, detail="연결되지 않은 자녀입니다.")
+                
+            p_credits = p_data.get("credits") or 0
+            if p_credits < transfer_amount:
+                raise HTTPException(status_code=400, detail="보유하신 크레딧 잔액이 부족합니다.")
+                
+            c_snapshot = c_ref.get(transaction=transaction)
+            c_credits = 0
+            c_total = 0
+            if c_snapshot.exists:
+                c_data = c_snapshot.to_dict()
+                c_credits = c_data.get("credits") or 0
+                c_total = c_data.get("totalCreditsGranted") or 0
+                
+            new_p_credits = p_credits - transfer_amount
+            transaction.update(p_ref, {"credits": new_p_credits})
+            
+            new_c_credits = c_credits + transfer_amount
+            new_c_total = c_total + transfer_amount
+            if c_snapshot.exists:
+                transaction.update(c_ref, {
+                    "credits": new_c_credits,
+                    "totalCreditsGranted": new_c_total
+                })
+            else:
+                transaction.set(c_ref, {
+                    "childId": data.child_id,
+                    "childName": "등록 대기 자녀",
+                    "credits": new_c_credits,
+                    "totalCreditsGranted": new_c_total,
+                    "pairedReviewers": [data.parent_uid]
+                })
+                
+            return new_p_credits, new_c_credits
+            
+        transaction = db_client.transaction()
+        new_parent_credits, new_child_credits = transfer_transaction(
+            transaction, parent_ref, child_ref, data.amount
+        )
+        return {
+            "status": "success",
+            "parent_credits": new_parent_credits,
+            "child_credits": new_child_credits
+        }
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Error transferring credits: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/admin/add-parent-credit")
+async def admin_add_parent_credit(request: Request, data: AddParentCreditInput):
+    session = request.cookies.get("admin_session")
+    if session not in ACTIVE_ADMIN_SESSIONS:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    try:
+        db_client = firestore.client()
+        parent_ref = db_client.collection("reviewers").document(data.parent_uid)
+        doc = parent_ref.get()
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Parent not found")
+            
+        doc_data = doc.to_dict()
+        current_credits = doc_data.get("credits") or 0
+        new_credits = current_credits + data.amount
+        
+        parent_ref.update({
+            "credits": new_credits
+        })
+        return {"status": "success", "new_credits": new_credits}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"Error adding parent credit: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/admin/login", response_class=HTMLResponse)
 async def get_admin_login(request: Request):
     session = request.cookies.get("admin_session")
@@ -1755,6 +2596,7 @@ async def get_admin_dashboard(request: Request):
                 continue
             name = data.get("name") or "보호자"
             paired_children_ids = data.get("pairedChildren") or []
+            parent_credits = data.get("credits") or 0
             
             # Fetch email, nickname and last login from Firebase Auth
             email = "이메일 정보 없음"
@@ -1809,6 +2651,10 @@ async def get_admin_dashboard(request: Request):
                 <td>
                     <div class="user-name">{name} {display_name_badge}</div>
                     <div class="user-email">{email}</div>
+                    <div style="font-size: 13px; color: #fb7185; margin-top: 5px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+                        <span>보유 크레딧: <span id="parent-credit-{uid}">{parent_credits}</span>🪙</span>
+                        <button class="btn-charge" style="background: linear-gradient(135deg, #ec4899, #db2777);" onclick="chargeParentCredit('{uid}', '{name}')" title="보호자 크레딧 지급">+</button>
+                    </div>
                     <div style="margin-top: 8px;">
                         <button class="btn-link-child" onclick="linkChild('{uid}')">🔗 자녀 연결</button>
                     </div>
