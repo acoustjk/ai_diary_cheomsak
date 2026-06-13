@@ -10,6 +10,7 @@
     <!-- 구글 파이어베이스 JS SDK (Compat 버전) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <!-- Google Fonts & Cute Korean Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1069,6 +1070,15 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    // 익명 로그인 실행 (Firestore 보안 규칙 통과용)
+    firebase.auth().signInAnonymously()
+        .then(() => {
+            console.log("Firebase anonymous auth success");
+        })
+        .catch((error) => {
+            console.error("Firebase anonymous auth failed:", error);
+        });
 
     // ----------------------------------------------------
     // 다중 프로필 관리 시스템 (Option 1)
