@@ -839,7 +839,6 @@
         <div id="profileSwitcherCard" class="profile-card dashboard-card">
             <div class="profile-title-bar">
                 <span class="profile-title">👦 현재 일기 쓰고 있는 어린이</span>
-                <button type="button" onclick="addNewProfilePrompt()" class="add-profile-btn">+ 새 친구 추가</button>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px;" id="profileListArea">
                 <!-- 자녀 프로필 선택 버튼들이 여기에 렌더링됩니다 -->
@@ -941,9 +940,6 @@
         
         <!-- 다시 도전하기 버튼 -->
         <button id="btnRetry" onclick="startRewriteMode()" style="display:none; width:100%; margin-top:15px; background:linear-gradient(135deg, #6c5ce7 0%, #5b4bc4 100%); color:white; font-size:16px; border-radius:14px; border:none; padding:14px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(108, 92, 231, 0.2); transition: 0.2s;">✏️ AI고치의 힌트로 다시 쓰기!</button>
-        
-        <!-- 부모님께 자랑하기 버튼 -->
-        <button id="btnShare" onclick="shareReport()" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #48bb78 0%, #38a169 100%); color:white; font-size:16px; border-radius:14px; border:none; padding:14px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(72, 187, 120, 0.2); transition: 0.2s;">💌 부모님께 내 일기 자랑하기</button>
 
         <!-- 새로운 일기 쓰기 버튼 -->
         <button id="btnNewDiary" onclick="resetToDefaultSession(); saveSession();" style="display:none; width:100%; margin-top:10px; background:linear-gradient(135deg, #718096 0%, #4a5568 100%); color:white; font-size:16px; border-radius:14px; border:none; padding:14px; font-weight:bold; cursor:pointer; box-shadow: 0 4px 12px rgba(113, 128, 150, 0.2); transition: 0.2s;">✏️ 새로운 일기 쓰기</button>
@@ -2182,7 +2178,6 @@
         const bonusScoreText = document.getElementById('bonusScoreText');
         const btnRetry = document.getElementById('btnRetry');
         const levelupTitle = document.getElementById('levelupTitle');
-        const btnShare = document.getElementById('btnShare');
         const btnNewDiary = document.getElementById('btnNewDiary');
         
         loadingText.style.display = 'block';
@@ -2192,7 +2187,6 @@
         bonusScoreText.style.display = 'none';
         btnRetry.style.display = 'none';
         levelupTitle.style.display = 'none';
-        btnShare.style.display = 'none';
         if (btnNewDiary) btnNewDiary.style.display = 'none';
 
         // 미션 단어 체크 검사
@@ -2294,8 +2288,7 @@
                         prevSpellingScore = finalSpelling;
                         prevExpressionScore = finalExpression;
 
-                        // 부모님 자랑하기 및 새 일기 버튼 활성화
-                        btnShare.style.display = 'block';
+                        // 새 일기 버튼 활성화
                         const btnNewDiary = document.getElementById('btnNewDiary');
                         if (btnNewDiary) btnNewDiary.style.display = 'block';
                     } else {
