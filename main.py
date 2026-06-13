@@ -2,8 +2,8 @@ import os
 import json
 import urllib.request
 import urllib.parse
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi import FastAPI, HTTPException, Request, Form, Response
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
@@ -1000,6 +1000,616 @@ This license is available with a FAQ at: http://scripts.sil.org/OFL</div>
 </body>
 </html>"""
     return html_content
+
+# ----------------------------------------------------
+# 관리자(Admin) 페이지 대시보드
+# ----------------------------------------------------
+ACTIVE_ADMIN_SESSIONS = set()
+
+ADMIN_LOGIN_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI고치 관리자 로그인</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --primary-color: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --glass-bg: rgba(17, 24, 39, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .login-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-sizing: border-box;
+            animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .logo {
+            font-size: 50px;
+            margin-bottom: 15px;
+            animation: bounce 2s infinite ease-in-out;
+            display: inline-block;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(31, 41, 55, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-color);
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+            background: rgba(31, 41, 55, 0.8);
+        }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), #ec4899);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+            margin-top: 10px;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+        }
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">👾</div>
+        <h1>AI고치 Admin</h1>
+        <div class="subtitle">관리자 계정으로 로그인해주세요.</div>
+        <form action="/admin/login" method="POST">
+            <div class="input-group">
+                <label for="username">ID</label>
+                <input type="text" id="username" name="username" placeholder="아이디 입력" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="비밀번호 입력" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-submit">로그인</button>
+            {error_placeholder}
+        </form>
+    </div>
+</body>
+</html>"""
+
+ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI고치 관리자 대시보드</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(17, 24, 39, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #8b5cf6;
+            --primary-light: #a78bfa;
+            --secondary: #ec4899;
+            --accent: #10b981;
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+        }
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo {
+            font-size: 36px;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-logout {
+            padding: 10px 20px;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-logout:hover {
+            background: #ef4444;
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #9ca3af;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+        }
+        .stat-value.primary {
+            background: linear-gradient(135deg, #a78bfa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-value.secondary {
+            background: linear-gradient(135deg, #f472b6, #fb7185);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stat-value.accent {
+            background: linear-gradient(135deg, #34d399, #6ee7b7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Controls & Search */
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 15px;
+        }
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+        }
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 16px;
+        }
+        
+        /* Table styles */
+        .table-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        th {
+            background: rgba(31, 41, 55, 0.4);
+            font-size: 13px;
+            font-weight: 700;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .user-name {
+            font-weight: 700;
+            color: white;
+            font-size: 15px;
+        }
+        .user-email {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+        .child-badge {
+            background: rgba(139, 92, 246, 0.12);
+            border: 1px solid rgba(139, 92, 246, 0.25);
+            color: var(--primary-light);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        .credit-badge {
+            background: rgba(245, 158, 11, 0.12);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .uid-badge {
+            font-family: monospace;
+            background: rgba(31, 41, 55, 0.6);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .no-data {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <span class="logo">🔍</span>
+                <h1>AI고치 서비스 어드민</h1>
+            </div>
+            <form action="/admin/logout" method="POST" style="margin: 0;">
+                <button type="submit" class="btn-logout">로그아웃</button>
+            </form>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">전체 회원 수</span>
+                <span class="stat-value primary">{total_users}명</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">등록된 자녀 수</span>
+                <span class="stat-value secondary">{total_children}명</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">총 지급된 크레딧</span>
+                <span class="stat-value accent">{total_credits}🪙</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-bar">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search" class="search-input" placeholder="보호자 또는 이메일 검색..." onkeyup="filterTable()">
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <table id="adminTable">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">보호자 정보</th>
+                        <th style="width: 25%;">식별 코드 (UID)</th>
+                        <th style="width: 50%;">연결된 자녀 & 크레딧</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {table_rows}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function filterTable() {
+            const query = document.getElementById('search').value.toLowerCase().trim();
+            const rows = document.querySelectorAll('#adminTable tbody tr');
+            
+            rows.forEach(row => {
+                if (row.classList.contains('no-data-row')) return;
+                
+                const userName = row.querySelector('.user-name').innerText.toLowerCase();
+                const userEmail = row.querySelector('.user-email').innerText.toLowerCase();
+                const uid = row.querySelector('.uid-badge').innerText.toLowerCase();
+                
+                if (userName.includes(query) || userEmail.includes(query) || uid.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>"""
+
+@app.get("/admin/login", response_class=HTMLResponse)
+async def get_admin_login(request: Request):
+    session = request.cookies.get("admin_session")
+    if session in ACTIVE_ADMIN_SESSIONS:
+        return RedirectResponse(url="/admin", status_code=303)
+    return ADMIN_LOGIN_HTML.replace("{error_placeholder}", "")
+
+@app.post("/admin/login")
+async def post_admin_login(
+    response: Response,
+    username: str = Form(...),
+    password: str = Form(...)
+):
+    if username == "acoustjk" and password == "dkdlfjs18!*":
+        import secrets
+        session_id = secrets.token_hex(16)
+        ACTIVE_ADMIN_SESSIONS.add(session_id)
+        resp = RedirectResponse(url="/admin", status_code=303)
+        resp.set_cookie(key="admin_session", value=session_id, httponly=True)
+        return resp
+    
+    err_html = '<div class="error-msg">⚠️ 아이디 또는 비밀번호가 올바르지 않습니다.</div>'
+    return HTMLResponse(content=ADMIN_LOGIN_HTML.replace("{error_placeholder}", err_html), status_code=401)
+
+@app.post("/admin/logout")
+async def post_admin_logout(request: Request):
+    session = request.cookies.get("admin_session")
+    if session in ACTIVE_ADMIN_SESSIONS:
+        ACTIVE_ADMIN_SESSIONS.remove(session)
+    resp = RedirectResponse(url="/admin/login", status_code=303)
+    resp.delete_cookie(key="admin_session")
+    return resp
+
+@app.get("/admin", response_class=HTMLResponse)
+async def get_admin_dashboard(request: Request):
+    session = request.cookies.get("admin_session")
+    if session not in ACTIVE_ADMIN_SESSIONS:
+        return RedirectResponse(url="/admin/login", status_code=303)
+    
+    try:
+        db_client = firestore.client()
+        
+        # 1. Fetch children map
+        children_docs = db_client.collection("children").get()
+        children_map = {}
+        total_credits = 0
+        for doc in children_docs:
+            data = doc.to_dict()
+            child_id = data.get("childId") or doc.id
+            credits = data.get("credits") or 0
+            total_credits += credits
+            children_map[child_id] = {
+                "childId": child_id,
+                "childName": data.get("childName") or "무명 어린이",
+                "credits": credits,
+                "totalCredits": data.get("totalCreditsGranted") or 0
+            }
+            
+        # 2. Fetch reviewers (parents)
+        reviewers_docs = db_client.collection("reviewers").get()
+        table_rows = ""
+        total_users = 0
+        total_children = len(children_map)
+        
+        for doc in reviewers_docs:
+            data = doc.to_dict()
+            uid = data.get("reviewerUid") or doc.id
+            name = data.get("name") or "보호자"
+            paired_children_ids = data.get("pairedChildren") or []
+            
+            # Fetch email from Firebase Auth
+            email = "이메일 정보 없음"
+            if firebase_admin._apps:
+                try:
+                    user_record = auth.get_user(uid)
+                    email = user_record.email or "이메일 정보 없음"
+                except Exception as auth_err:
+                    print(f"Auth fetch failed for {uid}: {auth_err}")
+            
+            total_users += 1
+            
+            # Build children badges html
+            children_html = ""
+            if paired_children_ids:
+                for cid in paired_children_ids:
+                    c_info = children_map.get(cid)
+                    if c_info:
+                        children_html += f'''
+                        <span class="child-badge">
+                            👦 {c_info['childName']} 
+                            <span class="credit-badge">🪙 {c_info['credits']}/{c_info['totalCredits']}</span>
+                        </span>
+                        '''
+                    else:
+                        children_html += f'''
+                        <span class="child-badge" style="background: rgba(156, 163, 175, 0.12); border-color: rgba(156, 163, 175, 0.25); color: #9ca3af;">
+                            🔗 연결 대기 중 (ID: {cid[:6]}...)
+                        </span>
+                        '''
+            else:
+                children_html = '<span style="color: #9ca3af; font-size: 13px;">연결된 자녀 없음</span>'
+                
+            table_rows += f"""
+            <tr>
+                <td>
+                    <div class="user-name">{name}</div>
+                    <div class="user-email">{email}</div>
+                </td>
+                <td>
+                    <span class="uid-badge">{uid}</span>
+                </td>
+                <td>
+                    {children_html}
+                </td>
+            </tr>
+            """
+            
+        if not table_rows:
+            table_rows = '<tr class="no-data-row"><td colspan="3" class="no-data">가입된 회원이 없습니다.</td></tr>'
+            
+        html_content = ADMIN_DASHBOARD_HTML.replace("{total_users}", str(total_users)).replace("{total_children}", str(total_children)).replace("{total_credits}", str(total_credits)).replace("{table_rows}", table_rows)
+        return html_content
+        
+    except Exception as e:
+        print(f"Admin dashboard error: {e}")
+        err_html = f"""
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 20px; border-radius: 12px; margin-top: 20px;">
+            <h2 style="color: #ef4444; margin-top: 0;">데이터 로딩 오류</h2>
+            <p style="color: #fca5a5; margin-bottom: 0;">데이터베이스 연동 중 오류가 발생했습니다. 로그를 확인해 주세요. ({str(e)})</p>
+        </div>
+        """
+        return ADMIN_DASHBOARD_HTML.replace("{total_users}", "0").replace("{total_children}", "0").replace("{total_credits}", "0").replace("{table_rows}", f'<tr><td colspan="3">{err_html}</td></tr>')
 
 @app.get("/")
 async def read_index():
