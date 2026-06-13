@@ -708,7 +708,7 @@
 
         @media print {
             body { background: white !important; padding: 0 !important; margin: 0 !important; }
-            #mainView, #reportActionArea, #parentReplyArea { display: none !important; }
+            #mainView, #reportActionArea, #parentReplyArea, .app-footer { display: none !important; }
             #reportView { box-shadow: none !important; border: none !important; padding: 10px !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
         }
     </style>
@@ -1208,17 +1208,6 @@
     </div>
 </div>
 
-<!-- 푸터 영역 -->
-<footer class="app-footer">
-    <div>
-        © 2026 <strong>AI고치</strong>. All rights reserved.
-    </div>
-    <div style="display: flex; gap: 15px;">
-        <a href="/terms" target="_blank">이용약관</a>
-        <a href="/privacy" target="_blank">개인정보처리방침</a>
-        <a href="/licenses" target="_blank">오픈소스 라이선스</a>
-    </div>
-</footer>
 
 </div> <!-- end of mainView -->
 
@@ -1317,6 +1306,24 @@
         <button onclick="sendParentReply()" style="width: 100%; margin-top: 0; background: #38a169; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s;">💌 카톡으로 칭찬 보내기</button>
     </div>
 </div>
+
+<!-- 푸터 영역 -->
+<footer class="app-footer">
+    <div>
+        © 2026 <strong>AI고치</strong>. All rights reserved.
+    </div>
+    <div style="display: flex; gap: 15px;">
+        <a href="/terms" target="_blank">이용약관</a>
+        <a href="/privacy" target="_blank">개인정보처리방침</a>
+        <a href="/licenses" target="_blank">오픈소스 라이선스</a>
+    </div>
+</footer>
+
+<style>
+    @media print {
+        .app-footer { display: none; }
+    }
+</style>
 
 <script>
     // Check navigation type to clear sessionStorage on new navigation (e.g. typing URL, bookmark, session restore)
