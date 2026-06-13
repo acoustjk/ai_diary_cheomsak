@@ -1550,6 +1550,8 @@ async def get_admin_dashboard(request: Request):
         for doc in reviewers_docs:
             data = doc.to_dict()
             uid = data.get("reviewerUid") or doc.id
+            if not uid.startswith("kakao"):
+                continue
             name = data.get("name") or "보호자"
             paired_children_ids = data.get("pairedChildren") or []
             
