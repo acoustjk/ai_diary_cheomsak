@@ -111,6 +111,9 @@ def send_credit_notification(child_id: str, child_name: str, notification_type: 
     except Exception as e:
         print(f"Failed to send credit FCM message: {e}")
 
+# Kakao REST API Key for web login
+KAKAO_REST_API_KEY = os.environ.get("KAKAO_REST_API_KEY", "e6e12d90f46f99a6634487f83cbd62b9")
+
 app = FastAPI()
 
 app.add_middleware(
@@ -1741,11 +1744,34 @@ PARENT_LOGIN_HTML = """<!DOCTYPE html>
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
         }
+        .kakao-btn {
+            background-color: #FEE500;
+            color: #191919;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            width: 100%;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(254, 229, 0, 0.2);
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        .kakao-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(254, 229, 0, 0.4);
+        }
         .demo-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #d1d5db;
-            margin-top: 15px;
+            margin-top: 10px;
             width: 100%;
             padding: 12px;
             border-radius: 12px;
@@ -1763,15 +1789,30 @@ PARENT_LOGIN_HTML = """<!DOCTYPE html>
     <div class="login-card">
         <div class="logo">🪙</div>
         <h1>AI고치 충전소</h1>
-        <div class="subtitle">카카오 계정 고유 UID로 로그인해주세요.</div>
-        <form action="/purchase/login" method="POST">
-            <div class="input-group">
-                <label for="uid">Kakao UID</label>
-                <input type="text" id="uid" name="uid" placeholder="예: kakao_test_parent" required value="kakao_test_parent">
+        <div class="subtitle">카카오 로그인 후 크레딧 충전 및 선물 전송이 가능합니다.</div>
+        
+        <!-- Real Kakao Login Button -->
+        <a href="{kakao_auth_url}" class="kakao-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 8px;">
+                <path d="M12 3C6.477 3 2 6.48 2 10.77c0 2.76 1.83 5.17 4.58 6.57-.18.66-.66 2.42-.76 2.82-.13.52.19.51.39.37.16-.1 2.57-1.74 3.6-2.44.7.1 1.43.15 2.19.15 5.523 0 10-3.48 10-7.77S17.523 3 12 3z"/>
+            </svg>
+            카카오 로그인
+        </a>
+
+        <!-- Developer Bypass Login -->
+        <details style="margin-top: 25px; text-align: left; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 10px 15px;">
+            <summary style="font-size: 12px; color: #9ca3af; cursor: pointer; user-select: none; font-weight: 600;">🛠️ 개발자용 바이패스 로그인</summary>
+            <div style="margin-top: 15px;">
+                <form action="/purchase/login" method="POST">
+                    <div class="input-group">
+                        <label for="uid">Kakao UID</label>
+                        <input type="text" id="uid" name="uid" placeholder="예: kakao_test_parent" required value="kakao_test_parent">
+                    </div>
+                    <button type="submit" class="btn-submit">로그인</button>
+                </form>
+                <button onclick="location.href='/purchase?uid=kakao_test_parent'" class="demo-btn">데모 계정으로 바로 시작</button>
             </div>
-            <button type="submit" class="btn-submit">로그인</button>
-        </form>
-        <button onclick="location.href='/purchase?uid=kakao_test_parent'" class="demo-btn">데모 계정으로 바로 시작</button>
+        </details>
     </div>
 </body>
 </html>"""
@@ -2237,7 +2278,14 @@ async def get_purchase(request: Request, uid: str = None):
         
     session = request.cookies.get("parent_session")
     if not session:
-        return HTMLResponse(content=PARENT_LOGIN_HTML)
+        # Build Kakao Authorize URL dynamically depending on request host header
+        host = request.headers.get("host", "ai-gochi.com")
+        scheme = "https" if "ai-gochi.com" in host or request.url.scheme == "https" else "http"
+        redirect_uri = f"{scheme}://{host}/purchase/kakao/callback"
+        kakao_auth_url = f"https://kauth.kakao.com/oauth/authorize?client_id={KAKAO_REST_API_KEY}&redirect_uri={urllib.parse.quote(redirect_uri)}&response_type=code"
+        
+        login_html = PARENT_LOGIN_HTML.replace("{kakao_auth_url}", kakao_auth_url)
+        return HTMLResponse(content=login_html)
         
     try:
         db_client = firestore.client()
@@ -2298,6 +2346,94 @@ async def post_purchase_login(uid: str = Form(...)):
 async def post_purchase_logout():
     resp = RedirectResponse(url="/purchase", status_code=303)
     resp.delete_cookie(key="parent_session")
+    return resp
+
+@app.get("/purchase/kakao/callback")
+async def get_purchase_kakao_callback(request: Request, code: str = None, error: str = None):
+    if error or not code:
+        return HTMLResponse(content=f"<h3>로그인 실패: {error or '인가 코드가 없습니다.'}</h3><a href='/purchase'>돌아가기</a>")
+        
+    host = request.headers.get("host", "ai-gochi.com")
+    scheme = "https" if "ai-gochi.com" in host or request.url.scheme == "https" else "http"
+    redirect_uri = f"{scheme}://{host}/purchase/kakao/callback"
+    
+    token_url = "https://kauth.kakao.com/oauth/token"
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
+    payload = {
+        "grant_type": "authorization_code",
+        "client_id": KAKAO_REST_API_KEY,
+        "redirect_uri": redirect_uri,
+        "code": code
+    }
+    
+    try:
+        data = urllib.parse.urlencode(payload).encode("utf-8")
+        req = urllib.request.Request(token_url, data=data, headers=headers)
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            access_token = res_data.get("access_token")
+    except Exception as e:
+        print(f"Failed to exchange Kakao code: {e}")
+        return HTMLResponse(content=f"<h3>로그인 실패 (토큰 발급 오류): {e}</h3><a href='/purchase'>돌아가기</a>")
+        
+    if not access_token:
+        return HTMLResponse(content="<h3>로그인 실패 (토큰이 올바르지 않습니다.)</h3><a href='/purchase'>돌아가기</a>")
+        
+    uid = None
+    email = None
+    nickname = None
+    try:
+        req = urllib.request.Request(
+            "https://kapi.kakao.com/v2/user/me",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            uid = f"kakao_{res_data.get('id')}"
+            kakao_account = res_data.get("kakao_account", {})
+            email = kakao_account.get("email")
+            properties = res_data.get("properties", {})
+            nickname = properties.get("nickname")
+    except Exception as e:
+        print(f"Kakao profile fetch failed: {e}")
+        return HTMLResponse(content=f"<h3>로그인 실패 (프로필 조회 오류): {e}</h3><a href='/purchase'>돌아가기</a>")
+        
+    if not uid:
+        return HTMLResponse(content="<h3>로그인 실패 (사용자 식별 불가)</h3><a href='/purchase'>돌아가기</a>")
+        
+    # Firestore / Auth setup
+    try:
+        db_client = firestore.client()
+        parent_ref = db_client.collection("reviewers").document(uid)
+        parent_doc = parent_ref.get()
+        if not parent_doc.exists:
+            parent_ref.set({
+                "reviewerUid": uid,
+                "name": nickname or "보호자",
+                "credits": 0,
+                "pairedChildren": []
+            })
+        else:
+            updates = {}
+            if nickname:
+                updates["name"] = nickname
+            if updates:
+                parent_ref.update(updates)
+                
+        if firebase_admin._apps:
+            try:
+                auth.get_user(uid)
+            except Exception:
+                auth.create_user(
+                    uid=uid,
+                    email=email,
+                    display_name=nickname
+                )
+    except Exception as e:
+        print(f"Firestore parent setup failed during callback: {e}")
+        
+    resp = RedirectResponse(url="/purchase", status_code=303)
+    resp.set_cookie(key="parent_session", value=uid, httponly=True)
     return resp
 
 class AddCreditInput(BaseModel):
