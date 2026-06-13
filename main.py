@@ -1394,6 +1394,10 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
             font-size: 12px;
             color: #9ca3af;
         }
+        .last-login-time {
+            font-size: 13px;
+            color: #d1d5db;
+        }
         .no-data {
             text-align: center;
             color: #9ca3af;
@@ -1444,8 +1448,9 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                 <thead>
                     <tr>
                         <th style="width: 25%;">보호자 정보</th>
-                        <th style="width: 25%;">식별 코드 (UID)</th>
-                        <th style="width: 50%;">연결된 자녀 & 크레딧</th>
+                        <th style="width: 20%;">최근 접속</th>
+                        <th style="width: 20%;">식별 코드 (UID)</th>
+                        <th style="width: 35%;">연결된 자녀 & 크레딧</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1548,12 +1553,20 @@ async def get_admin_dashboard(request: Request):
             name = data.get("name") or "보호자"
             paired_children_ids = data.get("pairedChildren") or []
             
-            # Fetch email from Firebase Auth
+            # Fetch email and last login from Firebase Auth
             email = "이메일 정보 없음"
+            last_login = "기록 없음"
             if firebase_admin._apps:
                 try:
                     user_record = auth.get_user(uid)
                     email = user_record.email or "이메일 정보 없음"
+                    metadata = user_record.user_metadata
+                    if metadata and metadata.last_sign_in_timestamp:
+                        from datetime import datetime, timezone, timedelta
+                        # Convert UTC to KST (UTC+9)
+                        kst = timezone(timedelta(hours=9))
+                        dt = datetime.fromtimestamp(metadata.last_sign_in_timestamp / 1000, tz=timezone.utc).astimezone(kst)
+                        last_login = dt.strftime("%Y-%m-%d %H:%M:%S")
                 except Exception as auth_err:
                     print(f"Auth fetch failed for {uid}: {auth_err}")
             
@@ -1587,6 +1600,9 @@ async def get_admin_dashboard(request: Request):
                     <div class="user-email">{email}</div>
                 </td>
                 <td>
+                    <div class="last-login-time">{last_login}</div>
+                </td>
+                <td>
                     <span class="uid-badge">{uid}</span>
                 </td>
                 <td>
@@ -1596,7 +1612,7 @@ async def get_admin_dashboard(request: Request):
             """
             
         if not table_rows:
-            table_rows = '<tr class="no-data-row"><td colspan="3" class="no-data">가입된 회원이 없습니다.</td></tr>'
+            table_rows = '<tr class="no-data-row"><td colspan="4" class="no-data">가입된 회원이 없습니다.</td></tr>'
             
         html_content = ADMIN_DASHBOARD_HTML.replace("{total_users}", str(total_users)).replace("{total_children}", str(total_children)).replace("{total_credits}", str(total_credits)).replace("{table_rows}", table_rows)
         return html_content
@@ -1606,10 +1622,10 @@ async def get_admin_dashboard(request: Request):
         err_html = f"""
         <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 20px; border-radius: 12px; margin-top: 20px;">
             <h2 style="color: #ef4444; margin-top: 0;">데이터 로딩 오류</h2>
-            <p style="color: #fca5a5; margin-bottom: 0;">데이터베이스 연동 중 오류가 발생했습니다. 로그를 확인해 주세요. ({str(e)})</p>
+            <p style="color: #fca5a5; margin-bottom: 0;">데이터베이스 연동 중 오류가 발생했습니다. 로그를화면을 통해 확인해 주세요. ({str(e)})</p>
         </div>
         """
-        return ADMIN_DASHBOARD_HTML.replace("{total_users}", "0").replace("{total_children}", "0").replace("{total_credits}", "0").replace("{table_rows}", f'<tr><td colspan="3">{err_html}</td></tr>')
+        return ADMIN_DASHBOARD_HTML.replace("{total_users}", "0").replace("{total_children}", "0").replace("{total_credits}", "0").replace("{table_rows}", f'<tr><td colspan="4">{err_html}</td></tr>')
 
 @app.get("/")
 async def read_index():
