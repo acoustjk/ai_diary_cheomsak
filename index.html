@@ -749,33 +749,50 @@
             <button class="guide-tab-btn" onclick="switchGuideTab('userGuide', event)">📖 사용 방법 안내</button>
         </div>
         
-        <!-- 탭 1: 캐릭터 소개 -->
-        <div id="tab-charIntro" class="guide-tab-content active">
-            <h3 style="margin: 0 0 10px 0; color: #2d3748; font-size: 18px; font-family: 'Jua', sans-serif;">내 비밀 일기 친구, AI고치!</h3>
-            <p style="margin: 0 0 16px 0; font-size: 13px; color: #718096; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
-                AI고치는 어린이의 일기 쓰기를 돕고 함께 어휘력과 표현력을 키워주는 단짝 요정이에요. 일기 내용과 결과에 따라 네 가지 다채로운 표정을 짓는답니다!
-            </p>
-            
-            <div class="guide-gochi-grid">
-                <div class="guide-gochi-item">
-                    <img src="images/gochi_default.png" style="height: 95px; width: auto; margin-bottom: 6px;" alt="기본">
-                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">😃 기본 포즈</div>
-                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">일기를 쓸 준비를 하고 곁에서 얌전히 기다려요!</div>
+        <!-- 탭 1: 캐릭터 세계관 & 브랜드 스토리 -->
+        <div id="tab-charIntro" class="guide-tab-content active" style="max-height: 480px; overflow-y: auto; padding-right: 8px;">
+            <!-- 상단 요약 카드 (Gochi 프로필) -->
+            <div style="display: flex; gap: 16px; background: linear-gradient(135deg, #f5f3ff 0%, #fbf7f5 100%); padding: 16px; border-radius: 20px; border: 1.5px solid #e2d9ff; margin-bottom: 20px; align-items: center;">
+                <img src="images/gochi_default.png" style="height: 100px; width: auto; filter: drop-shadow(0 6px 12px rgba(108, 92, 231, 0.12));" alt="AI고치 기본 캐릭터">
+                <div style="text-align: left;">
+                    <h4 style="margin: 0 0 6px 0; color: #6c5ce7; font-size: 16px; font-family: 'Jua', sans-serif;">👾 글쓰기 단짝 요정, AI고치 (Gochi)</h4>
+                    <p style="margin: 0; font-size: 12px; color: #4a5568; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
+                        <b>성격:</b> 또래 친구처럼 장난치며 함께 성장하는 다정한 파트너<br>
+                        <b>시그니처 V 포즈:</b> 틀린 글자를 찾아내는 마법의 돋보기이자, "너의 글은 결국 성공할 거야!"라는 승리(Victory)의 약속이에요. ✌️
+                    </p>
                 </div>
-                <div class="guide-gochi-item">
-                    <img src="images/gochi_greeting.png" style="height: 95px; width: auto; margin-bottom: 6px;" alt="인사">
-                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">👋 인사 포즈</div>
-                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">일기 쓰러 온 어린이를 반갑게 맞이하며 환영해요!</div>
+            </div>
+
+            <!-- 1. 캐릭터 세계관 (Universe) -->
+            <div style="margin-bottom: 20px; text-align: left;">
+                <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 15px; font-family: 'Jua', sans-serif; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 16px;">🌌</span> 1. 캐릭터 세계관 (Universe)
+                </h4>
+                <div style="background: #fffdf5; border-left: 4px solid #f6ad55; padding: 10px 14px; border-radius: 0 12px 12px 0; font-size: 13px; color: #cb5a07; font-family: 'Jua', sans-serif; margin-bottom: 8px;">
+                    "모든 아이들의 마음속에는 아직 깨어나지 않은 문장의 고치가 살고 있어."
                 </div>
-                <div class="guide-gochi-item">
-                    <img src="images/gochi_thinking.png" style="height: 95px; width: auto; margin-bottom: 6px;" alt="고민">
-                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">🤔 고민 포즈</div>
-                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">더 좋은 일기를 선물하기 위해 열심히 생각을 해요!</div>
+                <p style="margin: 0; font-size: 12px; color: #4a5568; line-height: 1.6; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; word-break: keep-all;">
+                    우리가 매일 쓰는 말과 글이 하나의 별자리가 되는 곳, <b>'글무리 은하'</b>. 이곳의 문지기 요정인 '고치'는 머리에 작은 번데기(고치) 모자를 쓰고 다니는 서툰 글쓰기 요정이에요.<br>
+                    아이가 일기를 한 줄씩 쓸 때마다 머리 위의 고치에 <b>'지혜의 빛(AI 데이터)'</b>이 채워지며, 완전히 첨삭이 끝나면 고치에서 반짝이는 <b>'문장 나비'</b>가 깨어나 날아오릅니다.
+                </p>
+            </div>
+
+            <!-- 2. 브랜드 스토리 (Brand Story) -->
+            <div style="text-align: left;">
+                <h4 style="margin: 0 0 8px 0; color: #2d3748; font-size: 15px; font-family: 'Jua', sans-serif; display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 16px;">🦋</span> 2. 브랜드 스토리 (Brand Story)
+                </h4>
+                <div style="font-size: 13px; font-weight: bold; color: #6c5ce7; font-family: 'Jua', sans-serif; margin-bottom: 8px;">
+                    💡 고치 속 서툰 문장, 나비가 되어 날아오르다
                 </div>
-                <div class="guide-gochi-item">
-                    <img src="images/gochi_success.png" style="height: 95px; width: auto; margin-bottom: 6px;" alt="성공">
-                    <div style="font-weight: bold; font-size: 13px; color: #2d3748; margin-bottom: 2px;">🎉 성공 포즈</div>
-                    <div style="font-size: 11px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">미션을 성공하거나 멋진 일기를 썼을 때 신나서 춤을 춰요!</div>
+                <div style="background: #f7fafc; border: 1.5px solid #edf2f7; padding: 14px; border-radius: 16px; font-size: 12px; color: #4a5568; line-height: 1.6; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; word-break: keep-all;">
+                    어느 날, 일기장 앞에 앉아 한참을 고민하던 아이가 물었습니다.<br>
+                    <span style="color: #718096; font-style: italic;">"내 하루는 정말 특별했는데, 왜 일기장만 펼치면 쓸 말이 없어질까? 맞춤법은 왜 이렇게 헷갈리지?"</span><br><br>
+                    그때 일기장 문을 똑똑 두드리며 초록색 옷을 입은 단짝 친구, '고치'가 나타났습니다.<br>
+                    <span style="color: #6c5ce7;">"걱정 마! 네 생각은 이미 완벽해. 단지 아직 단단한 고치 속에 숨어있을 뿐이야."</span><br><br>
+                    아이가 서툴게 적어 내려간 한 문장, 한 문장을 고치가 마법의 돋보기(AI)로 들여다봅니다. 어색한 낱말은 알맞게 다듬고, 숨어있던 감정에는 예쁜 살을 붙여 <b>'바르게 고치(Gochi)'</b>기 시작합니다.<br><br>
+                    마침내 마지막 마침표를 찍고 첨삭이 완료된 순간, 서툰 문장들이 모여 있던 고치가 반짝 깨지며 <b>아름다운 문장 나비들</b>이 일기장 위로 날아올랐습니다.<br><br>
+                    AI고치는 단순히 틀린 글자를 고쳐주는 기술이 아닙니다. 아이들의 서툰 생각(고치)이 멋진 글쓰기 실력(나비)으로 피어날 수 있도록 언제나 곁에서 응원하는 가장 똑똑한 단짝 친구입니다.
                 </div>
             </div>
         </div>
