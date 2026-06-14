@@ -2835,6 +2835,29 @@ async def get_admin_dashboard(request: Request):
         """
         return ADMIN_DASHBOARD_HTML.replace("{total_users}", "0").replace("{total_children}", "0").replace("{total_credits}", "0").replace("{table_rows}", f'<tr><td colspan="4">{err_html}</td></tr>')
 
+@app.get("/admin/debug-db")
+async def admin_debug_db(request: Request):
+    session = request.cookies.get("admin_session")
+    if session not in ACTIVE_ADMIN_SESSIONS:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    try:
+        db_client = firestore.client()
+        
+        reviewers = []
+        reviewers_docs = db_client.collection("reviewers").get()
+        for doc in reviewers_docs:
+            reviewers.append({"id": doc.id, "data": doc.to_dict()})
+            
+        children = []
+        children_docs = db_client.collection("children").get()
+        for doc in children_docs:
+            children.append({"id": doc.id, "data": doc.to_dict()})
+            
+        return {"reviewers": reviewers, "children": children}
+    except Exception as e:
+        return {"error": str(e)}
+
 @app.get("/")
 async def read_index():
     return FileResponse("index.html")
