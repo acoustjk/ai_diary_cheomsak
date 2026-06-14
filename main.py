@@ -2706,27 +2706,36 @@ async def get_admin_dashboard(request: Request):
         # 1. Fetch children map
         children_docs = db_client.collection("children").get()
         children_map = {}
-        total_credits = 0
         for doc in children_docs:
             data = doc.to_dict()
             child_id = data.get("childId") or doc.id
             credits = data.get("credits") or 0
-            paired_reviewers = data.get("pairedReviewers") or []
-            if paired_reviewers:
-                total_credits += credits
             children_map[child_id] = {
                 "childId": child_id,
                 "childName": data.get("childName") or "무명 어린이",
                 "credits": credits,
-                "totalCredits": data.get("totalCreditsGranted") or 0,
-                "pairedReviewers": paired_reviewers
+                "totalCredits": data.get("totalCreditsGranted") or 0
             }
             
         # 2. Fetch reviewers (parents)
         reviewers_docs = db_client.collection("reviewers").get()
+        
+        # Calculate active child IDs and total credits from active reviewers (whose UID starts with "kakao")
+        active_child_ids = set()
+        for doc in reviewers_docs:
+            data = doc.to_dict()
+            uid = data.get("reviewerUid") or doc.id
+            if uid.startswith("kakao"):
+                paired_children_ids = data.get("pairedChildren") or []
+                for cid in paired_children_ids:
+                    if cid in children_map:
+                        active_child_ids.add(cid)
+                        
+        total_children = len(active_child_ids)
+        total_credits = sum(children_map[cid]["credits"] for cid in active_child_ids)
+        
         table_rows = ""
         total_users = 0
-        total_children = sum(1 for c in children_map.values() if c.get("pairedReviewers"))
         
         for doc in reviewers_docs:
             data = doc.to_dict()
