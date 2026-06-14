@@ -77,11 +77,11 @@ def send_credit_notification(child_id: str, child_name: str, notification_type: 
     display_name = child_name or "아이"
     
     if notification_type == "low_credit":
-        title = "🔋 크레딧 부족 안내"
-        body = f"{display_name}이의 남은 크레딧이 {credits_left}개입니다. 끊김 없는 일기 작성을 위해 충전해 주세요! 🔌"
+        title = "🔋 마법이슬 부족 안내"
+        body = f"{display_name}이의 남은 마법이슬이 {credits_left}개입니다. 끊김 없는 일기 작성을 위해 충전해 주세요! 🔌"
     elif notification_type == "request_credit":
-        title = "🪙 크레딧 충전 요청!"
-        body = f"{display_name}이가 일기 작성을 위해 크레딧 충전을 요청했어요! 지금 충전해 주세요. ⚡"
+        title = "🪙 마법이슬 충전 요청!"
+        body = f"{display_name}이가 일기 작성을 위해 마법이슬 충전을 요청했어요! 지금 충전해 주세요. ⚡"
     else:
         return
 
@@ -221,7 +221,7 @@ async def check_diary(data: DiaryInput):
                             "credits": 0,
                             "totalCreditsGranted": 0
                         })
-                    raise HTTPException(status_code=403, detail="크레딧이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
+                    raise HTTPException(status_code=403, detail="마법이슬이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
                 else:
                     new_credits = credits - 1
                     child_ref.update({
@@ -242,7 +242,7 @@ async def check_diary(data: DiaryInput):
                     "totalCreditsGranted": 0,
                     "pairedReviewers": []
                 })
-                raise HTTPException(status_code=403, detail="크레딧이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
+                raise HTTPException(status_code=403, detail="마법이슬이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
         except HTTPException as he:
             raise he
         except Exception as e:
@@ -592,16 +592,16 @@ async def get_terms():
         <ul>
             <li><strong>회원(보호자)</strong>: 본 약관에 동의하고 카카오 소셜 로그인을 통해 계정을 생성하여 서비스를 이용하는 자를 말합니다.</li>
             <li><strong>자녀(학생)</strong>: 회원의 연결 코드를 통해 서비스에 연동되어 일기 작성 및 첨삭 지도를 받는 아동을 말합니다.</li>
-            <li><strong>크레딧</strong>: 일기 분석 및 첨삭 서비스를 이용하기 위해 사용하는 서비스 내 디지털 화폐를 말합니다.</li>
+            <li><strong>마법이슬</strong>: 일기 분석 및 첨삭 서비스를 이용하기 위해 사용하는 서비스 내 디지털 화폐를 말합니다.</li>
         </ul>
         
         <h2>제 3 조 (약관의 효력 및 변경)</h2>
         <p>본 약관은 회원이 서비스 화면에 게시하거나 카카오 로그인 시 동의함으로써 효력이 발생합니다. 서비스는 관련 법령을 위배하지 않는 범위에서 본 약관을 개정할 수 있으며, 변경된 약관은 공지사항 또는 이메일을 통해 공지합니다.</p>
         
-        <h2>제 4 조 (서비스 이용 및 크레딧)</h2>
+        <h2>제 4 조 (서비스 이용 및 마법이슬)</h2>
         <ul>
-            <li>회원은 자녀의 앱을 자신의 계정과 연동하여 크레딧을 충전하고 결제를 관리할 수 있습니다.</li>
-            <li>일기 분석 및 AI 피드백 1회 작성 시 1 크레딧이 차감됩니다.</li>
+            <li>회원은 자녀의 앱을 자신의 계정과 연동하여 마법이슬을 충전하고 결제를 관리할 수 있습니다.</li>
+            <li>일기 분석 및 AI 피드백 1회 작성 시 마법이슬 1개가 차감됩니다.</li>
             <li>기타 충전 및 환불 규정은 관계 법령 및 플랫폼 결제 가이드라인을 준수합니다.</li>
         </ul>
         
@@ -1466,7 +1466,7 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                 <span class="stat-value secondary">{total_children}명</span>
             </div>
             <div class="stat-card">
-                <span class="stat-label">총 지급된 크레딧</span>
+                <span class="stat-label">총 지급된 마법이슬</span>
                 <span class="stat-value accent">{total_credits}🪙</span>
             </div>
         </div>
@@ -1487,7 +1487,7 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                         <th style="width: 25%;">보호자 정보</th>
                         <th style="width: 20%;">최근 접속</th>
                         <th style="width: 20%;">식별 코드 (UID)</th>
-                        <th style="width: 35%;">연결된 자녀 & 크레딧</th>
+                        <th style="width: 35%;">연결된 자녀 & 마법이슬</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1518,7 +1518,7 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
         }
 
         function chargeCredit(childId, childName) {
-            const amountStr = prompt(`👦 [${childName}] 어린이에게 지급할 크레딧 수량을 입력하세요:`, "10");
+            const amountStr = prompt(`👦 [${childName}] 어린이에게 지급할 마법이슬 수량을 입력하세요:`, "10");
             if (amountStr === null) return;
             const amount = parseInt(amountStr, 10);
             if (isNaN(amount) || amount <= 0) {
@@ -1547,9 +1547,9 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                     const totalEl = document.getElementById(`total-count-${childId}`);
                     if (countEl) countEl.innerText = data.new_credits;
                     if (totalEl) totalEl.innerText = data.new_total;
-                    alert(`[${childName}] 어린이에게 ${amount} 크레딧을 성공적으로 지급했습니다!`);
+                    alert(`[${childName}] 어린이에게 ${amount} 마법이슬을 성공적으로 지급했습니다!`);
                 } else {
-                    alert("크레딧 지급 중 오류가 발생했습니다.");
+                    alert("마법이슬 지급 중 오류가 발생했습니다.");
                 }
             })
             .catch(err => {
@@ -1597,7 +1597,7 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
         }
 
         function chargeParentCredit(parentUid, parentName) {
-            const amountStr = prompt(`👩 [${parentName}] 보호자에게 지급할 크레딧 수량을 입력하세요:`, "10");
+            const amountStr = prompt(`👩 [${parentName}] 보호자에게 지급할 마법이슬 수량을 입력하세요:`, "10");
             if (amountStr === null) return;
             const amount = parseInt(amountStr, 10);
             if (isNaN(amount) || amount <= 0) {
@@ -1624,9 +1624,9 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                 if (data && data.status === 'success') {
                     const countEl = document.getElementById(`parent-credit-${parentUid}`);
                     if (countEl) countEl.innerText = data.new_credits;
-                    alert(`[${parentName}] 보호자에게 ${amount} 크레딧을 성공적으로 지급했습니다!`);
+                    alert(`[${parentName}] 보호자에게 ${amount} 마법이슬을 성공적으로 지급했습니다!`);
                 } else {
-                    alert("크레딧 지급 중 오류가 발생했습니다.");
+                    alert("마법이슬 지급 중 오류가 발생했습니다.");
                 }
             })
             .catch(err => {
@@ -1643,7 +1643,7 @@ PARENT_LOGIN_HTML = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI고치 보호자 충전소 로그인</title>
+    <title>AI고치 보호자 달빛 샘터 로그인</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -1788,8 +1788,8 @@ PARENT_LOGIN_HTML = """<!DOCTYPE html>
 <body>
     <div class="login-card">
         <div class="logo">🪙</div>
-        <h1>AI고치 충전소</h1>
-        <div class="subtitle">카카오 로그인 후 크레딧 충전 및 선물 전송이 가능합니다.</div>
+        <h1>AI고치 달빛 샘터</h1>
+        <div class="subtitle">카카오 로그인 후 마법이슬 충전 및 선물 전송이 가능합니다.</div>
         
         <!-- Real Kakao Login Button -->
         <a href="{kakao_auth_url}" class="kakao-btn">
@@ -1822,7 +1822,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI고치 보호자 크레딧 충전소</title>
+    <title>AI고치 보호자 마법이슬 달빛 샘터</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -2068,7 +2068,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
     <div class="container">
         <header>
             <div>
-                <h1>AI고치 보호자 충전소</h1>
+                <h1>AI고치 보호자 달빛 샘터</h1>
                 <div style="font-size: 12px; color: #9ca3af; margin-top: 4px;">UID: {parent_uid}</div>
             </div>
             <form action="/purchase/logout" method="POST" style="margin: 0;">
@@ -2088,15 +2088,15 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                 </div>
 
                 <div class="balance-badge">
-                    <span class="balance-label">나의 보유 크레딧</span>
+                    <span class="balance-label">나의 보유 마법이슬</span>
                     <span class="balance-value">🪙 <span id="parent-credits-val">{parent_credits}</span></span>
                 </div>
 
-                <div class="packages-title">💳 크레딧 패키지 구매</div>
+                <div class="packages-title">💳 마법이슬 패키지 구매</div>
                 
                 <div class="package-item" onclick="openPaymentModal(10, 9900)">
                     <div class="package-details">
-                        <span class="package-name">🪙 10 크레딧</span>
+                        <span class="package-name">🪙 10 마법이슬</span>
                         <span class="package-price">₩ 9,900 (VAT 포함)</span>
                     </div>
                     <button class="btn-buy">구매</button>
@@ -2104,7 +2104,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 
                 <div class="package-item" onclick="openPaymentModal(30, 27000)">
                     <div class="package-details">
-                        <span class="package-name">🪙 30 크레딧</span>
+                        <span class="package-name">🪙 30 마법이슬</span>
                         <span class="package-price">₩ 27,000 (10% 할인)</span>
                     </div>
                     <button class="btn-buy">구매</button>
@@ -2112,7 +2112,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 
                 <div class="package-item" onclick="openPaymentModal(50, 40000)">
                     <div class="package-details">
-                        <span class="package-name">🪙 50 크레딧</span>
+                        <span class="package-name">🪙 50 마법이슬</span>
                         <span class="package-price">₩ 40,000 (20% 할인)</span>
                     </div>
                     <button class="btn-buy">구매</button>
@@ -2121,9 +2121,9 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 
             <!-- Right Side: Transfer -->
             <div class="card">
-                <h2 style="font-size: 20px; font-weight: 700; margin-top: 0; background: linear-gradient(135deg, #34d399, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🪙 자녀에게 크레딧 보내기</h2>
+                <h2 style="font-size: 20px; font-weight: 700; margin-top: 0; background: linear-gradient(135deg, #34d399, #059669); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🪙 자녀에게 마법이슬 보내기</h2>
                 <p style="font-size: 13px; color: #9ca3af; line-height: 1.6; margin-bottom: 30px;">
-                    보호자님이 보유하신 크레딧을 연동된 자녀의 계정으로 전송합니다. 전송 즉시 자녀 앱에서 일기를 작성할 때 사용할 수 있습니다.
+                    보호자님이 보유하신 마법이슬을 연동된 자녀의 계정으로 전송합니다. 전송 즉시 자녀 앱에서 일기를 작성할 때 사용할 수 있습니다.
                 </p>
 
                 <div class="form-group">
@@ -2134,7 +2134,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                 </div>
 
                 <div class="form-group">
-                    <label for="transferAmount">보낼 크레딧 수량</label>
+                    <label for="transferAmount">보낼 마법이슬 수량</label>
                     <input type="number" id="transferAmount" min="1" value="10" placeholder="수량 입력">
                 </div>
 
@@ -2150,7 +2150,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
             <div class="modal-desc">결제 수단을 선택하신 뒤 승인을 누르면 모킹(Mock) 충전이 완료됩니다.</div>
             
             <div style="font-size: 15px; font-weight: bold; margin-bottom: 20px; color: #fbbf24;">
-                선택 상품: 크레딧 <span id="modal-credits">0</span>개 (₩<span id="modal-price">0</span>)
+                선택 상품: 마법이슬 <span id="modal-credits">0</span>개 (₩<span id="modal-price">0</span>)
             </div>
 
             <div class="payment-methods">
@@ -2201,7 +2201,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
             .then(data => {
                 if (data && data.status === 'success') {
                     document.getElementById('parent-credits-val').innerText = data.new_credits;
-                    alert(`가상 결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 크레딧이 충전되었습니다.`);
+                    alert(`가상 결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 마법이슬이 충전되었습니다.`);
                     closePaymentModal();
                 } else {
                     alert("가상 결제 처리 중 오류가 발생했습니다.");
@@ -2216,19 +2216,19 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
         function executeTransfer() {
             const childId = document.getElementById('childSelect').value;
             if (!childId) {
-                alert("크레딧을 전송할 자녀를 먼저 선택해 주세요.");
+                alert("마법이슬을 전송할 자녀를 먼저 선택해 주세요.");
                 return;
             }
             const amountStr = document.getElementById('transferAmount').value;
             const amount = parseInt(amountStr, 10);
             if (isNaN(amount) || amount <= 0) {
-                alert("보낼 크레딧 수량을 올바르게 입력해 주세요 (1 이상의 정수).");
+                alert("보낼 마법이슬 수량을 올바르게 입력해 주세요 (1 이상의 정수).");
                 return;
             }
 
             const currentVal = parseInt(document.getElementById('parent-credits-val').innerText, 10);
             if (amount > currentVal) {
-                alert("보유하신 크레딧 잔액이 부족합니다.");
+                alert("보유하신 마법이슬 잔액이 부족합니다.");
                 return;
             }
 
@@ -2245,7 +2245,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
             })
             .then(res => {
                 if (res.status === 400) {
-                    return res.json().then(d => { throw new Error(d.detail || "크레딧이 부족합니다."); });
+                    return res.json().then(d => { throw new Error(d.detail || "마법이슬이 부족합니다."); });
                 } else if (res.status === 403) {
                     throw new Error("자녀와 연결 권한이 없습니다.");
                 } else if (!res.ok) {
@@ -2256,12 +2256,12 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
             .then(data => {
                 if (data && data.status === 'success') {
                     document.getElementById('parent-credits-val').innerText = data.parent_credits;
-                    alert(`자녀에게 성공적으로 🪙 ${amount} 크레딧을 전송했습니다!`);
+                    alert(`자녀에게 성공적으로 🪙 ${amount} 마법이슬을 전송했습니다!`);
                     window.location.reload();
                 }
             })
             .catch(err => {
-                alert("크레딧 전송 실패: " + err.message);
+                alert("마법이슬 전송 실패: " + err.message);
             });
         }
     </script>
@@ -2586,8 +2586,8 @@ async def credits_transfer(data: CreditTransferInput):
                 raise HTTPException(status_code=403, detail="연결되지 않은 자녀입니다.")
                 
             p_credits = p_data.get("credits") or 0
-            if p_credits < transfer_amount:
-                raise HTTPException(status_code=400, detail="보유하신 크레딧 잔액이 부족합니다.")
+            if (p_credits < transfer_amount):
+                raise HTTPException(status_code=400, detail="보유하신 마법이슬 잔액이 부족합니다.")
                 
             c_snapshot = c_ref.get(transaction=transaction)
             c_credits = 0
@@ -2781,14 +2781,14 @@ async def get_admin_dashboard(request: Request):
                         <span class="child-badge">
                             👦 {c_info['childName']} 
                             <span class="credit-badge">🪙 <span id="credit-count-{c_info['childId']}">{c_info['credits']}</span>/<span id="total-count-{c_info['childId']}">{c_info['totalCredits']}</span></span>
-                            <button class="btn-charge" onclick="chargeCredit('{c_info['childId']}', '{c_info['childName']}')" title="크레딧 지급">+</button>
+                            <button class="btn-charge" onclick="chargeCredit('{c_info['childId']}', '{c_info['childName']}')" title="마법이슬 지급">+</button>
                         </span>
                         '''
                     else:
                         children_html += f'''
                         <span class="child-badge" style="background: rgba(156, 163, 175, 0.12); border-color: rgba(156, 163, 175, 0.25); color: #9ca3af;">
                             🔗 연결 대기 (ID: <span id="credit-count-{cid}" style="display:none;">0</span><span id="total-count-{cid}" style="display:none;">0</span>{cid[:6]}...)
-                            <button class="btn-charge" onclick="chargeCredit('{cid}', '연결 대기 자녀')" title="크레딧 지급">+</button>
+                            <button class="btn-charge" onclick="chargeCredit('{cid}', '연결 대기 자녀')" title="마법이슬 지급">+</button>
                         </span>
                         '''
             else:
@@ -2800,8 +2800,8 @@ async def get_admin_dashboard(request: Request):
                     <div class="user-name">{name} {display_name_badge}</div>
                     <div class="user-email">{email}</div>
                     <div style="font-size: 13px; color: #fb7185; margin-top: 5px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
-                        <span>보유 크레딧: <span id="parent-credit-{uid}">{parent_credits}</span>🪙</span>
-                        <button class="btn-charge" style="background: linear-gradient(135deg, #ec4899, #db2777);" onclick="chargeParentCredit('{uid}', '{name}')" title="보호자 크레딧 지급">+</button>
+                        <span>보유 마법이슬: <span id="parent-credit-{uid}">{parent_credits}</span>🪙</span>
+                        <button class="btn-charge" style="background: linear-gradient(135deg, #ec4899, #db2777);" onclick="chargeParentCredit('{uid}', '{name}')" title="보호자 마법이슬 지급">+</button>
                     </div>
                     <div style="margin-top: 8px;">
                         <button class="btn-link-child" onclick="linkChild('{uid}')">🔗 자녀 연결</button>
