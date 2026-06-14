@@ -1455,6 +1455,33 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
             </form>
         </header>
 
+        <!-- Pricing Config Card -->
+        <div class="card" style="margin-bottom: 40px; background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid var(--border-color); padding: 28px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);">
+            <h2 style="font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 8px; background: linear-gradient(135deg, var(--primary-light), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">💰 달빛 샘터 마법이슬 판매 가격 설정</h2>
+            <p style="font-size: 13px; color: #9ca3af; margin-bottom: 20px;">각 마법이슬 패키지별 금액을 설정합니다. 저장 시 보호자 앱 구매 페이지에 실시간으로 반영됩니다.</p>
+            <form id="priceForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; align-items: flex-end;" onsubmit="savePrices(event)">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="single_price" style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 6px; font-weight: bold;">💧 작은 이슬 한 방울 (이슬 1개)</label>
+                    <input type="number" id="single_price" name="single_price" value="{single_price}" required style="width: 100%; padding: 12px; background: rgba(31, 41, 55, 0.5); border: 1px solid var(--border-color); border-radius: 10px; color: white; box-sizing: border-box; font-size: 14px; outline: none;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="bottle_price" style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 6px; font-weight: bold;">🍾 반짝이는 이슬 병 (이슬 10개)</label>
+                    <input type="number" id="bottle_price" name="bottle_price" value="{bottle_price}" required style="width: 100%; padding: 12px; background: rgba(31, 41, 55, 0.5); border: 1px solid var(--border-color); border-radius: 10px; color: white; box-sizing: border-box; font-size: 14px; outline: none;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="pot_price" style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 6px; font-weight: bold;">🍯 달콤한 이슬 항아리 (이슬 30개)</label>
+                    <input type="number" id="pot_price" name="pot_price" value="{pot_price}" required style="width: 100%; padding: 12px; background: rgba(31, 41, 55, 0.5); border: 1px solid var(--border-color); border-radius: 10px; color: white; box-sizing: border-box; font-size: 14px; outline: none;">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label for="box_price" style="display: block; font-size: 12px; color: #9ca3af; margin-bottom: 6px; font-weight: bold;">🌊 마르지 않는 샘물 상자 (구독 월 금액)</label>
+                    <input type="number" id="box_price" name="box_price" value="{box_price}" required style="width: 100%; padding: 12px; background: rgba(31, 41, 55, 0.5); border: 1px solid var(--border-color); border-radius: 10px; color: white; box-sizing: border-box; font-size: 14px; outline: none;">
+                </div>
+                <div>
+                    <button type="submit" style="width: 100%; padding: 12px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: all 0.2s ease;">설정 가격 저장</button>
+                </div>
+            </form>
+        </div>
+
         <!-- Stats Grid -->
         <div class="stats-grid">
             <div class="stat-card">
@@ -1498,6 +1525,46 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
     </div>
 
     <script>
+        function savePrices(e) {
+            e.preventDefault();
+            const single_price = parseInt(document.getElementById('single_price').value, 10);
+            const bottle_price = parseInt(document.getElementById('bottle_price').value, 10);
+            const pot_price = parseInt(document.getElementById('pot_price').value, 10);
+            const box_price = parseInt(document.getElementById('box_price').value, 10);
+            
+            fetch('/admin/save-prices', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    single_price,
+                    bottle_price,
+                    pot_price,
+                    box_price
+                })
+            })
+            .then(res => {
+                if (res.status === 401) {
+                    alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
+                    window.location.reload();
+                    return;
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    alert("설정 가격이 성공적으로 저장되었습니다!");
+                } else {
+                    alert("가격 저장 중 오류가 발생했습니다.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert("서버 통신 오류가 발생했습니다.");
+            });
+        }
+
         function filterTable() {
             const query = document.getElementById('search').value.toLowerCase().trim();
             const rows = document.querySelectorAll('#adminTable tbody tr');
@@ -2089,33 +2156,48 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 
                 <div class="balance-badge">
                     <span class="balance-label">나의 보유 마법이슬</span>
-                    <span class="balance-value">🪙 <span id="parent-credits-val">{parent_credits}</span></span>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                        <span class="balance-value">🪙 <span id="parent-credits-val">{parent_credits}</span></span>
+                        {subscription_badge_html}
+                    </div>
                 </div>
 
                 <div class="packages-title">💳 마법이슬 패키지 구매</div>
                 
-                <div class="package-item" onclick="openPaymentModal(10, 9900)">
+                <div class="package-item" onclick="openPaymentModal(1, {single_price})">
                     <div class="package-details">
-                        <span class="package-name">🪙 10 마법이슬</span>
-                        <span class="package-price">₩ 9,900 (VAT 포함)</span>
+                        <span class="package-name">💧 작은 이슬 한 방울</span>
+                        <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 1개 - 맛보기용</span>
+                        <span class="package-price">₩ {single_price_formatted}</span>
                     </div>
                     <button class="btn-buy">구매</button>
                 </div>
 
-                <div class="package-item" onclick="openPaymentModal(30, 27000)">
+                <div class="package-item" onclick="openPaymentModal(10, {bottle_price})">
                     <div class="package-details">
-                        <span class="package-name">🪙 30 마법이슬</span>
-                        <span class="package-price">₩ 27,000 (10% 할인)</span>
+                        <span class="package-name">🍾 반짝이는 이슬 병</span>
+                        <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 10개 - 일주일 패키지</span>
+                        <span class="package-price">₩ {bottle_price_formatted}</span>
                     </div>
                     <button class="btn-buy">구매</button>
                 </div>
 
-                <div class="package-item" onclick="openPaymentModal(50, 40000)">
+                <div class="package-item" onclick="openPaymentModal(30, {pot_price})">
                     <div class="package-details">
-                        <span class="package-name">🪙 50 마법이슬</span>
-                        <span class="package-price">₩ 40,000 (20% 할인)</span>
+                        <span class="package-name">🍯 달콤한 이슬 항아리</span>
+                        <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 30개 - 한 달 열공 패키지</span>
+                        <span class="package-price">₩ {pot_price_formatted}</span>
                     </div>
                     <button class="btn-buy">구매</button>
+                </div>
+
+                <div class="package-item" onclick="openPaymentModal(100, {box_price}, true)">
+                    <div class="package-details">
+                        <span class="package-name">🌊 마르지 않는 샘물 상자</span>
+                        <span class="package-desc" style="font-size: 11px; color: #34d399; margin-top: 2px; font-weight: 600;">정기 구독제 - 매달 이슬 자동 충전</span>
+                        <span class="package-price">₩ {box_price_formatted} / 월</span>
+                    </div>
+                    <button class="btn-buy" style="background: linear-gradient(135deg, #10b981, #059669);">구독</button>
                 </div>
             </div>
 
@@ -2149,7 +2231,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
             <div class="modal-title">💳 안전한 가상 결제</div>
             <div class="modal-desc">결제 수단을 선택하신 뒤 승인을 누르면 모킹(Mock) 충전이 완료됩니다.</div>
             
-            <div style="font-size: 15px; font-weight: bold; margin-bottom: 20px; color: #fbbf24;">
+            <div id="modal-product-info" style="font-size: 15px; font-weight: bold; margin-bottom: 20px; color: #fbbf24;">
                 선택 상품: 마법이슬 <span id="modal-credits">0</span>개 (₩<span id="modal-price">0</span>)
             </div>
 
@@ -2167,12 +2249,27 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
         let currentPurchaseCredits = 0;
         let currentPurchasePrice = 0;
         let selectedPaymentMethod = 'card';
+        let isSubscription = false;
 
-        function openPaymentModal(credits, price) {
+        function openPaymentModal(credits, price, isSub = false) {
             currentPurchaseCredits = credits;
             currentPurchasePrice = price;
-            document.getElementById('modal-credits').innerText = credits;
-            document.getElementById('modal-price').innerText = price.toLocaleString();
+            isSubscription = isSub;
+            
+            const titleEl = document.querySelector('#paymentModal .modal-title');
+            const descEl = document.querySelector('#paymentModal .modal-desc');
+            const infoEl = document.getElementById('modal-product-info');
+            
+            if (isSub) {
+                titleEl.innerText = "🌊 정기 구독 신청";
+                descEl.innerText = "결제 수단을 선택하신 뒤 승인을 누르면 매월 정기 구독 결제가 등록됩니다.";
+                infoEl.innerHTML = `선택 상품: <span style="color: #10b981;">샘물 상자 정기구독</span> (매달 마법이슬 100개, 월 ₩${price.toLocaleString()})`;
+            } else {
+                titleEl.innerText = "💳 안전한 가상 결제";
+                descEl.innerText = "결제 수단을 선택하신 뒤 승인을 누르면 모킹(Mock) 충전이 완료됩니다.";
+                infoEl.innerHTML = `선택 상품: 마법이슬 <span>${credits}</span>개 (₩<span>${price.toLocaleString()}</span>)`;
+            }
+            
             document.getElementById('paymentModal').style.display = 'flex';
         }
 
@@ -2194,15 +2291,20 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                 },
                 body: JSON.stringify({
                     parent_uid: '{parent_uid}',
-                    amount: currentPurchaseCredits
+                    amount: currentPurchaseCredits,
+                    is_subscription: isSubscription
                 })
             })
             .then(res => res.json())
             .then(data => {
                 if (data && data.status === 'success') {
                     document.getElementById('parent-credits-val').innerText = data.new_credits;
-                    alert(`가상 결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 마법이슬이 충전되었습니다.`);
-                    closePaymentModal();
+                    if (isSubscription) {
+                        alert(`정기 구독이 성공적으로 신청되었습니다! 🌊 매달 마법이슬 ${currentPurchaseCredits}개가 자동으로 충전됩니다. (이번 달분 즉시 지급 완료)`);
+                    } else {
+                        alert(`가상 결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 마법이슬이 충전되었습니다.`);
+                    }
+                    window.location.reload();
                 } else {
                     alert("가상 결제 처리 중 오류가 발생했습니다.");
                 }
@@ -2329,11 +2431,41 @@ async def get_purchase(request: Request, uid: str = None):
         if not paired_children:
             children_options_html = '<option value="" disabled selected>연결된 자녀가 없습니다.</option>'
             
-        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session).replace("{parent_name}", parent_name).replace("{parent_email}", parent_email).replace("{parent_credits}", str(parent_credits)).replace("{children_options}", children_options_html)
+        # Fetch prices from Firestore
+        prices_ref = db_client.collection("config").document("prices").get()
+        prices = {}
+        if prices_ref.exists:
+            prices = prices_ref.to_dict()
+            
+        single_price = prices.get("single_price", 1000)
+        bottle_price = prices.get("bottle_price", 9900)
+        pot_price = prices.get("pot_price", 27000)
+        box_price = prices.get("box_price", 39000)
+        
+        # Subscription badge
+        subscription_active = parent_data.get("subscriptionActive") or False
+        subscription_badge_html = ""
+        if subscription_active:
+            subscription_badge_html = '<span style="font-size: 11px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); padding: 2px 8px; border-radius: 99px; color: #34d399; font-weight: bold;">🌊 정기 구독 중</span>'
+            
+        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session) \
+                                           .replace("{parent_name}", parent_name) \
+                                           .replace("{parent_email}", parent_email) \
+                                           .replace("{parent_credits}", str(parent_credits)) \
+                                           .replace("{children_options}", children_options_html) \
+                                           .replace("{subscription_badge_html}", subscription_badge_html) \
+                                           .replace("{single_price}", str(single_price)) \
+                                           .replace("{bottle_price}", str(bottle_price)) \
+                                           .replace("{pot_price}", str(pot_price)) \
+                                           .replace("{box_price}", str(box_price)) \
+                                           .replace("{single_price_formatted}", f"{single_price:,}") \
+                                           .replace("{bottle_price_formatted}", f"{bottle_price:,}") \
+                                           .replace("{pot_price_formatted}", f"{pot_price:,}") \
+                                           .replace("{box_price_formatted}", f"{box_price:,}")
         return HTMLResponse(content=html_content)
     except Exception as e:
         print(f"Purchase page error: {e}")
-        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session).replace("{parent_name}", "데모 보호자").replace("{parent_email}", "demo@kakao.com").replace("{parent_credits}", "0").replace("{children_options}", '<option value="mock_child">👦 데모 자녀 (현재: 0🪙)</option>')
+        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session).replace("{parent_name}", "데모 보호자").replace("{parent_email}", "demo@kakao.com").replace("{parent_credits}", "0").replace("{children_options}", '<option value="mock_child">👦 데모 자녀 (현재: 0🪙)</option>').replace("{subscription_badge_html}", "").replace("{single_price}", "1000").replace("{bottle_price}", "9900").replace("{pot_price}", "27000").replace("{box_price}", "39000").replace("{single_price_formatted}", "1,000").replace("{bottle_price_formatted}", "9,900").replace("{pot_price_formatted}", "27,000").replace("{box_price_formatted}", "39,000")
         return HTMLResponse(content=html_content)
 
 @app.post("/purchase/login")
@@ -2527,6 +2659,7 @@ async def admin_link_child(request: Request, data: LinkChildInput):
 class ParentPurchaseInput(BaseModel):
     parent_uid: str
     amount: int
+    is_subscription: bool = False
 
 class CreditTransferInput(BaseModel):
     parent_uid: str
@@ -2553,9 +2686,13 @@ async def credits_purchase_mock(data: ParentPurchaseInput):
         current_credits = doc_data.get("credits") or 0
         new_credits = current_credits + data.amount
         
-        parent_ref.update({
+        update_data = {
             "credits": new_credits
-        })
+        }
+        if data.is_subscription:
+            update_data["subscriptionActive"] = True
+            
+        parent_ref.update(update_data)
         return {"status": "success", "new_credits": new_credits}
     except HTTPException as he:
         raise he
@@ -2694,6 +2831,30 @@ async def post_admin_logout(request: Request):
     resp.delete_cookie(key="admin_session")
     return resp
 
+class SavePricesInput(BaseModel):
+    single_price: int
+    bottle_price: int
+    pot_price: int
+    box_price: int
+
+@app.post("/admin/save-prices")
+async def save_prices(data: SavePricesInput, request: Request):
+    session = request.cookies.get("admin_session")
+    if session not in ACTIVE_ADMIN_SESSIONS:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+        
+    try:
+        db_client = firestore.client()
+        db_client.collection("config").document("prices").set({
+            "single_price": data.single_price,
+            "bottle_price": data.bottle_price,
+            "pot_price": data.pot_price,
+            "box_price": data.box_price
+        })
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/admin", response_class=HTMLResponse)
 async def get_admin_dashboard(request: Request):
     session = request.cookies.get("admin_session")
@@ -2822,7 +2983,25 @@ async def get_admin_dashboard(request: Request):
         if not table_rows:
             table_rows = '<tr class="no-data-row"><td colspan="4" class="no-data">가입된 회원이 없습니다.</td></tr>'
             
-        html_content = ADMIN_DASHBOARD_HTML.replace("{total_users}", str(total_users)).replace("{total_children}", str(total_children)).replace("{total_credits}", str(total_credits)).replace("{table_rows}", table_rows)
+        # Fetch prices from Firestore
+        prices_ref = db_client.collection("config").document("prices").get()
+        prices = {}
+        if prices_ref.exists:
+            prices = prices_ref.to_dict()
+            
+        single_price = prices.get("single_price", 1000)
+        bottle_price = prices.get("bottle_price", 9900)
+        pot_price = prices.get("pot_price", 27000)
+        box_price = prices.get("box_price", 39000)
+            
+        html_content = ADMIN_DASHBOARD_HTML.replace("{total_users}", str(total_users)) \
+                                           .replace("{total_children}", str(total_children)) \
+                                           .replace("{total_credits}", str(total_credits)) \
+                                           .replace("{table_rows}", table_rows) \
+                                           .replace("{single_price}", str(single_price)) \
+                                           .replace("{bottle_price}", str(bottle_price)) \
+                                           .replace("{pot_price}", str(pot_price)) \
+                                           .replace("{box_price}", str(box_price))
         return html_content
         
     except Exception as e:
@@ -2833,7 +3012,7 @@ async def get_admin_dashboard(request: Request):
             <p style="color: #fca5a5; margin-bottom: 0;">데이터베이스 연동 중 오류가 발생했습니다. 로그를화면을 통해 확인해 주세요. ({str(e)})</p>
         </div>
         """
-        return ADMIN_DASHBOARD_HTML.replace("{total_users}", "0").replace("{total_children}", "0").replace("{total_credits}", "0").replace("{table_rows}", f'<tr><td colspan="4">{err_html}</td></tr>')
+        return ADMIN_DASHBOARD_HTML.replace("{total_users}", "0").replace("{total_children}", "0").replace("{total_credits}", "0").replace("{table_rows}", f'<tr><td colspan="4">{err_html}</td></tr>').replace("{single_price}", "1000").replace("{bottle_price}", "9900").replace("{pot_price}", "27000").replace("{box_price}", "39000")
 
 @app.get("/")
 async def read_index():
