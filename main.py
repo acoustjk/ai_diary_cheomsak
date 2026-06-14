@@ -2711,19 +2711,22 @@ async def get_admin_dashboard(request: Request):
             data = doc.to_dict()
             child_id = data.get("childId") or doc.id
             credits = data.get("credits") or 0
-            total_credits += credits
+            paired_reviewers = data.get("pairedReviewers") or []
+            if paired_reviewers:
+                total_credits += credits
             children_map[child_id] = {
                 "childId": child_id,
                 "childName": data.get("childName") or "무명 어린이",
                 "credits": credits,
-                "totalCredits": data.get("totalCreditsGranted") or 0
+                "totalCredits": data.get("totalCreditsGranted") or 0,
+                "pairedReviewers": paired_reviewers
             }
             
         # 2. Fetch reviewers (parents)
         reviewers_docs = db_client.collection("reviewers").get()
         table_rows = ""
         total_users = 0
-        total_children = len(children_map)
+        total_children = sum(1 for c in children_map.values() if c.get("pairedReviewers"))
         
         for doc in reviewers_docs:
             data = doc.to_dict()
