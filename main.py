@@ -609,7 +609,7 @@ async def get_terms():
         <p>회원은 카카오 계정의 관리 책임을 가지며, 타인에게 계정을 대여하거나 누출해서는 안 됩니다. 또한 자녀가 서비스를 이용하는 과정에서 부적절한 언어를 사용하지 않도록 성실히 지도하여야 합니다.</p>
         
         <div class="footer">
-            © 2026 AI고치. All rights reserved.
+            © 2026 제이케이. All rights reserved.
         </div>
     </div>
 </body>
@@ -715,7 +715,7 @@ async def get_privacy():
         <p>회원은 언제든지 자신의 개인정보를 열람, 수정할 수 있으며 회원 탈퇴(연결 해제 및 계정 삭제)를 요구할 권리가 있습니다. 회원 탈퇴는 앱 내 설정 메뉴에서 간편하게 처리하실 수 있습니다.</p>
         
         <div class="footer">
-            © 2026 AI고치. All rights reserved.
+            © 2026 제이케이. All rights reserved.
         </div>
     </div>
 </body>
@@ -997,7 +997,7 @@ This license is available with a FAQ at: http://scripts.sil.org/OFL</div>
         </div>
 
         <div class="footer">
-            © 2026 AI고치. All rights reserved.
+            © 2026 제이케이. All rights reserved.
         </div>
     </div>
 </body>
