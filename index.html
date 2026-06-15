@@ -1151,9 +1151,9 @@
 <!-- 상단 홈페이지 네비게이션 헤더 -->
 <header class="main-header">
     <div class="header-logo" onclick="location.reload()">
-        <span class="logo-emoji">👾</span>
-        <span class="logo-title">AI고치</span>
-        <span class="logo-subtitle">나와 함께 성장하는 비밀 일기</span>
+        <img src="images/gochi_avatar.png" alt="AI고치 로고" style="width: 32px; height: 32px; object-fit: contain; vertical-align: middle; margin-right: 4px; animation: logo-bounce 2s infinite ease-in-out;">
+        <span class="logo-title" style="vertical-align: middle;">AI고치</span>
+        <span class="logo-subtitle" style="vertical-align: middle;">나와 함께 성장하는 비밀 일기</span>
     </div>
     <div class="header-menu">
         <div id="webCreditsBadge" class="mini-badge" style="background: #fffdf5; border-color: #fbd38d; color: #b7791f; display: none; align-items: center; gap: 6px; margin-right: 8px;">
@@ -1853,6 +1853,7 @@
         if (document.getElementById('stampText')) document.getElementById('stampText').innerText = '';
         if (document.getElementById('bonusScoreText')) document.getElementById('bonusScoreText').style.display = 'none';
         if (document.getElementById('btnRetry')) document.getElementById('btnRetry').style.display = 'none';
+        if (document.getElementById('btnNewDiary')) document.getElementById('btnNewDiary').style.display = 'none';
         if (document.getElementById('levelupTitle')) document.getElementById('levelupTitle').style.display = 'none';
         if (document.getElementById('btnShare')) document.getElementById('btnShare').style.display = 'none';
         if (document.getElementById('rewriteBanner')) document.getElementById('rewriteBanner').style.display = 'none';
