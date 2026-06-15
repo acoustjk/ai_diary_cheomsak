@@ -1590,7 +1590,7 @@
         const gochiImg = document.getElementById('gochiImg');
         if (gochiImg) gochiImg.src = 'images/gochi_default.png';
         updateGochiBubble('default');
-        typingStrokes = 0; activeTypingTimeMs = 0; lastKeystrokeTime = null; currentWpm = 0;
+        typingStrokes = 0; activeTypingTimeMs = 0; lastKeystrokeTime = null; currentWpm = 0; firstDiaryWpm = 0;
         document.getElementById('typingSpeedArea').style.display = 'none';
         if (childId === id) return;
 
@@ -1820,7 +1820,7 @@
         const gochiImg = document.getElementById('gochiImg');
         if (gochiImg) gochiImg.src = 'images/gochi_default.png';
         updateGochiBubble('default');
-        typingStrokes = 0; activeTypingTimeMs = 0; lastKeystrokeTime = null; currentWpm = 0;
+        typingStrokes = 0; activeTypingTimeMs = 0; lastKeystrokeTime = null; currentWpm = 0; firstDiaryWpm = 0;
         document.getElementById('typingSpeedArea').style.display = 'none';
         const txtInput = document.getElementById('diaryInput');
         const charCount = document.getElementById('charCount');
@@ -2363,6 +2363,7 @@
     let activeTypingTimeMs = 0;
     let lastKeystrokeTime = null;
     let currentWpm = 0;
+    let firstDiaryWpm = 0;
 
     function startRewriteMode() {
         startFreeRewriteMode();
@@ -2757,6 +2758,7 @@
                     // ----------------------------------------------------
                     if (!wasRewriteMode || !currentDiaryId) {
                         currentDiaryId = self.crypto.randomUUID();
+                        firstDiaryWpm = currentWpm;
                     }
 
                     if (wasRewriteMode) {
@@ -2776,7 +2778,7 @@
                             secondExpressionScore: finalExpression,
                             stamp: data.stamp,
                             improved: data.improved || false,
-                            wpm: currentWpm
+                            wpm: (firstDiaryWpm > 0 ? firstDiaryWpm : currentWpm)
                         };
 
                         db.collection("children").doc(childId)
@@ -2824,7 +2826,7 @@
             s2: secondSpellingScore,
             e2: secondExpressionScore,
             st: secondStamp,
-            wpm: currentWpm
+            wpm: (firstDiaryWpm > 0 ? firstDiaryWpm : currentWpm)
         };
 
         try {
