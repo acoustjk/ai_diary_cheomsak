@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="icon" type="image/png" href="images/gochi_avatar.png">
     <title>AI고치 👾</title>
     <!-- 구글 애드센스 수익형 광고 스크립트 -->
@@ -852,8 +853,8 @@
                 <div class="guide-timeline-step">
                     <div class="guide-step-num">2</div>
                     <div class="guide-step-text">
-                        <strong>부모님 앱 연결</strong><br>
-                        첫 시작 시 부모님 스마트폰 앱의 6자리 코드를 입력해 연결하면 일기 작성용 <b>웰컴 마법이슬 🪙</b>이 지급됩니다.
+                        <strong>보호자 앱 연결</strong><br>
+                        첫 시작 시 보호자 스마트폰 앱의 6자리 코드를 입력해 연결하면 일기 작성용 <b>웰컴 마법이슬 🪙</b>이 지급됩니다.
                     </div>
                 </div>
                 <div class="guide-timeline-step">
@@ -874,7 +875,7 @@
                     <div class="guide-step-num">5</div>
                     <div class="guide-step-text">
                         <strong>최종 완성 및 보고서 발송</strong><br>
-                        고쳐 쓴 최종본을 제출하면 부모님 앱으로 정성 어린 <b>성장 보고서 📝</b>가 자동으로 전송되어 소식을 공유합니다.
+                        고쳐 쓴 최종본을 제출하면 보호자 앱으로 정성 어린 <b>성장 보고서 📝</b>가 자동으로 전송되어 소식을 공유합니다.
                     </div>
                 </div>
             </div>
@@ -886,7 +887,7 @@
                 </h4>
                 <p style="margin: 0; font-size: 13px; color: #744210; line-height: 1.6; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; word-break: keep-all;">
                     글쓰기 단짝 요정 고치가 일기를 첨삭하는 마법을 부릴 때에는 반짝이는 <b>마법이슬</b>이 필요해요. <b>"가장 맑은 마법 이슬은 깊은 밤, 달빛을 받아 샘터에서 퐁퐁 솟아난대!"</b> 💧✨<br>
-                    마법이슬이 모두 소모되었을 때는 부모님 스마트폰 앱을 통해 <b>'달빛 샘터'</b>에서 이슬을 가득 담아 자녀에게 보내주실 수 있답니다!
+                    마법이슬이 모두 소모되었을 때는 보호자 스마트폰 앱을 통해 <b>'달빛 샘터'</b>에서 이슬을 가득 담아 자녀에게 보내주실 수 있답니다!
                 </p>
             </div>
         </div>
@@ -897,10 +898,10 @@
 <div id="webPairingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 244, 248, 0.96); backdrop-filter: blur(8px); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: white; padding: 40px 30px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); max-width: 480px; width: 100%; text-align: center; border: 1px solid #e2e8f0; animation: overlayFadeIn 0.5s ease-out;">
         <div style="font-size: 50px; margin-bottom: 20px; animation: bounce 2s infinite;">🔗</div>
-        <h2 style="font-family: 'Jua', sans-serif; color: #2d3748; margin-top: 0; margin-bottom: 16px; font-size: 26px; letter-spacing: -0.5px;">보호자(부모님) 연결 필요</h2>
+        <h2 style="font-family: 'Jua', sans-serif; color: #2d3748; margin-top: 0; margin-bottom: 16px; font-size: 26px; letter-spacing: -0.5px;">보호자 연결 필요</h2>
         <p style="color: #4a5568; font-size: 15px; line-height: 1.6; margin-bottom: 28px; word-break: keep-all;">
-            AI고치 일기장을 사용하려면 부모님 기기와의 연결이 필요합니다.<br><br>
-            부모님 앱에 연결이 완료되면 일기를 쓸 수 있는 <strong>'웰컴 선물 마법이슬'</strong>이 지급됩니다! 🎁
+            AI고치 일기장을 사용하려면 보호자 기기와의 연결이 필요합니다.<br><br>
+            보호자 앱에 연결이 완료되면 일기를 쓸 수 있는 <strong>'웰컴 선물 마법이슬'</strong>이 지급됩니다! 🎁
         </p>
         <!-- 이름 입력 필드 추가 -->
         <div style="margin-bottom: 20px; text-align: left;">
@@ -1078,6 +1079,50 @@
     color: #6c5ce7;
     font-family: 'Jua', sans-serif;
 }
+
+/* 모바일 반응형 대응 미디어 쿼리 */
+@media (max-width: 768px) {
+    body {
+        padding: 0 10px 30px 10px;
+    }
+    .main-header {
+        flex-direction: column;
+        gap: 12px;
+        padding: 15px;
+        margin: 10px 0 15px 0;
+        width: 100%;
+    }
+    .header-menu {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .container {
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+    }
+    .left-panel, .right-panel {
+        width: 100%;
+        flex: none;
+        min-height: auto;
+    }
+    .right-panel {
+        padding: 16px;
+        border-radius: 20px;
+    }
+    .font-selector-container {
+        padding: 8px;
+    }
+    textarea {
+        height: 150px !important;
+    }
+    .overlay-content {
+        width: 90% !important;
+        padding: 20px 15px !important;
+    }
+}
 </style>
 
 <div id="mainView" style="width:100%; display:flex; flex-direction:column; align-items:center;">
@@ -1139,12 +1184,12 @@
 
         <div id="normalDiaryArea" style="display: flex; flex-direction: column; gap: 15px;">
 
-            <!-- 🔗 부모님 연결 상태 카드 -->
+            <!-- 🔗 보호자 연결 상태 카드 -->
             <div id="pairingCard" class="pairing-card dashboard-card">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <span id="pairingEmoji" style="font-size: 20px;">⚠️</span>
                     <div style="text-align: left;">
-                        <div id="pairingStatusText" style="font-weight: bold; font-size: 14px; color: #c53030;">부모님 앱과 연결되어 있지 않아요</div>
+                        <div id="pairingStatusText" style="font-weight: bold; font-size: 14px; color: #c53030;">보호자 앱과 연결되어 있지 않아요</div>
                         <div id="pairingSubText" style="font-size: 12px; color: #9b2c2c; margin-top: 2px;">우측 버튼을 눌러 연결 코드(6자리)를 발급받으세요.</div>
                     </div>
                 </div>
@@ -1153,7 +1198,7 @@
 
             <!-- 페어링 코드 표시 구역 (평소 숨김) -->
             <div id="pairingCodeDisplay" class="dashboard-card" style="display: none; text-align: center; background: #edf2f7; border: 1px solid #cbd5e0; padding: 15px;">
-                <div style="font-size: 11px; color: #718096; margin-bottom: 4px; font-weight: bold;">부모님 앱에 입력할 연결 코드 (10분 유효)</div>
+                <div style="font-size: 11px; color: #718096; margin-bottom: 4px; font-weight: bold;">보호자 앱에 입력할 연결 코드 (10분 유효)</div>
                 <div id="webPairingCode" style="font-size: 32px; font-weight: bold; color: #2b6cb0; letter-spacing: 2px;">000 000</div>
             </div>
 
@@ -1236,7 +1281,7 @@
 
 </div> <!-- end of mainView -->
 
-<!-- 부모님 일기 성장 보고서 전용 뷰 -->
+<!-- 보호자 성장 보고서 전용 뷰 -->
 <div id="reportView" style="display: none; width: 700px; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); margin: 20px 0; font-family: 'Malgun Gothic', sans-serif;">
     <div style="text-align: center; margin-bottom: 25px;">
         <span style="font-size: 45px;">📝</span>
@@ -2001,7 +2046,7 @@
                         const names = reviewers.map(r => r.name || "보호자").join(", ");
                         pairingCard.classList.add('connected');
                         pairingEmoji.innerText = "✅";
-                        pairingStatusText.innerText = "부모님 앱과 연결되었습니다";
+                        pairingStatusText.innerText = "보호자 앱과 연결되었습니다";
                         pairingSubText.innerText = `연결된 보호자: ${names} (일기가 자동으로 전송됩니다)`;
                         btnGetPairingCode.innerText = "코드 재발급";
 
@@ -2061,7 +2106,7 @@
         pairingCard.style.backgroundColor = "#fff5f5";
         pairingCard.style.borderColor = "#feb2b2";
         pairingEmoji.innerText = "⚠️";
-        pairingStatusText.innerText = "부모님 앱과 연결되어 있지 않아요";
+        pairingStatusText.innerText = "보호자 앱과 연결되어 있지 않아요";
         pairingStatusText.style.color = "#c53030";
         pairingSubText.innerText = "우측 버튼을 눌러 연결 코드(6자리)를 발급받으세요.";
         pairingSubText.style.color = "#9b2c2c";
@@ -2483,7 +2528,7 @@
         }
         const wasRewriteMode = isRewriteMode;
         if (webCredits <= 0 && !wasRewriteMode) {
-            const requestRecharge = confirm('마법이슬을 모두 사용했어요! 🪙\n\n부모님 스마트폰 앱에 마법이슬 충전을 요청해 볼까요? 😊');
+            const requestRecharge = confirm('마법이슬을 모두 사용했어요! 🪙\n\n보호자 스마트폰 앱에 마법이슬 충전을 요청해 볼까요? 😊');
             if (requestRecharge) {
                 try {
                     fetch('/request-credits', {
@@ -2495,7 +2540,7 @@
                         })
                     }).then(res => {
                         if (res.ok) {
-                            alert('부모님께 마법이슬 충전 요청을 보냈어요! 💌');
+                            alert('보호자님께 마법이슬 충전 요청을 보냈어요! 💌');
                         } else {
                             alert('충전 요청 전송에 실패했어요. 😢');
                         }
@@ -2563,8 +2608,8 @@
                 const loadingText = document.getElementById('loadingText');
                 const feedbackResult = document.getElementById('feedbackResult');
                 if (loadingText) loadingText.style.display = 'none';
-                if (feedbackResult) feedbackResult.innerText = '마법이슬이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙';
-                alert('마법이슬이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙');
+                if (feedbackResult) feedbackResult.innerText = '마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 🪙';
+                alert('마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 🪙');
                 return;
             }
 
@@ -2620,7 +2665,7 @@
                             levelupTitle.style.display = 'block';
                         }
                         
-                        // 부모님 공유용 데이터 축적
+                        // 보호자 공유용 데이터 축적
                         secondSpellingScore = finalSpelling;
                         secondExpressionScore = finalExpression;
                         secondStamp = data.stamp;
@@ -2647,7 +2692,7 @@
                         prevSpellingScore = finalSpelling;
                         prevExpressionScore = finalExpression;
                         
-                        // 부모님 공유용 첫 점수/도장 세팅
+                        // 보호자 공유용 첫 점수/도장 세팅
                         firstSpellingScore = finalSpelling;
                         firstExpressionScore = finalExpression;
                         firstStamp = data.stamp;
@@ -2687,7 +2732,7 @@
                     btnRetry.style.display = 'block';
 
                     // ----------------------------------------------------
-                    // Firestore 실시간 데이터베이스 업로드 (2차 고쳐쓰기 완료 시에만 부모용 연동 전송)
+                    // Firestore 실시간 데이터베이스 업로드 (2차 고쳐쓰기 완료 시에만 보호자용 연동 전송)
                     // ----------------------------------------------------
                     if (!wasRewriteMode || !currentDiaryId) {
                         currentDiaryId = self.crypto.randomUUID();
@@ -2743,7 +2788,7 @@
         }
     }
 
-    // 부모님 성장 보고서 공유 기능
+    // 보호자 성장 보고서 공유 기능
     async function shareReport() {
         const childName = prompt("어린이의 이름을 입력해 주세요 (예: 홍길동):");
         if (!childName) return;
@@ -2788,7 +2833,7 @@
 
             // 클립보드 복사 폴백
             await navigator.clipboard.writeText(shareUrl);
-            alert("부모님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.\n\n확인 버튼을 누르면 새로운 일기를 쓸 수 있게 리셋됩니다.");
+            alert("보호자님께 보낼 성장 보고서 주소가 클립보드에 복사되었습니다!\n카카오톡방에 붙여넣기(Ctrl+V)해서 전송해 주세요.\n\n확인 버튼을 누르면 새로운 일기를 쓸 수 있게 리셋됩니다.");
             resetToDefaultSession(); // Clear session on success!
             saveSession();
         } catch (error) {
@@ -2799,7 +2844,7 @@
 
     let reportChildName = '';
     
-    // 부모님용 보고서 뷰 렌더링
+    // 보호자용 보고서 뷰 렌더링
     async function renderParentReport(reportParam) {
         document.getElementById('mainView').style.display = 'none';
         document.getElementById('reportView').style.display = 'block';
@@ -2932,7 +2977,7 @@
         window.print();
     }
 
-    // 부모님 답장 카카오톡 메시지 전송 기능
+    // 보호자님 답장 카카오톡 메시지 전송 기능
     function sendParentReply() {
         const replyText = document.getElementById('parentReplyInput').value.trim();
         if (!replyText) {
@@ -2940,7 +2985,7 @@
             return;
         }
         
-        const message = `💌 [부모님 답장] ${replyText}`;
+        const message = `💌 [보호자님 답장] ${replyText}`;
         
         if (navigator.share) {
             navigator.share({
@@ -2958,7 +3003,7 @@
         }
     }
 
-    // 부모님 보고서 공유 모드 감지 (자동 구동)
+    // 보호자용 보고서 공유 모드 감지 (자동 구동)
     const urlParams = new URLSearchParams(window.location.search);
     const reportParam = urlParams.get('r') || urlParams.get('report');
     if (reportParam) {

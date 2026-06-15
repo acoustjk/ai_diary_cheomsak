@@ -221,7 +221,7 @@ async def check_diary(data: DiaryInput):
                             "credits": 0,
                             "totalCreditsGranted": 0
                         })
-                    raise HTTPException(status_code=403, detail="마법이슬이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
+                    raise HTTPException(status_code=403, detail="마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 🪙")
                 else:
                     new_credits = credits - 1
                     child_ref.update({
@@ -242,7 +242,7 @@ async def check_diary(data: DiaryInput):
                     "totalCreditsGranted": 0,
                     "pairedReviewers": []
                 })
-                raise HTTPException(status_code=403, detail="마법이슬이 부족합니다. 부모님 앱에서 충전해 주세요! 🪙")
+                raise HTTPException(status_code=403, detail="마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 🪙")
         except HTTPException as he:
             raise he
         except Exception as e:
