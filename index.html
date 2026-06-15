@@ -712,6 +712,19 @@
             #mainView, #reportActionArea, #parentReplyArea, .app-footer { display: none !important; }
             #reportView { box-shadow: none !important; border: none !important; padding: 10px !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; }
         }
+
+        @media (max-width: 1024px) {
+            .pc-only-qr {
+                display: none !important;
+            }
+            .mobile-only-msg {
+                display: block !important;
+            }
+            #webLoginOverlay > div {
+                padding: 24px 20px !important;
+                border-radius: 20px !important;
+            }
+        }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
@@ -733,30 +746,38 @@
             <img src="images/gochi_greeting.png" alt="AI고치 환영 인사" style="height: 120px; width: auto; z-index: 2; filter: drop-shadow(0 8px 16px rgba(183, 157, 137, 0.15)); animation: gochiFloat 3s ease-in-out infinite; transition: transform 0.3s ease;">
         </div>
 
-        <!-- AI고치 말풍선 -->
-        <div class="gochi-speech-bubble" style="position: relative; background: #ffffff; border: 2px solid #ffb5a7; border-radius: 16px; padding: 10px 14px; font-size: 14px; color: #5c3f30; margin-bottom: 24px; box-shadow: 0 6px 16px rgba(255, 181, 167, 0.15); line-height: 1.4; word-break: keep-all; display: inline-block; max-width: 90%; animation: bubbleFloat 3.5s ease-in-out infinite;">
-            안녕! 난 AI고치야. 컴퓨터 일기장을 켤 시간이야! <br>내 스마트폰 앱으로 나를 비춰줘! 👾
-            <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: #ffb5a7 transparent; display: block; width: 0;"></div>
-            <div style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 6px 6px 0; border-style: solid; border-color: #ffffff transparent; display: block; width: 0; z-index: 1;"></div>
+        <!-- PC 전용 QR 로그인 영역 -->
+        <div class="pc-only-qr">
+            <!-- AI고치 말풍선 -->
+            <div class="gochi-speech-bubble" style="position: relative; background: #ffffff; border: 2px solid #ffb5a7; border-radius: 16px; padding: 10px 14px; font-size: 14px; color: #5c3f30; margin-bottom: 24px; box-shadow: 0 6px 16px rgba(255, 181, 167, 0.15); line-height: 1.4; word-break: keep-all; display: inline-block; max-width: 90%; animation: bubbleFloat 3.5s ease-in-out infinite;">
+                안녕! 난 AI고치야. 컴퓨터 일기장을 켤 시간이야! <br>내 스마트폰 앱으로 나를 비춰줘! 👾
+                <div style="position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border-width: 8px 8px 0; border-style: solid; border-color: #ffb5a7 transparent; display: block; width: 0;"></div>
+                <div style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 6px 6px 0; border-style: solid; border-color: #ffffff transparent; display: block; width: 0; z-index: 1;"></div>
+            </div>
+
+            <h2 style="color: #6c5ce7; margin-top: 0; margin-bottom: 8px; font-size: 24px; letter-spacing: -0.5px; text-align: center; display: block; width: 100%;">컴퓨터로 일기쓰기 로그인</h2>
+            <p style="color: #718096; font-size: 13px; line-height: 1.5; margin-bottom: 24px; word-break: keep-all; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; text-align: center; width: 100%;">
+                자녀용 앱 하단의 <span style="color: #ff8e72;">[컴퓨터로 일기쓰기]</span> 버튼을<br>눌러 아래 QR 코드를 카메라로 스캔하세요.
+            </p>
+            
+            <!-- QR 코드 카드 영역 -->
+            <div style="background: rgba(255, 255, 255, 0.9); border: 2px dashed #eeddcc; border-radius: 24px; padding: 20px; margin-bottom: 24px; display: inline-block; box-shadow: 0 10px 30px rgba(183, 157, 137, 0.05);">
+                <img id="webLoginQRImg" src="" alt="로그인 QR 코드" style="width: 180px; height: 180px; display: block; margin: 0 auto; border-radius: 12px; background: white; transition: opacity 0.5s ease; opacity: 0;" onload="this.style.opacity='1'">
+            </div>
+
+            <div style="font-size: 11px; color: #a0aec0; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; margin-bottom: 18px; text-align: center; width: 100%;">
+                ⚠️ QR 코드가 보이지 않거나 만료된 경우,<br>아래 [QR 코드 새로고침] 버튼을 눌러주세요.
+            </div>
+
+            <button type="button" onclick="initQRLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #5b4bc4); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25); font-family: 'Jua', sans-serif; margin-top: 0;">
+                QR 코드 새로고침
+            </button>
         </div>
 
-        <h2 style="color: #6c5ce7; margin-top: 0; margin-bottom: 8px; font-size: 24px; letter-spacing: -0.5px; text-align: center; display: block; width: 100%;">컴퓨터로 일기쓰기 로그인</h2>
-        <p style="color: #718096; font-size: 13px; line-height: 1.5; margin-bottom: 24px; word-break: keep-all; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; text-align: center; width: 100%;">
-            자녀용 앱 하단의 <span style="color: #ff8e72;">[컴퓨터로 일기쓰기]</span> 버튼을<br>눌러 아래 QR 코드를 카메라로 스캔하세요.
-        </p>
-        
-        <!-- QR 코드 카드 영역 -->
-        <div style="background: rgba(255, 255, 255, 0.9); border: 2px dashed #eeddcc; border-radius: 24px; padding: 20px; margin-bottom: 24px; display: inline-block; box-shadow: 0 10px 30px rgba(183, 157, 137, 0.05);">
-            <img id="webLoginQRImg" src="" alt="로그인 QR 코드" style="width: 180px; height: 180px; display: block; margin: 0 auto; border-radius: 12px; background: white; transition: opacity 0.5s ease; opacity: 0;" onload="this.style.opacity='1'">
+        <!-- 모바일 전용 안내 메시지 -->
+        <div class="mobile-only-msg" style="display: none; font-size: 14px; color: #4a5568; line-height: 1.6; margin-bottom: 24px; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; word-break: keep-all; text-align: center; width: 100%;">
+            🖥️ 컴퓨터(PC)로 접속하시면<br>QR 코드를 통해 일기를 쓸 수 있어요!
         </div>
-
-        <div style="font-size: 11px; color: #a0aec0; line-height: 1.5; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; margin-bottom: 18px; text-align: center; width: 100%;">
-            ⚠️ QR 코드가 보이지 않거나 만료된 경우,<br>아래 [QR 코드 새로고침] 버튼을 눌러주세요.
-        </div>
-
-        <button type="button" onclick="initQRLogin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #6c5ce7, #5b4bc4); color: white; border: none; border-radius: 14px; font-size: 15px; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25); font-family: 'Jua', sans-serif; margin-top: 0;">
-            QR 코드 새로고침
-        </button>
 
         <div style="margin-top: 16px;">
             <button type="button" onclick="openGuideModal()" style="width: 100%; padding: 12px; background: #f0ecfd; color: #6c5ce7; border: 2px solid #dcd3fc; border-radius: 14px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: 'Jua', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='#6c5ce7'; this.style.color='white'; this.style.borderColor='#6c5ce7';" onmouseout="this.style.background='#f0ecfd'; this.style.color='#6c5ce7'; this.style.borderColor='#dcd3fc';">
