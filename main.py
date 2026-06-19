@@ -2336,7 +2336,11 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 
     <script>
         const IMP = window.IMP;
-        IMP.init("{portone_imp_code}");
+        if (IMP) {
+            IMP.init("{portone_imp_code}");
+        } else {
+            console.error("PortOne SDK (window.IMP) is not loaded. Safe mock/simulation fallback mode enabled.");
+        }
 
         let currentPurchaseCredits = 0;
         let currentPurchasePrice = 0;
@@ -2376,6 +2380,41 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
         }
 
         function submitMockPayment() {
+            const IMP = window.IMP;
+            if (!IMP) {
+                // If PortOne SDK is blocked/not loaded, run direct verification simulation
+                const mockImpUid = "mock_imp_" + new Date().getTime();
+                const mockMerchantUid = "mock_order_" + new Date().getTime();
+                
+                if (confirm("포트원 SDK가 로드되지 않았습니다. 시뮬레이션(가상 결제)으로 진행하시겠습니까?")) {
+                    fetch('/api/payment/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            imp_uid: mockImpUid,
+                            merchant_uid: mockMerchantUid,
+                            package_type: isSubscription ? "box" : (currentPurchaseCredits === 1 ? "single" : currentPurchaseCredits === 10 ? "bottle" : "pot")
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.status === 'success') {
+                            alert(`[시뮬레이션] 결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 마법이슬이 충전되었습니다.`);
+                            window.location.reload();
+                        } else {
+                            alert("결제 승인 검증 오류: " + (data.detail || "검증에 실패했습니다."));
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("서버 연결 실패로 결제 검증을 완료할 수 없습니다.");
+                    });
+                }
+                return;
+            }
+
             const pgCode = selectedPaymentMethod === 'kakaopay' ? 'kakaopay.TC00000000' : 'html5_inicis';
             const merchantUid = "order_" + new Date().getTime();
             
