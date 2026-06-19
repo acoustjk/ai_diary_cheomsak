@@ -14,12 +14,15 @@ from firebase_admin import credentials, messaging, firestore, auth
 
 # Initialize Firebase Admin SDK
 firebase_creds_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+FIREBASE_INITIALIZED = False
+
 if firebase_creds_json:
     try:
         creds_dict = json.loads(firebase_creds_json)
         cred = credentials.Certificate(creds_dict)
         firebase_admin.initialize_app(cred)
         print("Firebase Admin initialized successfully with environment variable credentials.")
+        FIREBASE_INITIALIZED = True
     except Exception as e:
         print(f"Error initializing Firebase Admin with env var: {e}")
 else:
@@ -30,10 +33,95 @@ else:
             cred = credentials.Certificate(local_key_path)
             firebase_admin.initialize_app(cred)
             print("Firebase Admin initialized with local serviceAccountKey.json.")
+            FIREBASE_INITIALIZED = True
         except Exception as e:
             print(f"Error initializing Firebase Admin with local key: {e}")
     else:
         print("Firebase Admin NOT initialized: No credentials found. Push notifications will be skipped.")
+
+if not FIREBASE_INITIALIZED:
+    # Define Mock Firestore classes for local development without credentials
+    import copy
+    
+    class MockDocumentSnapshot:
+        def __init__(self, data=None):
+            self.exists = data is not None
+            self._data = data or {}
+        def to_dict(self):
+            return self._data
+
+    class MockDocumentReference:
+        def __init__(self, collection_name, doc_id, mock_db):
+            self.collection_name = collection_name
+            self.id = doc_id
+            self.mock_db = mock_db
+        def get(self, transaction=None):
+            data = self.mock_db.get(self.collection_name, {}).get(self.id)
+            return MockDocumentSnapshot(copy.deepcopy(data) if data is not None else None)
+        def set(self, data, merge=False):
+            if self.collection_name not in self.mock_db:
+                self.mock_db[self.collection_name] = {}
+            if merge and self.id in self.mock_db[self.collection_name]:
+                self.mock_db[self.collection_name][self.id].update(data)
+            else:
+                self.mock_db[self.collection_name][self.id] = data
+        def update(self, data):
+            if self.collection_name not in self.mock_db:
+                self.mock_db[self.collection_name] = {}
+            if self.id not in self.mock_db[self.collection_name]:
+                self.mock_db[self.collection_name][self.id] = {}
+            self.mock_db[self.collection_name][self.id].update(data)
+
+    class MockCollectionReference:
+        def __init__(self, name, mock_db):
+            self.name = name
+            self.mock_db = mock_db
+        def document(self, doc_id):
+            return MockDocumentReference(self.name, doc_id, self.mock_db)
+
+    class MockTransaction:
+        def __init__(self, mock_db):
+            self.mock_db = mock_db
+        def get(self, ref):
+            return ref.get(transaction=self)
+        def update(self, ref, data):
+            ref.update(data)
+        def set(self, ref, data):
+            ref.set(data)
+
+    class MockFirestoreClient:
+        _shared_db = {
+            "config": {
+                "prices": {
+                    "single_price": 1000,
+                    "bottle_price": 9900,
+                    "pot_price": 27000,
+                    "box_price": 39000
+                }
+            },
+            "reviewers": {},
+            "children": {},
+            "receipts": {}
+        }
+        def collection(self, name):
+            return MockCollectionReference(name, self._shared_db)
+        def transaction(self):
+            return MockTransaction(self._shared_db)
+
+    class MockFirestoreModule:
+        SERVER_TIMESTAMP = "mock_server_timestamp"
+        @staticmethod
+        def client():
+            return MockFirestoreClient()
+        @staticmethod
+        def transactional(func):
+            def wrapper(transaction, *args, **kwargs):
+                return func(transaction, *args, **kwargs)
+            return wrapper
+
+    # Overwrite the imported firestore with the mock module
+    firestore = MockFirestoreModule()
+    print("Using MockFirestore client fallback.")
 
 def send_fcm_notification(child_id: str, child_name: str):
     if not firebase_admin._apps:
@@ -1891,6 +1979,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI고치 보호자 마법이슬 달빛 샘터</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -2228,8 +2317,8 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
     <!-- Toss/KakaoPay Simulator Modal -->
     <div id="paymentModal" class="modal">
         <div class="modal-content">
-            <div class="modal-title">💳 안전한 가상 결제</div>
-            <div class="modal-desc">결제 수단을 선택하신 뒤 승인을 누르면 모킹(Mock) 충전이 완료됩니다.</div>
+            <div class="modal-title">💳 안전한 포트원 결제</div>
+            <div class="modal-desc">결제 수단을 선택하신 뒤 결제 진행을 누르면 결제창이 나타납니다.</div>
             
             <div id="modal-product-info" style="font-size: 15px; font-weight: bold; margin-bottom: 20px; color: #fbbf24;">
                 선택 상품: 마법이슬 <span id="modal-credits">0</span>개 (₩<span id="modal-price">0</span>)
@@ -2240,12 +2329,15 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                 <div class="method-card" onclick="selectMethod(this, 'kakaopay')">카카오페이</div>
             </div>
 
-            <button class="btn-pay-submit" onclick="submitMockPayment()">결제 승인</button>
+            <button class="btn-pay-submit" onclick="submitMockPayment()">결제 진행</button>
             <button class="btn-cancel" onclick="closePaymentModal()">결제 취소</button>
         </div>
     </div>
 
     <script>
+        const IMP = window.IMP;
+        IMP.init("{portone_imp_code}");
+
         let currentPurchaseCredits = 0;
         let currentPurchasePrice = 0;
         let selectedPaymentMethod = 'card';
@@ -2262,11 +2354,11 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
             
             if (isSub) {
                 titleEl.innerText = "🌊 정기 구독 신청";
-                descEl.innerText = "결제 수단을 선택하신 뒤 승인을 누르면 매월 정기 구독 결제가 등록됩니다.";
+                descEl.innerText = "결제 수단을 선택하신 뒤 결제 진행을 누르면 매월 정기 구독 결제가 등록됩니다.";
                 infoEl.innerHTML = `선택 상품: <span style="color: #10b981;">샘물 상자 정기구독</span> (매달 마법이슬 100개, 월 ₩${price.toLocaleString()})`;
             } else {
-                titleEl.innerText = "💳 안전한 가상 결제";
-                descEl.innerText = "결제 수단을 선택하신 뒤 승인을 누르면 모킹(Mock) 충전이 완료됩니다.";
+                titleEl.innerText = "💳 안전한 포트원 결제";
+                descEl.innerText = "결제 수단을 선택하신 뒤 결제 진행을 누르면 결제창이 나타납니다.";
                 infoEl.innerHTML = `선택 상품: 마법이슬 <span>${credits}</span>개 (₩<span>${price.toLocaleString()}</span>)`;
             }
             
@@ -2284,34 +2376,46 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
         }
 
         function submitMockPayment() {
-            fetch('/credits/purchase-mock', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    parent_uid: '{parent_uid}',
-                    amount: currentPurchaseCredits,
-                    is_subscription: isSubscription
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.status === 'success') {
-                    document.getElementById('parent-credits-val').innerText = data.new_credits;
-                    if (isSubscription) {
-                        alert(`정기 구독이 성공적으로 신청되었습니다! 🌊 매달 마법이슬 ${currentPurchaseCredits}개가 자동으로 충전됩니다. (이번 달분 즉시 지급 완료)`);
-                    } else {
-                        alert(`가상 결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 마법이슬이 충전되었습니다.`);
-                    }
-                    window.location.reload();
+            const pgCode = selectedPaymentMethod === 'kakaopay' ? 'kakaopay.TC00000000' : 'html5_inicis';
+            const merchantUid = "order_" + new Date().getTime();
+            
+            IMP.request_pay({
+                pg: pgCode,
+                pay_method: "card",
+                merchant_uid: merchantUid,
+                name: isSubscription ? "샘물 상자 정기구독" : `마법이슬 ${currentPurchaseCredits}개`,
+                amount: currentPurchasePrice,
+                buyer_email: '{parent_email}'
+            }, function(rsp) {
+                if (rsp.success) {
+                    // Send to backend for verification
+                    fetch('/api/payment/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            imp_uid: rsp.imp_uid,
+                            merchant_uid: rsp.merchant_uid,
+                            package_type: isSubscription ? "box" : (currentPurchaseCredits === 1 ? "single" : currentPurchaseCredits === 10 ? "bottle" : "pot")
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.status === 'success') {
+                            alert(`결제가 성공적으로 승인되었습니다! 🪙 ${currentPurchaseCredits} 마법이슬이 충전되었습니다.`);
+                            window.location.reload();
+                        } else {
+                            alert("결제 승인 검증 오류: " + (data.detail || "검증에 실패했습니다."));
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert("서버 연결 실패로 결제 검증을 완료할 수 없습니다.");
+                    });
                 } else {
-                    alert("가상 결제 처리 중 오류가 발생했습니다.");
+                    alert("결제에 실패하였습니다: " + rsp.error_msg);
                 }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("서버 연결 실패로 결제를 완료할 수 없습니다.");
             });
         }
 
@@ -2448,6 +2552,7 @@ async def get_purchase(request: Request, uid: str = None):
         if subscription_active:
             subscription_badge_html = '<span style="font-size: 11px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); padding: 2px 8px; border-radius: 99px; color: #34d399; font-weight: bold;">🌊 정기 구독 중</span>'
             
+        portone_imp_code = os.getenv("PORTONE_IMP_CODE", "imp37887752")
         html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session) \
                                            .replace("{parent_name}", parent_name) \
                                            .replace("{parent_email}", parent_email) \
@@ -2461,11 +2566,13 @@ async def get_purchase(request: Request, uid: str = None):
                                            .replace("{single_price_formatted}", f"{single_price:,}") \
                                            .replace("{bottle_price_formatted}", f"{bottle_price:,}") \
                                            .replace("{pot_price_formatted}", f"{pot_price:,}") \
-                                           .replace("{box_price_formatted}", f"{box_price:,}")
+                                           .replace("{box_price_formatted}", f"{box_price:,}") \
+                                           .replace("{portone_imp_code}", portone_imp_code)
         return HTMLResponse(content=html_content)
     except Exception as e:
         print(f"Purchase page error: {e}")
-        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session).replace("{parent_name}", "데모 보호자").replace("{parent_email}", "demo@kakao.com").replace("{parent_credits}", "0").replace("{children_options}", '<option value="mock_child">👦 데모 자녀 (현재: 0🪙)</option>').replace("{subscription_badge_html}", "").replace("{single_price}", "1000").replace("{bottle_price}", "9900").replace("{pot_price}", "27000").replace("{box_price}", "39000").replace("{single_price_formatted}", "1,000").replace("{bottle_price_formatted}", "9,900").replace("{pot_price_formatted}", "27,000").replace("{box_price_formatted}", "39,000")
+        portone_imp_code = os.getenv("PORTONE_IMP_CODE", "imp37887752")
+        html_content = PARENT_PURCHASE_HTML.replace("{parent_uid}", session).replace("{parent_name}", "데모 보호자").replace("{parent_email}", "demo@kakao.com").replace("{parent_credits}", "0").replace("{children_options}", '<option value="mock_child">👦 데모 자녀 (현재: 0🪙)</option>').replace("{subscription_badge_html}", "").replace("{single_price}", "1000").replace("{bottle_price}", "9900").replace("{pot_price}", "27000").replace("{box_price}", "39000").replace("{single_price_formatted}", "1,000").replace("{bottle_price_formatted}", "9,900").replace("{pot_price_formatted}", "27,000").replace("{box_price_formatted}", "39,000").replace("{portone_imp_code}", portone_imp_code)
         return HTMLResponse(content=html_content)
 
 @app.post("/purchase/login")
@@ -2669,6 +2776,170 @@ class CreditTransferInput(BaseModel):
 class AddParentCreditInput(BaseModel):
     parent_uid: str
     amount: int
+
+class PaymentVerifyInput(BaseModel):
+    imp_uid: str
+    merchant_uid: str
+    package_type: str  # "single", "bottle", "pot", "box"
+
+def get_portone_token():
+    api_key = os.getenv("PORTONE_API_KEY")
+    api_secret = os.getenv("PORTONE_API_SECRET")
+    if not api_key or not api_secret:
+        print("Warning: PORTONE_API_KEY or PORTONE_API_SECRET not set. PortOne API calls will fail.")
+        return None
+        
+    url = "https://api.iamport.kr/users/getToken"
+    headers = {"Content-Type": "application/json"}
+    payload = {
+        "imp_key": api_key,
+        "imp_secret": api_secret
+    }
+    try:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            if res_data.get("code") == 0:
+                return res_data.get("response", {}).get("access_token")
+            else:
+                print(f"PortOne token error: {res_data.get('message')}")
+    except Exception as e:
+        print(f"Failed to fetch PortOne token: {e}")
+    return None
+
+def get_portone_payment(imp_uid: str, token: str):
+    url = f"https://api.iamport.kr/payments/{imp_uid}"
+    headers = {"Authorization": token}
+    try:
+        req = urllib.request.Request(url, headers=headers, method="GET")
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = json.loads(response.read().decode('utf-8'))
+            if res_data.get("code") == 0:
+                return res_data.get("response")
+            else:
+                print(f"PortOne payment fetch error: {res_data.get('message')}")
+    except Exception as e:
+        print(f"Failed to fetch PortOne payment details: {e}")
+    return None
+
+@app.post("/api/payment/verify")
+async def verify_payment(request: Request, data: PaymentVerifyInput):
+    session = request.cookies.get("parent_session")
+    if not session:
+        raise HTTPException(status_code=401, detail="로그인이 필요합니다.")
+        
+    credits_map = {
+        "single": 1,
+        "bottle": 10,
+        "pot": 30,
+        "box": 100
+    }
+    
+    if data.package_type not in credits_map:
+        raise HTTPException(status_code=400, detail="유효하지 않은 패키지 타입입니다.")
+        
+    db_client = firestore.client()
+    prices_ref = db_client.collection("config").document("prices").get()
+    prices = {}
+    if prices_ref.exists:
+        prices = prices_ref.to_dict()
+        
+    price_key_map = {
+        "single": "single_price",
+        "bottle": "bottle_price",
+        "pot": "pot_price",
+        "box": "box_price"
+    }
+    default_prices = {
+        "single": 1000,
+        "bottle": 9900,
+        "pot": 27000,
+        "box": 39000
+    }
+    
+    expected_price = int(prices.get(price_key_map[data.package_type], default_prices[data.package_type]))
+    added_credits = credits_map[data.package_type]
+    is_subscription = (data.package_type == "box")
+    
+    api_key = os.getenv("PORTONE_API_KEY")
+    api_secret = os.getenv("PORTONE_API_SECRET")
+    
+    if not api_key or not api_secret:
+        print(f"[SIMULATION] PortOne API credentials not configured. Simulating success for imp_uid: {data.imp_uid}")
+        receipt_ref = db_client.collection("receipts").document(data.imp_uid)
+        if receipt_ref.get().exists:
+            raise HTTPException(status_code=400, detail="이미 처리된 결제 영수증입니다.")
+            
+        receipt_ref.set({
+            "impUid": data.imp_uid,
+            "merchantUid": data.merchant_uid,
+            "amount": expected_price,
+            "packageType": data.package_type,
+            "parentUid": session,
+            "timestamp": firestore.SERVER_TIMESTAMP,
+            "simulated": True
+        })
+        
+        parent_ref = db_client.collection("reviewers").document(session)
+        parent_doc = parent_ref.get()
+        if not parent_doc.exists:
+            raise HTTPException(status_code=404, detail="보호자 프로필을 찾을 수 없습니다.")
+            
+        p_data = parent_doc.to_dict()
+        current_credits = p_data.get("credits") or 0
+        new_credits = current_credits + added_credits
+        
+        update_data = {"credits": new_credits}
+        if is_subscription:
+            update_data["subscriptionActive"] = True
+            
+        parent_ref.update(update_data)
+        return {"status": "success", "new_credits": new_credits}
+
+    token = get_portone_token()
+    if not token:
+        raise HTTPException(status_code=500, detail="포트원 토큰 발급에 실패했습니다.")
+        
+    payment = get_portone_payment(data.imp_uid, token)
+    if not payment:
+        raise HTTPException(status_code=500, detail="포트원 결제 정보를 조회할 수 없습니다.")
+        
+    if payment.get("status") != "paid":
+        raise HTTPException(status_code=400, detail=f"결제 상태가 완료(paid)가 아닙니다. 현재 상태: {payment.get('status')}")
+        
+    paid_amount = payment.get("amount")
+    if paid_amount != expected_price:
+        raise HTTPException(status_code=400, detail=f"위변조 감지: 결제 요청 금액({expected_price}원)과 실제 결제 금액({paid_amount}원)이 일치하지 않습니다.")
+        
+    receipt_ref = db_client.collection("receipts").document(data.imp_uid)
+    if receipt_ref.get().exists:
+        raise HTTPException(status_code=400, detail="이미 처리된 결제 영수증입니다.")
+        
+    receipt_ref.set({
+        "impUid": data.imp_uid,
+        "merchantUid": data.merchant_uid,
+        "amount": paid_amount,
+        "packageType": data.package_type,
+        "parentUid": session,
+        "timestamp": firestore.SERVER_TIMESTAMP
+    })
+    
+    parent_ref = db_client.collection("reviewers").document(session)
+    parent_doc = parent_ref.get()
+    if not parent_doc.exists:
+        raise HTTPException(status_code=404, detail="보호자 프로필을 찾을 수 없습니다.")
+        
+    p_data = parent_doc.to_dict()
+    current_credits = p_data.get("credits") or 0
+    new_credits = current_credits + added_credits
+    
+    update_data = {"credits": new_credits}
+    if is_subscription:
+        update_data["subscriptionActive"] = True
+        
+    parent_ref.update(update_data)
+    return {"status": "success", "new_credits": new_credits}
 
 @app.post("/credits/purchase-mock")
 async def credits_purchase_mock(data: ParentPurchaseInput):

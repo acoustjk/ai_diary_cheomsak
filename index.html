@@ -1468,6 +1468,11 @@
             <div id="reportExpressionScore" style="font-size: 20px; font-weight: bold; color: #2b6cb0; margin-top: 5px;">75점 ➡️ 90점 (+15)</div>
         </div>
         <div style="width: 2px; height: 40px; background: #bee3f8;"></div>
+        <div style="text-align: center; flex: 1;">
+            <div style="font-size: 14px; color: #4299e1; font-weight: bold;">📝 글자 수</div>
+            <div id="reportCharCount" style="font-size: 20px; font-weight: bold; color: #2b6cb0; margin-top: 5px;">0자 ➡️ 0자</div>
+        </div>
+        <div style="width: 2px; height: 40px; background: #bee3f8;"></div>
         <div style="text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center;">
             <div style="font-size: 13px; color: #e53e3e; font-weight: bold;">💮 AI고치의 도장</div>
             <div id="reportStamp" style="background: #fff5f5; border: 2px dashed #e53e3e; color: #e53e3e; font-weight: bold; font-size: 14px; padding: 4px 10px; border-radius: 20px; margin-top: 5px; transform: rotate(5deg);">참 잘했어요</div>
@@ -2924,7 +2929,9 @@
                             secondExpressionScore: finalExpression,
                             stamp: data.stamp,
                             improved: data.improved || false,
-                            wpm: (firstDiaryWpm > 0 ? firstDiaryWpm : currentWpm)
+                            wpm: (firstDiaryWpm > 0 ? firstDiaryWpm : currentWpm),
+                            originalLength: originalContent ? originalContent.length : 0,
+                            rewrittenLength: content ? content.length : 0
                         };
 
                         db.collection("children").doc(childId)
@@ -2972,7 +2979,9 @@
             s2: secondSpellingScore,
             e2: secondExpressionScore,
             st: secondStamp,
-            wpm: (firstDiaryWpm > 0 ? firstDiaryWpm : currentWpm)
+            wpm: (firstDiaryWpm > 0 ? firstDiaryWpm : currentWpm),
+            l1: originalContent ? originalContent.length : 0,
+            l2: (rewrittenContent || textarea.value.trim()) ? (rewrittenContent || textarea.value.trim()).length : 0
         };
 
         try {
@@ -3050,6 +3059,13 @@
             const expressionDiff = data.e2 - data.e1;
             const expressionText = `${data.e1}점 ➡️ ${data.e2}점` + (expressionDiff > 0 ? ` (+${expressionDiff})` : expressionDiff < 0 ? ` (${expressionDiff})` : ' (동일)');
             document.getElementById('reportExpressionScore').innerText = expressionText;
+
+            // 글자 수 렌더링
+            const charLen1 = data.l1 !== undefined ? data.l1 : (data.c1 ? data.c1.length : 0);
+            const charLen2 = data.l2 !== undefined ? data.l2 : (data.c2 ? data.c2.length : 0);
+            const charDiff = charLen2 - charLen1;
+            const charText = `${charLen1}자 ➡️ ${charLen2}자` + (charDiff > 0 ? ` (+${charDiff})` : charDiff < 0 ? ` (${charDiff})` : ' (동일)');
+            document.getElementById('reportCharCount').innerText = charText;
 
             // 타수 렌더링
             if (data.wpm && data.wpm > 0) {
