@@ -3,3 +3,5 @@ uvicorn
 google-genai
 firebase-admin
 python-multipart
+google-api-python-client
+google-auth

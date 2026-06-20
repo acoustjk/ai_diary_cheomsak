@@ -2269,40 +2269,40 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 
                 <div class="packages-title">💳 마법이슬 패키지 구매</div>
                 
-                <div class="package-item" onclick="openPaymentModal(1, {single_price})">
+                <div class="package-item" onclick="alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">
                     <div class="package-details">
                         <span class="package-name">💧 작은 이슬 한 방울</span>
                         <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 1개 - 맛보기용</span>
                         <span class="package-price">₩ {single_price_formatted}</span>
                     </div>
-                    <button type="button" class="btn-buy" onclick="openPaymentModal(1, {single_price})">구매</button>
+                    <button type="button" class="btn-buy" onclick="event.stopPropagation(); alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">구매</button>
                 </div>
 
-                <div class="package-item" onclick="openPaymentModal(10, {bottle_price})">
+                <div class="package-item" onclick="alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">
                     <div class="package-details">
                         <span class="package-name">🍾 반짝이는 이슬 병</span>
                         <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 10개 - 일주일 패키지</span>
                         <span class="package-price">₩ {bottle_price_formatted}</span>
                     </div>
-                    <button type="button" class="btn-buy" onclick="openPaymentModal(10, {bottle_price})">구매</button>
+                    <button type="button" class="btn-buy" onclick="event.stopPropagation(); alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">구매</button>
                 </div>
 
-                <div class="package-item" onclick="openPaymentModal(30, {pot_price})">
+                <div class="package-item" onclick="alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">
                     <div class="package-details">
                         <span class="package-name">🍯 달콤한 이슬 항아리</span>
                         <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 30개 - 한 달 열공 패키지</span>
                         <span class="package-price">₩ {pot_price_formatted}</span>
                     </div>
-                    <button type="button" class="btn-buy" onclick="openPaymentModal(30, {pot_price})">구매</button>
+                    <button type="button" class="btn-buy" onclick="event.stopPropagation(); alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">구매</button>
                 </div>
 
-                <div class="package-item" onclick="openPaymentModal(100, {box_price}, true)">
+                <div class="package-item" onclick="alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">
                     <div class="package-details">
                         <span class="package-name">🌊 마르지 않는 샘물 상자</span>
                         <span class="package-desc" style="font-size: 11px; color: #34d399; margin-top: 2px; font-weight: 600;">정기 구독제 - 매달 이슬 자동 충전</span>
                         <span class="package-price">₩ {box_price_formatted} / 월</span>
                     </div>
-                    <button type="button" class="btn-buy" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="openPaymentModal(100, {box_price}, true)">구독</button>
+                    <button type="button" class="btn-buy" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="event.stopPropagation(); alert('마법이슬 충전 결제는 모바일 앱(AI고치 보호자용) 내에서 구글 인앱 결제로만 가능합니다. 앱을 실행해 주세요!');">구독</button>
                 </div>
             </div>
 
@@ -2851,6 +2851,13 @@ class PaymentVerifyInput(BaseModel):
     merchant_uid: str
     package_type: str  # "single", "bottle", "pot", "box"
 
+class GooglePlayVerifyInput(BaseModel):
+    purchaseToken: str
+    productId: str
+    packageName: str = "com.example.aidiarycheomsak.parent"
+    parentUid: str
+    childId: str = None
+
 def get_portone_token():
     api_key = os.getenv("PORTONE_API_KEY")
     api_secret = os.getenv("PORTONE_API_SECRET")
@@ -3009,6 +3016,135 @@ async def verify_payment(request: Request, data: PaymentVerifyInput):
         
     parent_ref.update(update_data)
     return {"status": "success", "new_credits": new_credits}
+
+GOOGLE_PLAY_VERIFICATION_AVAILABLE = False
+try:
+    from googleapiclient.discovery import build
+    from google.oauth2 import service_account
+    GOOGLE_PLAY_VERIFICATION_AVAILABLE = True
+except ImportError:
+    pass
+
+def verify_google_play_purchase(package_name: str, product_id: str, token: str, is_subscription: bool) -> bool:
+    creds_json = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON")
+    if not creds_json:
+        print("[SIMULATION] GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not set. Assuming purchase is valid.")
+        return True
+    
+    if not GOOGLE_PLAY_VERIFICATION_AVAILABLE:
+        print("[WARNING] googleapiclient/google-auth libraries not installed. Simulating purchase success.")
+        return True
+        
+    try:
+        creds_dict = json.loads(creds_json)
+        scopes = ['https://www.googleapis.com/auth/androidpublisher']
+        credentials = service_account.Credentials.from_service_account_info(creds_dict, scopes=scopes)
+        service = build('androidpublisher', 'v3', credentials=credentials)
+        
+        if is_subscription:
+            request = service.purchases().subscriptions().get(
+                packageName=package_name,
+                subscriptionId=product_id,
+                token=token
+            )
+            response = request.execute()
+            return 'startTimeMillis' in response
+        else:
+            request = service.purchases().products().get(
+                packageName=package_name,
+                productId=product_id,
+                token=token
+            )
+            response = request.execute()
+            return response.get('purchaseState') == 0
+            
+    except Exception as e:
+        print(f"Google Play Verification failed: {e}")
+        return False
+
+@app.post("/api/payment/verify-google-play")
+async def verify_google_play(data: GooglePlayVerifyInput):
+    credits_map = {
+        "magical_dew_1": 1,
+        "magical_dew_10": 10,
+        "magical_dew_30": 30,
+        "magical_dew_subscription": 100
+    }
+    
+    if data.productId not in credits_map:
+        raise HTTPException(status_code=400, detail="유효하지 않은 상품 ID입니다.")
+        
+    db_client = firestore.client()
+    
+    # Check for duplicate purchase token
+    receipt_ref = db_client.collection("receipts").document(data.purchaseToken)
+    if receipt_ref.get().exists:
+        raise HTTPException(status_code=400, detail="이미 처리된 결제 영수증입니다.")
+        
+    is_subscription = (data.productId == "magical_dew_subscription")
+    added_credits = credits_map[data.productId]
+    
+    verified = verify_google_play_purchase(
+        package_name=data.packageName,
+        product_id=data.productId,
+        token=data.purchaseToken,
+        is_subscription=is_subscription
+    )
+    
+    if not verified:
+        raise HTTPException(status_code=400, detail="Google Play 결제 검증에 실패했습니다.")
+        
+    # Save receipt to database
+    receipt_ref.set({
+        "purchaseToken": data.purchaseToken,
+        "productId": data.productId,
+        "packageName": data.packageName,
+        "parentUid": data.parentUid,
+        "amount": added_credits,
+        "timestamp": firestore.SERVER_TIMESTAMP,
+        "simulated": not bool(os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON"))
+    })
+    
+    # Update parent or child account credits
+    if data.childId:
+        child_ref = db_client.collection("children").document(data.childId)
+        child_doc = child_ref.get()
+        if not child_doc.exists:
+            # Pre-create child document if it doesn't exist
+            child_ref.set({
+                "childId": data.childId,
+                "childName": "등록 대기 자녀",
+                "credits": added_credits,
+                "totalCreditsGranted": added_credits,
+                "pairedReviewers": [{"uid": data.parentUid}]
+            })
+            new_credits = added_credits
+        else:
+            c_data = child_doc.to_dict()
+            current_credits = c_data.get("credits") or 0
+            current_total = c_data.get("totalCreditsGranted") or 0
+            new_credits = current_credits + added_credits
+            child_ref.update({
+                "credits": new_credits,
+                "totalCreditsGranted": current_total + added_credits
+            })
+        return {"status": "success", "new_credits": new_credits, "target": "child"}
+    else:
+        parent_ref = db_client.collection("reviewers").document(data.parentUid)
+        parent_doc = parent_ref.get()
+        if not parent_doc.exists:
+            raise HTTPException(status_code=404, detail="보호자 프로필을 찾을 수 없습니다.")
+            
+        p_data = parent_doc.to_dict()
+        current_credits = p_data.get("credits") or 0
+        new_credits = current_credits + added_credits
+        
+        update_data = {"credits": new_credits}
+        if is_subscription:
+            update_data["subscriptionActive"] = True
+            
+        parent_ref.update(update_data)
+        return {"status": "success", "new_credits": new_credits, "target": "parent"}
 
 @app.post("/credits/purchase-mock")
 async def credits_purchase_mock(data: ParentPurchaseInput):
