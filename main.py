@@ -387,8 +387,8 @@ async def check_diary(data: DiaryInput):
         
         result = json.loads(response.text)
         
-        # 만약 child_id가 전달된 경우 FCM 알림 전송 (첫 작성 및 고쳐 쓰기 모두 전송)
-        if data.child_id:
+        # 만약 고쳐 쓰기 완료(original_content가 있는 경우)이고 child_id가 전달된 경우 FCM 알림 전송
+        if is_valid_content(data.original_content) and data.child_id:
             try:
                 send_fcm_notification(data.child_id, data.child_name)
             except Exception as e:
