@@ -1971,6 +1971,20 @@ PARENT_LOGIN_HTML = """<!DOCTYPE html>
             </div>
         </details>
     </div>
+
+    <!-- 규정 준수 푸터 -->
+    <footer style="margin-top: 50px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 25px; font-size: 11px; color: #9ca3af; line-height: 1.8; text-align: center; width: 100%; max-width: 400px; box-sizing: border-box;">
+        <div style="font-weight: 700; color: white; margin-bottom: 6px; font-size: 12px;">(주)제이케이 (JK Inc.)</div>
+        <div>대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호</div>
+        <div>고객센터: 02-1234-5678 (평일 10:00 ~ 17:00, 점심시간 12:00 ~ 13:00) | 이메일: support@ai-gochi.com</div>
+        <div>주소: 서울특별시 강남구 테헤란로 123, 4층</div>
+        <div style="margin-top: 12px; display: flex; justify-content: center; gap: 18px;">
+            <a href="/terms" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">이용약관</a>
+            <a href="/privacy" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">개인정보처리방침</a>
+            <a href="/refund" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">환불정책</a>
+        </div>
+        <div style="margin-top: 10px; font-size: 10px; color: #6b7280;">© 2026 제이케이. All rights reserved.</div>
+    </footer>
 </body>
 </html>"""
 
