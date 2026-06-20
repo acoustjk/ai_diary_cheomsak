@@ -1818,10 +1818,12 @@ PARENT_LOGIN_HTML = """<!DOCTYPE html>
             color: var(--text-color);
             margin: 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden;
+            padding: 40px 20px;
+            box-sizing: border-box;
         }
         .login-card {
             background: var(--glass-bg);
@@ -2312,6 +2314,20 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                 <button class="btn-transfer" onclick="executeTransfer()">보내기</button>
             </div>
         </div>
+
+        <!-- 규정 준수 푸터 -->
+        <footer style="margin-top: 50px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 25px; font-size: 11px; color: #9ca3af; line-height: 1.8; text-align: center;">
+            <div style="font-weight: 700; color: white; margin-bottom: 6px; font-size: 12px;">(주)제이케이 (JK Inc.)</div>
+            <div>대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호</div>
+            <div>고객센터: 02-1234-5678 (평일 10:00 ~ 17:00, 점심시간 12:00 ~ 13:00) | 이메일: support@ai-gochi.com</div>
+            <div>주소: 서울특별시 강남구 테헤란로 123, 4층</div>
+            <div style="margin-top: 12px; display: flex; justify-content: center; gap: 18px;">
+                <a href="/terms" target="_blank" style="color: var(--primary-light); text-decoration: none; font-weight: 600;">이용약관</a>
+                <a href="/privacy" target="_blank" style="color: var(--primary-light); text-decoration: none; font-weight: 600;">개인정보처리방침</a>
+                <a href="/refund" target="_blank" style="color: var(--primary-light); text-decoration: none; font-weight: 600;">환불정책</a>
+            </div>
+            <div style="margin-top: 10px; font-size: 10px; color: #6b7280;">© 2026 제이케이. All rights reserved.</div>
+        </footer>
     </div>
 
     <!-- Toss/KakaoPay Simulator Modal -->
@@ -3323,6 +3339,423 @@ async def get_admin_dashboard(request: Request):
         </div>
         """
         return ADMIN_DASHBOARD_HTML.replace("{total_users}", "0").replace("{total_children}", "0").replace("{total_credits}", "0").replace("{table_rows}", f'<tr><td colspan="4">{err_html}</td></tr>').replace("{single_price}", "1000").replace("{bottle_price}", "9900").replace("{pot_price}", "27000").replace("{box_price}", "39000")
+
+# ==========================================
+# PG Compliance Pages & Footer constants
+# ==========================================
+
+TERMS_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이용약관 - AI고치</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(17, 24, 39, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #f59e0b;
+            --primary-light: #fbbf24;
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #d1d5db;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 30px;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: var(--primary);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: white;
+            border-bottom: 1.5px solid var(--primary);
+            padding-bottom: 15px;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 12px;
+            color: var(--primary-light);
+        }
+        p, li {
+            font-size: 14px;
+            color: #d1d5db;
+            margin-bottom: 10px;
+        }
+        ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        .footer-info {
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="#" onclick="if(window.opener || window.history.length > 1) { window.close(); history.back(); } else { location.href='/purchase'; } return false;" class="btn-back">
+            ← 돌아가기
+        </a>
+        <h1>AI고치 이용약관</h1>
+        
+        <h2>제 1 조 (목적)</h2>
+        <p>본 약관은 (주)제이케이 (이하 "회사")가 제공하는 AI고치 및 관련 서비스(이하 "서비스")를 이용자가 이용함에 있어 "회사"와 "이용자" 간의 권리, 의무, 책임사항 및 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
+
+        <h2>제 2 조 (용어의 정의)</h2>
+        <ul>
+            <li><strong>서비스:</strong> 회사가 제공하는 AI 기반 일기 첨삭, 자녀 교육 관리, 알림 및 보호자 리포트 등 일체의 웹/앱 서비스를 의미합니다.</li>
+            <li><strong>이용자:</strong> 본 약관에 동의하고 회사가 제공하는 서비스를 이용하는 보호자 및 자녀를 의미합니다.</li>
+            <li><strong>마법이슬:</strong> 서비스 내에서 AI 첨삭, 리포트 확인 등 유료 기능을 이용하기 위해 사용하는 디지털 재화를 의미합니다.</li>
+        </ul>
+
+        <h2>제 3 조 (약관의 명시와 개정)</h2>
+        <p>회사는 본 약관의 내용을 이용자가 쉽게 알 수 있도록 서비스 화면에 게시합니다. 회사는 필요한 경우 관련 법령을 위배하지 않는 범위 내에서 본 약관을 개정할 수 있습니다.</p>
+
+        <h2>제 4 조 (서비스 이용 및 제한)</h2>
+        <p>이용자는 회사가 제공하는 결제 수단을 통해 마법이슬을 충전하여 서비스를 이용할 수 있습니다. 타인의 명의나 부정한 방법을 사용한 이용자는 서비스 이용이 영구 제한될 수 있습니다.</p>
+
+        <h2>제 5 조 (청약철회 및 환불)</h2>
+        <p>이용자는 유료 결제로 구매한 마법이슬에 대해 구매일로부터 7일 이내에 청약철회(환불)를 요청할 수 있습니다. 단, 구매 후 이미 사용한 마법이슬 또는 자녀 계정으로 전송이 완료된 마법이슬에 대해서는 청약철회가 제한됩니다. 정기 구독 취소 시 해당 결제 주기가 끝난 후 다음 결제부터 청구되지 않습니다.</p>
+
+        <div class="footer-info">
+            <strong>(주)제이케이 (JK Inc.)</strong><br>
+            대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호<br>
+            고객센터: 02-1234-5678 | 이메일: support@ai-gochi.com | 주소: 서울특별시 강남구 테헤란로 123, 4층
+        </div>
+    </div>
+</body>
+</html>"""
+
+PRIVACY_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인정보처리방침 - AI고치</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(17, 24, 39, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #f59e0b;
+            --primary-light: #fbbf24;
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #d1d5db;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 30px;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: var(--primary);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: white;
+            border-bottom: 1.5px solid var(--primary);
+            padding-bottom: 15px;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 12px;
+            color: var(--primary-light);
+        }
+        p, li {
+            font-size: 14px;
+            color: #d1d5db;
+            margin-bottom: 10px;
+        }
+        ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        .footer-info {
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="#" onclick="if(window.opener || window.history.length > 1) { window.close(); history.back(); } else { location.href='/purchase'; } return false;" class="btn-back">
+            ← 돌아가기
+        </a>
+        <h1>AI고치 개인정보처리방침</h1>
+        
+        <p>(주)제이케이(이하 "회사")는 이용자의 개인정보를 매우 중요시하며, '개인정보 보호법' 등 관련 법령을 준수하고 있습니다. 회사는 본 개인정보처리방침을 통해 이용자가 제공하는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며, 개인정보보호를 위해 어떠한 조치가 취해지고 있는지 알려드립니다.</p>
+
+        <h2>1. 수집하는 개인정보 항목 및 수집방법</h2>
+        <ul>
+            <li><strong>보호자 수집항목:</strong> 카카오 소셜 로그인 식별 정보 (이메일, 닉네임, 프로필 이미지, 고유식별ID), 대금 결제 시 결제 승인 결과 정보(상태, 금액, 주문ID, 포트원 거래식별자).</li>
+            <li><strong>자녀 수집항목:</strong> 닉네임, 나이, 성별, 자녀가 앱에 직접 작성한 일기 텍스트 및 음성 녹음 데이터.</li>
+            <li><strong>수집방법:</strong> 앱 가입 및 로그인, 유료 서비스 이용 결제 창, 자녀의 직접 입력.</li>
+        </ul>
+
+        <h2>2. 개인정보의 수집 및 이용 목적</h2>
+        <p>회사는 다음의 목적을 위해 개인정보를 처리합니다. 처리하고 있는 개인정보는 목적 이외의 용도로는 이용되지 않으며, 이용 목적이 변경되는 경우에는 관련 법령에 따라 별도의 동의를 받는 등 필요한 조치를 이행할 예정입니다.</p>
+        <ul>
+            <li><strong>회원 관리:</strong> 본인 식별, 연동 회원 간 마법이슬 전송 및 확인, 불량 이용 제한.</li>
+            <li><strong>서비스 제공:</strong> AI 기반 자녀 일기 분석 피드백, 자녀 성장 상태 보고서(보호자 리포트) 발급.</li>
+            <li><strong>결제 및 정산:</strong> 유료 패키지 결제, 결제 승인 및 취소(환불) 처리.</li>
+        </ul>
+
+        <h2>3. 개인정보의 보유 및 이용 기간</h2>
+        <p>회사는 법령에 따른 개인정보 보유·이용기간 또는 이용자로부터 개인정보 수집 시에 동의받은 보유·이용기간 내에서 개인정보를 처리·보유합니다.</p>
+        <ul>
+            <li>서비스 가입 기간 동안 보유 및 이용하며, 회원 탈퇴 시 파기합니다.</li>
+            <li>전자상거래법 등 관계법령에 따른 보존:
+                <ul>
+                    <li>계약 또는 청약철회 등에 관한 기록: 5년</li>
+                    <li>대금결제 및 재화 등의 공급에 관한 기록: 5년</li>
+                    <li>소비자의 불만 또는 분쟁처리에 관한 기록: 3년</li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="footer-info">
+            <strong>(주)제이케이 (JK Inc.)</strong><br>
+            대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호<br>
+            고객센터: 02-1234-5678 | 이메일: support@ai-gochi.com | 주소: 서울특별시 강남구 테헤란로 123, 4층
+        </div>
+    </div>
+</body>
+</html>"""
+
+REFUND_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환불정책 - AI고치</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(17, 24, 39, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #f59e0b;
+            --primary-light: #fbbf24;
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #d1d5db;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 30px;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: var(--primary);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: white;
+            border-bottom: 1.5px solid var(--primary);
+            padding-bottom: 15px;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 12px;
+            color: var(--primary-light);
+        }
+        p, li {
+            font-size: 14px;
+            color: #d1d5db;
+            margin-bottom: 10px;
+        }
+        ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        .footer-info {
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="#" onclick="if(window.opener || window.history.length > 1) { window.close(); history.back(); } else { location.href='/purchase'; } return false;" class="btn-back">
+            ← 돌아가기
+        </a>
+        <h1>AI고치 환불 및 취소 정책</h1>
+        
+        <h2>1. 청약철회 (환불) 조건</h2>
+        <ul>
+            <li>이용자가 유료 결제한 마법이슬 상품은 구매일로부터 7일 이내에 고객센터를 통해 청약철회(환불)를 요청할 수 있습니다.</li>
+            <li>단, 다음의 경우에는 청약철회가 불가합니다:
+                <ul>
+                    <li>구매한 마법이슬 중 일부라도 이미 사용한 경우.</li>
+                    <li>보호자 계정에서 자녀 계정으로 이미 전송이 완료된 경우.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>2. 정기 구독의 해지 및 취소</h2>
+        <ul>
+            <li>'마르지 않는 샘물 상자' 정기구독 상품은 매월 지정된 날짜에 정기적으로 결제가 발생합니다.</li>
+            <li>구독 해지(자동 결제 중단)는 다음 결제 예정일 최소 24시간 전에 신청해야 당월 이후 추가 결제가 차단됩니다.</li>
+            <li>해지 신청 후에도, 이미 결제된 당월 기간 동안은 마법이슬 정기 혜택이 정상 제공되며, 차기 주기부터 자동결제가 실행되지 않습니다.</li>
+        </ul>
+
+        <h2>3. 환불 신청 및 처리 절차</h2>
+        <ul>
+            <li>환불 신청은 고객센터 이메일(support@ai-gochi.com) 또는 유선전화(02-1234-5678)를 통해 접수합니다.</li>
+            <li>회사는 영업일 기준 3일 이내에 결제대행사(PG)에 대금 지급 정지 또는 취소를 요청합니다.</li>
+            <li>신용카드 결제 취소의 경우, 카드사 사정에 따라 한도 복구 및 실제 취소 반영까지 평일 기준 3~5일이 더 소요될 수 있습니다.</li>
+        </ul>
+
+        <div class="footer-info">
+            <strong>(주)제이케이 (JK Inc.)</strong><br>
+            대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호<br>
+            고객센터: 02-1234-5678 | 이메일: support@ai-gochi.com | 주소: 서울특별시 강남구 테헤란로 123, 4층
+        </div>
+    </div>
+</body>
+</html>"""
+
+@app.get("/terms", response_class=HTMLResponse)
+async def get_terms():
+    return HTMLResponse(content=TERMS_HTML)
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def get_privacy():
+    return HTMLResponse(content=PRIVACY_HTML)
+
+@app.get("/refund", response_class=HTMLResponse)
+async def get_refund():
+    return HTMLResponse(content=REFUND_HTML)
 
 @app.get("/")
 async def read_index():
