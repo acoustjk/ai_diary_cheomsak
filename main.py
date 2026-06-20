@@ -2259,7 +2259,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                         <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 1개 - 맛보기용</span>
                         <span class="package-price">₩ {single_price_formatted}</span>
                     </div>
-                    <button class="btn-buy">구매</button>
+                    <button class="btn-buy" onclick="event.stopPropagation(); openPaymentModal(1, {single_price})">구매</button>
                 </div>
 
                 <div class="package-item" onclick="openPaymentModal(10, {bottle_price})">
@@ -2268,7 +2268,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                         <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 10개 - 일주일 패키지</span>
                         <span class="package-price">₩ {bottle_price_formatted}</span>
                     </div>
-                    <button class="btn-buy">구매</button>
+                    <button class="btn-buy" onclick="event.stopPropagation(); openPaymentModal(10, {bottle_price})">구매</button>
                 </div>
 
                 <div class="package-item" onclick="openPaymentModal(30, {pot_price})">
@@ -2277,7 +2277,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                         <span class="package-desc" style="font-size: 11px; color: #9ca3af; margin-top: 2px;">이슬 30개 - 한 달 열공 패키지</span>
                         <span class="package-price">₩ {pot_price_formatted}</span>
                     </div>
-                    <button class="btn-buy">구매</button>
+                    <button class="btn-buy" onclick="event.stopPropagation(); openPaymentModal(30, {pot_price})">구매</button>
                 </div>
 
                 <div class="package-item" onclick="openPaymentModal(100, {box_price}, true)">
@@ -2286,7 +2286,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
                         <span class="package-desc" style="font-size: 11px; color: #34d399; margin-top: 2px; font-weight: 600;">정기 구독제 - 매달 이슬 자동 충전</span>
                         <span class="package-price">₩ {box_price_formatted} / 월</span>
                     </div>
-                    <button class="btn-buy" style="background: linear-gradient(135deg, #10b981, #059669);">구독</button>
+                    <button class="btn-buy" style="background: linear-gradient(135deg, #10b981, #059669);" onclick="event.stopPropagation(); openPaymentModal(100, {box_price}, true)">구독</button>
                 </div>
             </div>
 
