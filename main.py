@@ -801,6 +801,27 @@ async def get_privacy():
         
         <h2>5. 정보주체의 권리 행사 방법</h2>
         <p>회원은 언제든지 자신의 개인정보를 열람, 수정할 수 있으며 회원 탈퇴(연결 해제 및 계정 삭제)를 요구할 권리가 있습니다. 회원 탈퇴는 앱 내 설정 메뉴에서 간편하게 처리하실 수 있습니다.</p>
+
+        <h2>6. 만 14세 미만 아동의 개인정보 보호</h2>
+        <p>서비스는 만 14세 미만 아동의 회원 가입은 받지 않으며, 자녀 연동 서비스를 제공하기 위해 법정대리인(보호자)의 동의 하에 최소한의 아동 개인정보(닉네임, 일기 내용)를 수집 및 처리합니다. 법정대리인은 언제든지 자녀의 개인정보에 대한 열람, 수정, 삭제 혹은 동의 철회를 요구할 수 있습니다.</p>
+
+        <h2>7. 개인정보의 국외 이전 및 처리 위탁</h2>
+        <p>서비스는 인공지능 일기 분석 및 첨삭 서비스 제공을 위해 아래와 같이 국외 업체에 처리를 위탁하고 데이터를 이전합니다:</p>
+        <ul>
+            <li><strong>위탁 및 이전받는 자</strong>: Google LLC (Google GenAI API 서비스)</li>
+            <li><strong>이전 국가</strong>: 미국</li>
+            <li><strong>이전 목적</strong>: Gemini LLM 모델을 활용한 아동 일기 분석, 맞춤법 교정 및 AI 피드백 생성</li>
+            <li><strong>이전 항목</strong>: 아동이 작성한 일기 원본 텍스트 및 프롬프트 내용 (개인 식별용 계정 정보는 일절 제공하지 않습니다)</li>
+            <li><strong>이전 방법</strong>: 인터넷 네트워크를 통한 보안 암호화(HTTPS) 전송</li>
+            <li><strong>보유 및 이용 기간</strong>: AI 피드백 생성 즉시 소멸 (Google API 서비스 약관에 따름)</li>
+        </ul>
+
+        <h2>8. 개인정보 보호책임자 (CPO)</h2>
+        <p>서비스 이용 중 발생하는 모든 개인정보 관련 문의 및 불만 처리는 아래 보호책임자 부서로 연락해 주시기 바랍니다:</p>
+        <ul>
+            <li><strong>개인정보 보호책임자</strong>: 제이케이 (CPO)</li>
+            <li><strong>이메일 문의</strong>: <a href="mailto:company.jk0000@gmail.com">company.jk0000@gmail.com</a></li>
+        </ul>
         
         <div class="footer">
             © 2026 제이케이. All rights reserved.
@@ -3026,12 +3047,12 @@ except ImportError:
 def verify_google_play_purchase(package_name: str, product_id: str, token: str, is_subscription: bool) -> bool:
     creds_json = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON")
     if not creds_json:
-        print("[SIMULATION] GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not set. Assuming purchase is valid.")
-        return True
+        print("[ERROR] GOOGLE_PLAY_SERVICE_ACCOUNT_JSON not set. Google Play Verification failed.")
+        return False
     
     if not GOOGLE_PLAY_VERIFICATION_AVAILABLE:
-        print("[WARNING] googleapiclient/google-auth libraries not installed. Simulating purchase success.")
-        return True
+        print("[ERROR] googleapiclient/google-auth libraries not installed. Google Play Verification failed.")
+        return False
         
     try:
         creds_dict = json.loads(creds_json)
