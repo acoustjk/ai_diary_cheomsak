@@ -102,7 +102,9 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 14px;
+            padding: 0 14px;
+            height: 28px;
+            box-sizing: border-box;
             border-radius: 20px;
             font-size: 11px;
             font-weight: bold;
@@ -1300,14 +1302,14 @@
     </div>
     <div class="header-menu">
         <div id="webCreditsBadge" class="mini-badge" style="background: #fffdf5; border-color: #fbd38d; color: #b7791f; display: none; align-items: center; gap: 6px; margin-right: 8px;">
-            <span>🪙</span>
+            <span>💧</span>
             <span>남은 마법이슬: <strong id="webCreditsCount">0</strong>개</span>
         </div>
         <div id="miniPairingBadge" class="mini-badge" style="margin-right: 8px;">
             <span class="mini-badge-dot"></span>
             <span id="miniPairingText">보호자 연결 대기 중</span>
         </div>
-        <button id="headerLogoutBtn" style="padding: 6px 14px; background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: 'Nanum Gothic', sans-serif;" onclick="handleLogout()" onmouseover="this.style.background='#c53030'; this.style.color='white'; this.style.borderColor='#c53030';" onmouseout="this.style.background='#fff5f5'; this.style.color='#c53030'; this.style.borderColor='#feb2b2';">
+        <button id="headerLogoutBtn" style="padding: 0 14px; height: 28px; box-sizing: border-box; background: #fff5f5; color: #c53030; border: 1px solid #feb2b2; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s; font-family: 'Nanum Gothic', sans-serif;" onclick="handleLogout()" onmouseover="this.style.background='#c53030'; this.style.color='white'; this.style.borderColor='#c53030';" onmouseout="this.style.background='#fff5f5'; this.style.color='#c53030'; this.style.borderColor='#feb2b2';">
             <span>🚪</span>로그아웃
         </button>
     </div>
@@ -2702,7 +2704,7 @@
         }
         const wasRewriteMode = isRewriteMode;
         if (webCredits <= 0 && !wasRewriteMode) {
-            const requestRecharge = confirm('마법이슬을 모두 사용했어요! 🪙\n\n보호자 스마트폰 앱에 마법이슬 충전을 요청해 볼까요? 😊');
+            const requestRecharge = confirm('마법이슬을 모두 사용했어요! 💧\n\n보호자 스마트폰 앱에 마법이슬 충전을 요청해 볼까요? 😊');
             if (requestRecharge) {
                 try {
                     fetch('/request-credits', {
@@ -2782,8 +2784,8 @@
                 const loadingText = document.getElementById('loadingText');
                 const feedbackResult = document.getElementById('feedbackResult');
                 if (loadingText) loadingText.style.display = 'none';
-                if (feedbackResult) feedbackResult.innerText = '마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 🪙';
-                alert('마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 🪙');
+                if (feedbackResult) feedbackResult.innerText = '마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 💧';
+                alert('마법이슬이 부족합니다. 보호자님 앱에서 충전해 주세요! 💧');
                 return;
             }
 
