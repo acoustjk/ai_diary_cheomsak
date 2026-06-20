@@ -2335,9 +2335,9 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
     </div>
 
     <script>
-        const IMP = window.IMP;
-        if (IMP) {
-            IMP.init("{portone_imp_code}");
+        const portOne = window.IMP;
+        if (portOne) {
+            portOne.init("{portone_imp_code}");
         } else {
             console.error("PortOne SDK (window.IMP) is not loaded. Safe mock/simulation fallback mode enabled.");
         }
@@ -2380,8 +2380,8 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
         }
 
         function submitMockPayment() {
-            const IMP = window.IMP;
-            if (!IMP) {
+            const portOne = window.IMP;
+            if (!portOne) {
                 // If PortOne SDK is blocked/not loaded, run direct verification simulation
                 const mockImpUid = "mock_imp_" + new Date().getTime();
                 const mockMerchantUid = "mock_order_" + new Date().getTime();
@@ -2418,7 +2418,7 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
             const pgCode = selectedPaymentMethod === 'kakaopay' ? 'kakaopay.TC00000000' : 'html5_inicis';
             const merchantUid = "order_" + new Date().getTime();
             
-            IMP.request_pay({
+            portOne.request_pay({
                 pg: pgCode,
                 pay_method: "card",
                 merchant_uid: merchantUid,
