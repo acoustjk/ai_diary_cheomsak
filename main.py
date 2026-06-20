@@ -1974,14 +1974,13 @@ PARENT_LOGIN_HTML = """<!DOCTYPE html>
 
     <!-- 규정 준수 푸터 -->
     <footer style="margin-top: 50px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 25px; font-size: 11px; color: #9ca3af; line-height: 1.8; text-align: center; width: 100%; max-width: 400px; box-sizing: border-box;">
-        <div style="font-weight: 700; color: white; margin-bottom: 6px; font-size: 12px;">(주)제이케이 (JK Inc.)</div>
-        <div>대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호</div>
-        <div>고객센터: 02-1234-5678 (평일 10:00 ~ 17:00, 점심시간 12:00 ~ 13:00) | 이메일: support@ai-gochi.com</div>
-        <div>주소: 서울특별시 강남구 테헤란로 123, 4층</div>
+        <div style="font-weight: 700; color: white; margin-bottom: 6px; font-size: 12px;">제이케이 (JK.)</div>
+        <div>대표자: 이중권 | 사업자등록번호: 473-70-00685 | 이메일: company.jk0000@gmail.com</div>
+        <div>주소: 경기도 양주시 옥정동로7다길 74, 6층B641호</div>
         <div style="margin-top: 12px; display: flex; justify-content: center; gap: 18px;">
             <a href="/terms" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">이용약관</a>
             <a href="/privacy" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">개인정보처리방침</a>
-            <a href="/refund" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">환불정책</a>
+            <a href="/licenses" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 600;">오픈소스 라이선스</a>
         </div>
         <div style="margin-top: 10px; font-size: 10px; color: #6b7280;">© 2026 제이케이. All rights reserved.</div>
     </footer>
@@ -2331,14 +2330,13 @@ PARENT_PURCHASE_HTML = """<!DOCTYPE html>
 
         <!-- 규정 준수 푸터 -->
         <footer style="margin-top: 50px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 25px; font-size: 11px; color: #9ca3af; line-height: 1.8; text-align: center;">
-            <div style="font-weight: 700; color: white; margin-bottom: 6px; font-size: 12px;">(주)제이케이 (JK Inc.)</div>
-            <div>대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호</div>
-            <div>고객센터: 02-1234-5678 (평일 10:00 ~ 17:00, 점심시간 12:00 ~ 13:00) | 이메일: support@ai-gochi.com</div>
-            <div>주소: 서울특별시 강남구 테헤란로 123, 4층</div>
+            <div style="font-weight: 700; color: white; margin-bottom: 6px; font-size: 12px;">제이케이 (JK.)</div>
+            <div>대표자: 이중권 | 사업자등록번호: 473-70-00685 | 이메일: company.jk0000@gmail.com</div>
+            <div>주소: 경기도 양주시 옥정동로7다길 74, 6층B641호</div>
             <div style="margin-top: 12px; display: flex; justify-content: center; gap: 18px;">
                 <a href="/terms" target="_blank" style="color: var(--primary-light); text-decoration: none; font-weight: 600;">이용약관</a>
                 <a href="/privacy" target="_blank" style="color: var(--primary-light); text-decoration: none; font-weight: 600;">개인정보처리방침</a>
-                <a href="/refund" target="_blank" style="color: var(--primary-light); text-decoration: none; font-weight: 600;">환불정책</a>
+                <a href="/licenses" target="_blank" style="color: var(--primary-light); text-decoration: none; font-weight: 600;">오픈소스 라이선스</a>
             </div>
             <div style="margin-top: 10px; font-size: 10px; color: #6b7280;">© 2026 제이케이. All rights reserved.</div>
         </footer>
@@ -3595,7 +3593,7 @@ TERMS_HTML = """<!DOCTYPE html>
         <h1>AI고치 이용약관</h1>
         
         <h2>제 1 조 (목적)</h2>
-        <p>본 약관은 (주)제이케이 (이하 "회사")가 제공하는 AI고치 및 관련 서비스(이하 "서비스")를 이용자가 이용함에 있어 "회사"와 "이용자" 간의 권리, 의무, 책임사항 및 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
+        <p>본 약관은 제이케이 (JK.) (이하 "회사")가 제공하는 AI고치 및 관련 서비스(이하 "서비스")를 이용자가 이용함에 있어 "회사"와 "이용자" 간의 권리, 의무, 책임사항 및 기타 필요한 사항을 규정함을 목적으로 합니다.</p>
 
         <h2>제 2 조 (용어의 정의)</h2>
         <ul>
@@ -3614,9 +3612,9 @@ TERMS_HTML = """<!DOCTYPE html>
         <p>이용자는 유료 결제로 구매한 마법이슬에 대해 구매일로부터 7일 이내에 청약철회(환불)를 요청할 수 있습니다. 단, 구매 후 이미 사용한 마법이슬 또는 자녀 계정으로 전송이 완료된 마법이슬에 대해서는 청약철회가 제한됩니다. 정기 구독 취소 시 해당 결제 주기가 끝난 후 다음 결제부터 청구되지 않습니다.</p>
 
         <div class="footer-info">
-            <strong>(주)제이케이 (JK Inc.)</strong><br>
-            대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호<br>
-            고객센터: 02-1234-5678 | 이메일: support@ai-gochi.com | 주소: 서울특별시 강남구 테헤란로 123, 4층
+            <strong>제이케이 (JK.)</strong><br>
+            대표자: 이중권 | 사업자등록번호: 473-70-00685 | 이메일: company.jk0000@gmail.com<br>
+            주소: 경기도 양주시 옥정동로7다길 74, 6층B641호
         </div>
     </div>
 </body>
@@ -3722,7 +3720,7 @@ PRIVACY_HTML = """<!DOCTYPE html>
         </a>
         <h1>AI고치 개인정보처리방침</h1>
         
-        <p>(주)제이케이(이하 "회사")는 이용자의 개인정보를 매우 중요시하며, '개인정보 보호법' 등 관련 법령을 준수하고 있습니다. 회사는 본 개인정보처리방침을 통해 이용자가 제공하는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며, 개인정보보호를 위해 어떠한 조치가 취해지고 있는지 알려드립니다.</p>
+        <p>제이케이 (JK.)(이하 "회사")는 이용자의 개인정보를 매우 중요시하며, '개인정보 보호법' 등 관련 법령을 준수하고 있습니다. 회사는 본 개인정보처리방침을 통해 이용자가 제공하는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며, 개인정보보호를 위해 어떠한 조치가 취해지고 있는지 알려드립니다.</p>
 
         <h2>1. 수집하는 개인정보 항목 및 수집방법</h2>
         <ul>
@@ -3753,9 +3751,9 @@ PRIVACY_HTML = """<!DOCTYPE html>
         </ul>
 
         <div class="footer-info">
-            <strong>(주)제이케이 (JK Inc.)</strong><br>
-            대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호<br>
-            고객센터: 02-1234-5678 | 이메일: support@ai-gochi.com | 주소: 서울특별시 강남구 테헤란로 123, 4층
+            <strong>제이케이 (JK.)</strong><br>
+            대표자: 이중권 | 사업자등록번호: 473-70-00685 | 이메일: company.jk0000@gmail.com<br>
+            주소: 경기도 양주시 옥정동로7다길 74, 6층B641호
         </div>
     </div>
 </body>
@@ -3887,9 +3885,9 @@ REFUND_HTML = """<!DOCTYPE html>
         </ul>
 
         <div class="footer-info">
-            <strong>(주)제이케이 (JK Inc.)</strong><br>
-            대표자: 홍길동 | 사업자등록번호: 000-00-00000 | 통신판매업신고번호: 제 2026-서울강남-0000호<br>
-            고객센터: 02-1234-5678 | 이메일: support@ai-gochi.com | 주소: 서울특별시 강남구 테헤란로 123, 4층
+            <strong>제이케이 (JK.)</strong><br>
+            대표자: 이중권 | 사업자등록번호: 473-70-00685 | 이메일: company.jk0000@gmail.com<br>
+            주소: 경기도 양주시 옥정동로7다길 74, 6층B641호
         </div>
     </div>
 </body>
