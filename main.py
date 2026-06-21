@@ -704,132 +704,6 @@ async def get_terms():
 </html>"""
     return html_content
 
-@app.get("/privacy", response_class=HTMLResponse)
-async def get_privacy():
-    html_content = """<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI고치 개인정보 처리방침</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #F7FAFC;
-            color: #2D3748;
-            margin: 0;
-            padding: 40px 20px;
-            line-height: 1.6;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: #FFFFFF;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #1A365D;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        .subtitle {
-            text-align: center;
-            color: #718096;
-            margin-bottom: 40px;
-            font-size: 14px;
-        }
-        h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #2B6CB0;
-            border-bottom: 2px solid #E2E8F0;
-            padding-bottom: 8px;
-            margin-top: 32px;
-            margin-bottom: 16px;
-        }
-        p, li {
-            font-size: 15px;
-            color: #4A5568;
-        }
-        ul {
-            padding-left: 20px;
-        }
-        li {
-            margin-bottom: 8px;
-        }
-        .footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 13px;
-            color: #A0AEC0;
-            border-top: 1px solid #E2E8F0;
-            padding-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>AI고치 개인정보 처리방침</h1>
-        <div class="subtitle">시행일자: 2026년 6월 12일</div>
-        
-        <h2>1. 개인정보의 수집 및 이용 목적</h2>
-        <p>서비스는 다음의 목적을 위해 최소한의 개인정보를 수집하고 이용합니다. 수집된 개인정보는 목적 외의 용도로 사용되지 않으며, 목적이 변경될 경우 사전에 동의를 구합니다.</p>
-        <ul>
-            <li><strong>회원 가입 및 식별</strong>: 카카오 소셜 로그인을 통한 회원제 서비스 제공, 본인 확인 및 연동 관계 생성</li>
-            <li><strong>AI 서비스 제공</strong>: 자녀의 일기 데이터 분석 및 맞춤 피드백 작성</li>
-            <li><strong>알림 및 푸시 메시지</strong>: 일기 첨삭 완료 실시간 푸시 알림 발송</li>
-        </ul>
-        
-        <h2>2. 수집하는 개인정보의 항목</h2>
-        <p>서비스는 회원 가입 및 자녀 연동 시 아래와 같은 정보를 수집할 수 있습니다:</p>
-        <ul>
-            <li><strong>보호자(회원)</strong>: 카카오 고유 UID, 프로필 이메일 주소, 프로필 닉네임</li>
-            <li><strong>자녀(학생)</strong>: 자녀의 닉네임, 작성한 일기 원본 및 AI 첨삭 결과 일기 데이터</li>
-            <li><strong>자동 생성 정보</strong>: 푸시 알림 토큰(FCM), 기기 식별값(ID)</li>
-        </ul>
-        
-        <h2>3. 개인정보의 보유 및 이용 기간</h2>
-        <p>이용자의 개인정보는 서비스 탈퇴 시 즉시 파기하는 것을 원칙으로 합니다. 다만 관계 법령의 규정에 따라 일정 기간 보존할 필요가 있는 경우 해당 법령에 따라 보관합니다.</p>
-        
-        <h2>4. 개인정보의 파기 절차 및 방법</h2>
-        <p>전자적 파일 형태로 저장된 개인정보는 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제하며, 종이 문서에 출력된 개인정보는 분쇄기로 분쇄하여 파기합니다.</p>
-        
-        <h2>5. 정보주체의 권리 행사 방법</h2>
-        <p>회원은 언제든지 자신의 개인정보를 열람, 수정할 수 있으며 회원 탈퇴(연결 해제 및 계정 삭제)를 요구할 권리가 있습니다. 회원 탈퇴는 앱 내 설정 메뉴에서 간편하게 처리하실 수 있습니다.</p>
-
-        <h2>6. 만 14세 미만 아동의 개인정보 보호</h2>
-        <p>서비스는 만 14세 미만 아동의 회원 가입은 받지 않으며, 자녀 연동 서비스를 제공하기 위해 법정대리인(보호자)의 동의 하에 최소한의 아동 개인정보(닉네임, 일기 내용)를 수집 및 처리합니다. 법정대리인은 언제든지 자녀의 개인정보에 대한 열람, 수정, 삭제 혹은 동의 철회를 요구할 수 있습니다.</p>
-
-        <h2>7. 개인정보의 국외 이전 및 처리 위탁</h2>
-        <p>서비스는 인공지능 일기 분석 및 첨삭 서비스 제공을 위해 아래와 같이 국외 업체에 처리를 위탁하고 데이터를 이전합니다:</p>
-        <ul>
-            <li><strong>위탁 및 이전받는 자</strong>: Google LLC (Google GenAI API 서비스)</li>
-            <li><strong>이전 국가</strong>: 미국</li>
-            <li><strong>이전 목적</strong>: Gemini LLM 모델을 활용한 아동 일기 분석, 맞춤법 교정 및 AI 피드백 생성</li>
-            <li><strong>이전 항목</strong>: 아동이 작성한 일기 원본 텍스트 및 프롬프트 내용 (개인 식별용 계정 정보는 일절 제공하지 않습니다)</li>
-            <li><strong>이전 방법</strong>: 인터넷 네트워크를 통한 보안 암호화(HTTPS) 전송</li>
-            <li><strong>보유 및 이용 기간</strong>: AI 피드백 생성 즉시 소멸 (Google API 서비스 약관에 따름)</li>
-        </ul>
-
-        <h2>8. 개인정보 보호책임자 (CPO)</h2>
-        <p>서비스 이용 중 발생하는 모든 개인정보 관련 문의 및 불만 처리는 아래 보호책임자 부서로 연락해 주시기 바랍니다:</p>
-        <ul>
-            <li><strong>개인정보 보호책임자</strong>: 제이케이 (CPO)</li>
-            <li><strong>이메일 문의</strong>: <a href="mailto:company.jk0000@gmail.com">company.jk0000@gmail.com</a></li>
-        </ul>
-        
-        <div class="footer">
-            © 2026 제이케이. All rights reserved.
-        </div>
-    </div>
-</body>
-</html>"""
-    return html_content
 
 @app.get("/naverf43348555ee55db3290df887a97ee7ea.html")
 async def naver_verification():
@@ -3771,6 +3645,174 @@ PRIVACY_HTML = """<!DOCTYPE html>
             </li>
         </ul>
 
+        <h2>4. 개인정보의 파기 절차 및 방법</h2>
+        <p>회사는 개인정보 보유기간의 경과, 처리목적 달성 등 개인정보가 불필요하게 되었을 때에는 지체 없이 해당 개인정보를 파기합니다. 전자적 파일 형태의 정보는 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제하며, 종이 문서에 출력된 개인정보는 분쇄기로 분쇄하여 파기합니다.</p>
+
+        <h2>5. 정보주체의 권리 행사 방법</h2>
+        <p>이용자는 회사에 대해 언제든지 개인정보 열람·정정·삭제·처리정지 요구 등의 권리를 행사할 수 있습니다. 권리 행사는 앱 내 설정 메뉴 또는 고객센터를 통해 처리할 수 있으며, 회사는 이에 대해 지체 없이 조치하겠습니다.</p>
+
+        <h2>6. 만 14세 미만 아동의 개인정보 보호</h2>
+        <p>서비스는 만 14세 미만 아동의 회원 가입은 받지 않으며, 자녀 연동 서비스를 제공하기 위해 법정대리인(보호자)의 동의 하에 최소한의 아동 개인정보(닉네임, 일기 내용)를 수집 및 처리합니다. 법정대리인은 언제든지 자녀의 개인정보에 대한 열람, 수정, 삭제 혹은 동의 철회를 요구할 수 있습니다.</p>
+
+        <h2>7. 개인정보의 국외 이전 및 처리 위탁</h2>
+        <p>서비스는 인공지능 일기 분석 및 첨삭 서비스 제공을 위해 아래와 같이 국외 업체에 처리를 위탁하고 데이터를 이전합니다:</p>
+        <ul>
+            <li><strong>위탁 및 이전받는 자:</strong> Google LLC (Google GenAI API 서비스)</li>
+            <li><strong>이전 국가:</strong> 미국</li>
+            <li><strong>이전 목적:</strong> Gemini LLM 모델을 활용한 아동 일기 분석, 맞춤법 교정 및 AI 피드백 생성</li>
+            <li><strong>이전 항목:</strong> 아동이 작성한 일기 원본 텍스트 및 프롬프트 내용 (개인 식별용 계정 정보는 일절 제공하지 않습니다)</li>
+            <li><strong>이전 방법:</strong> 인터넷 네트워크를 통한 보안 암호화(HTTPS) 전송</li>
+            <li><strong>보유 및 이용 기간:</strong> AI 피드백 생성 즉시 소멸 (Google API 서비스 약관에 따름)</li>
+        </ul>
+
+        <h2>8. 개인정보 보호책임자 (CPO)</h2>
+        <p>서비스 이용 중 발생하는 모든 개인정보 관련 문의 및 불만 처리는 아래 보호책임자 부서로 연락해 주시기 바랍니다:</p>
+        <ul>
+            <li><strong>개인정보 보호책임자:</strong> 제이케이 (CPO)</li>
+            <li><strong>이메일 문의:</strong> company.jk0000@gmail.com</li>
+        </ul>
+
+        <div class="footer-info">
+            <strong>제이케이 (JK.)</strong><br>
+            대표자: 이중권 | 사업자등록번호: 473-70-00685 | 이메일: company.jk0000@gmail.com<br>
+            주소: 경기도 양주시 옥정동로7다길 74, 6층B641호
+        </div>
+    </div>
+</body>
+</html>"""
+
+CHILD_PRIVACY_HTML = """<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>만 14세 미만 자녀 정보 수집·이용 동의서 - AI고치</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Nanum+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --text-color: #f3f4f6;
+            --card-bg: rgba(17, 24, 39, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #f59e0b;
+            --primary-light: #fbbf24;
+        }
+        body {
+            font-family: 'Outfit', 'Nanum Gothic', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            color: #d1d5db;
+            border-radius: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            margin-bottom: 30px;
+        }
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: var(--primary);
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: white;
+            border-bottom: 1.5px solid var(--primary);
+            padding-bottom: 15px;
+            line-height: 1.4;
+        }
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-top: 30px;
+            margin-bottom: 12px;
+            color: var(--primary-light);
+        }
+        p, li {
+            font-size: 14px;
+            color: #d1d5db;
+            margin-bottom: 10px;
+        }
+        ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        .footer-info {
+            margin-top: 40px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="#" onclick="if(window.opener || window.history.length > 1) { window.close(); history.back(); } else { location.href='/purchase'; } return false;" class="btn-back">
+            ← 돌아가기
+        </a>
+        <h1>만 14세 미만 자녀 개인정보 수집·이용 동의서</h1>
+        
+        <p>제이케이 (JK.)는 만 14세 미만 아동의 개인정보를 수집 및 이용하기 위해 개인정보 보호법에 따라 법정대리인(보호자)의 동의를 받습니다. 내용을 자세히 읽으신 후 동의해 주시기 바랍니다.</p>
+
+        <h2>1. 수집하는 자녀 개인정보 항목</h2>
+        <ul>
+            <li>자녀의 닉네임, 나이, 성별, 자녀가 앱에 직접 작성한 일기 텍스트 및 음성 녹음 데이터.</li>
+        </ul>
+
+        <h2>2. 수집 및 이용 목적</h2>
+        <ul>
+            <li><strong>AI 기반 일기 첨삭:</strong> 자녀가 쓴 일기의 맞춤법 및 문장 교정 피드백 제공.</li>
+            <li><strong>자녀 성장 상태 분석:</strong> 일기 내용을 분석하여 보호자용 리포트(감정 및 학습 상태 요약) 작성 및 제공.</li>
+        </ul>
+
+        <h2>3. 개인정보의 보유 및 이용 기간</h2>
+        <ul>
+            <li><strong>서비스 이용 기간 동안 보유 및 이용하며, 보호자 또는 자녀 회원 탈퇴 시 즉시 파기합니다.</strong></li>
+        </ul>
+
+        <h2>4. 개인정보의 국외 이전 및 처리 위탁 고지</h2>
+        <p>회사는 인공지능 기반 첨삭 분석 서비스를 제공하기 위해 아래와 같이 국외 업체에 데이터 처리를 위탁합니다:</p>
+        <ul>
+            <li><strong>위탁/이전받는 자:</strong> Google LLC (Google GenAI API 서비스, 미국)</li>
+            <li><strong>이전 목적:</strong> Gemini LLM 모델을 활용한 아동 일기 분석 및 피드백 생성</li>
+            <li><strong>이전 항목:</strong> 자녀가 작성한 일기 텍스트 내용 (식별용 보호자/자녀 계정 정보는 제공되지 않습니다)</li>
+            <li><strong>이전 방법:</strong> 인터넷 네트워크를 통한 보안 암호화(HTTPS) 전송</li>
+            <li><strong>보유 및 이용 기간:</strong> AI 피드백 생성 즉시 소멸 (Google API 서비스 약관에 따름)</li>
+        </ul>
+
+        <h2>5. 동의 거부 권리 및 불이익</h2>
+        <p>법정대리인은 자녀의 개인정보 수집·이용 동의를 거부할 권리가 있습니다. 단, 동의를 거부하실 경우 AI고치 자녀 연동 및 AI 일기 첨삭/성장 리포트 서비스 이용이 제한됩니다.</p>
+
         <div class="footer-info">
             <strong>제이케이 (JK.)</strong><br>
             대표자: 이중권 | 사업자등록번호: 473-70-00685 | 이메일: company.jk0000@gmail.com<br>
@@ -3921,6 +3963,10 @@ async def get_terms():
 @app.get("/privacy", response_class=HTMLResponse)
 async def get_privacy():
     return HTMLResponse(content=PRIVACY_HTML)
+
+@app.get("/child-privacy", response_class=HTMLResponse)
+async def get_child_privacy():
+    return HTMLResponse(content=CHILD_PRIVACY_HTML)
 
 @app.get("/refund", response_class=HTMLResponse)
 async def get_refund():
