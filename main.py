@@ -1589,10 +1589,11 @@ ADMIN_DASHBOARD_HTML = """<!DOCTYPE html>
                 if (row.classList.contains('no-data-row')) return;
                 
                 const userName = row.querySelector('.user-name').innerText.toLowerCase();
+                const userNick = row.querySelector('.user-nick') ? row.querySelector('.user-nick').innerText.toLowerCase() : '';
                 const userEmail = row.querySelector('.user-email').innerText.toLowerCase();
                 const uid = row.querySelector('.uid-badge').innerText.toLowerCase();
                 
-                if (userName.includes(query) || userEmail.includes(query) || uid.includes(query)) {
+                if (userName.includes(query) || userNick.includes(query) || userEmail.includes(query) || uid.includes(query)) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
@@ -3396,8 +3397,9 @@ async def get_admin_dashboard(request: Request):
             table_rows += f"""
             <tr>
                 <td>
-                    <div class="user-name">{name} {display_name_badge}</div>
-                    <div class="user-email">{email}</div>
+                    <div class="user-name" style="font-weight: 700; font-size: 15px;">{name}</div>
+                    <div class="user-nick" style="font-size: 12px; color: #a78bfa; margin-top: 2px;">카카오 닉네임: {display_name or "없음"}</div>
+                    <div class="user-email" style="font-size: 13px; color: #9ca3af; margin-top: 2px;">이메일: {email}</div>
                     <div style="font-size: 13px; color: #fb7185; margin-top: 5px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
                         <span>보유 마법이슬: <span id="parent-credit-{uid}">{parent_credits}</span>🪙</span>
                         <button class="btn-charge" style="background: linear-gradient(135deg, #ec4899, #db2777);" onclick="chargeParentCredit('{uid}', '{name}')" title="보호자 마법이슬 지급">+</button>
