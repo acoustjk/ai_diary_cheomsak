@@ -200,7 +200,7 @@ def send_credit_notification(child_id: str, child_name: str, notification_type: 
         print(f"Failed to send credit FCM message: {e}")
 
 # Kakao REST API Key for web login
-KAKAO_REST_API_KEY = os.environ.get("KAKAO_REST_API_KEY", "e6e12d90f46f99a6634487f83cbd62b9")
+KAKAO_REST_API_KEY = os.environ.get("KAKAO_REST_API_KEY", "1c784d641fd28c3fb2cb7d67d22980e2")
 
 app = FastAPI()
 
@@ -545,19 +545,30 @@ async def auth_kakao(data: SocialAuthInput):
         
     try:
         if firebase_admin._apps:
+            target_uid = uid
             try:
                 auth.get_user(uid)
             except Exception:
-                auth.create_user(
-                    uid=uid,
-                    email=email,
-                    display_name=nickname
-                )
-            custom_token = auth.create_custom_token(uid)
+                # If get_user by UID fails, check if we can find them by email
+                found_user = None
+                if email:
+                    try:
+                        found_user = auth.get_user_by_email(email)
+                        target_uid = found_user.uid
+                    except Exception:
+                        pass
+                
+                if not found_user:
+                    auth.create_user(
+                        uid=uid,
+                        email=email,
+                        display_name=nickname
+                    )
+            custom_token = auth.create_custom_token(target_uid)
             return {
                 "status": "success",
                 "customToken": custom_token.decode('utf-8') if isinstance(custom_token, bytes) else custom_token,
-                "uid": uid,
+                "uid": target_uid,
                 "email": email,
                 "nickname": nickname
             }
