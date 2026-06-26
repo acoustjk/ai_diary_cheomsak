@@ -3320,16 +3320,15 @@ async def get_admin_dashboard(request: Request):
         else:
             reviewers_docs = db_client.collection("reviewers").get()
         
-        # Calculate active child IDs and total credits from active reviewers (whose UID starts with "kakao")
+        # Calculate active child IDs and total credits from all reviewers
         active_child_ids = set()
         for doc in reviewers_docs:
             data = doc.to_dict()
             uid = data.get("reviewerUid") or doc.id
-            if uid.startswith("kakao"):
-                paired_children_ids = data.get("pairedChildren") or []
-                for cid in paired_children_ids:
-                    if cid in children_map:
-                        active_child_ids.add(cid)
+            paired_children_ids = data.get("pairedChildren") or []
+            for cid in paired_children_ids:
+                if cid in children_map:
+                    active_child_ids.add(cid)
                         
         total_children = len(active_child_ids)
         total_credits = sum(children_map[cid]["credits"] for cid in active_child_ids)
@@ -3340,8 +3339,6 @@ async def get_admin_dashboard(request: Request):
         for doc in reviewers_docs:
             data = doc.to_dict()
             uid = data.get("reviewerUid") or doc.id
-            if not uid.startswith("kakao"):
-                continue
             name = data.get("name") or "보호자"
             paired_children_ids = data.get("pairedChildren") or []
             parent_credits = data.get("credits") or 0
