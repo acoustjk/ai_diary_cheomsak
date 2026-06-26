@@ -2992,10 +2992,11 @@ def verify_google_play_purchase(package_name: str, product_id: str, token: str, 
 @app.post("/api/payment/verify-google-play")
 async def verify_google_play(data: GooglePlayVerifyInput):
     credits_map = {
-        "magical_dew_1": 1,
-        "magical_dew_10": 10,
+        "magical_dew_7": 7,
         "magical_dew_30": 30,
-        "magical_dew_subscription": 100
+        "magical_dew_60": 60,
+        "magical_dew_90": 90,
+        "magical_dew_120": 120
     }
     
     if data.productId not in credits_map:
@@ -3008,7 +3009,7 @@ async def verify_google_play(data: GooglePlayVerifyInput):
     if receipt_ref.get().exists:
         raise HTTPException(status_code=400, detail="이미 처리된 결제 영수증입니다.")
         
-    is_subscription = (data.productId == "magical_dew_subscription")
+    is_subscription = False
     added_credits = credits_map[data.productId]
     
     verified = verify_google_play_purchase(
