@@ -565,6 +565,28 @@ async def auth_kakao(data: SocialAuthInput):
                         display_name=nickname
                     )
             custom_token = auth.create_custom_token(target_uid)
+            
+            # Create/verify Firestore document in reviewers collection
+            try:
+                db_client = firestore.client()
+                parent_ref = db_client.collection("reviewers").document(target_uid)
+                parent_doc = parent_ref.get()
+                if not parent_doc.exists:
+                    parent_ref.set({
+                        "reviewerUid": target_uid,
+                        "name": nickname or "보호자",
+                        "credits": 0,
+                        "pairedChildren": []
+                    })
+                else:
+                    updates = {}
+                    if nickname:
+                        updates["name"] = nickname
+                    if updates:
+                        parent_ref.update(updates)
+            except Exception as fe:
+                print(f"Failed to create/update Firestore reviewer document: {fe}")
+
             return {
                 "status": "success",
                 "customToken": custom_token.decode('utf-8') if isinstance(custom_token, bytes) else custom_token,
