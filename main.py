@@ -3280,8 +3280,44 @@ async def get_admin_dashboard(request: Request):
                 "totalCredits": data.get("totalCreditsGranted") or 0
             }
             
-        # 2. Fetch reviewers (parents)
-        reviewers_docs = db_client.collection("reviewers").get()
+        # 2. Fetch reviewers (parents) and auto-sync from Firebase Auth
+        if firebase_admin._apps:
+            try:
+                # List Firebase Auth users starting with "kakao"
+                auth_users = []
+                page = auth.list_users()
+                while page:
+                    for user in page.users:
+                        if user.uid.startswith("kakao"):
+                            auth_users.append(user)
+                    page = page.get_next_page()
+
+                # Get existing reviewers to check for missing ones
+                temp_docs = db_client.collection("reviewers").get()
+                existing_reviewer_uids = {doc.id for doc in temp_docs}
+                
+                synced_any = False
+                for user in auth_users:
+                    if user.uid not in existing_reviewer_uids:
+                        db_client.collection("reviewers").document(user.uid).set({
+                            "reviewerUid": user.uid,
+                            "name": user.display_name or "보호자",
+                            "credits": 0,
+                            "pairedChildren": []
+                        })
+                        print(f"Synced missing auth user to Firestore: {user.uid}")
+                        synced_any = True
+                
+                # Re-fetch reviewers docs if any changes made
+                if synced_any:
+                    reviewers_docs = db_client.collection("reviewers").get()
+                else:
+                    reviewers_docs = temp_docs
+            except Exception as ae:
+                print(f"Failed to auto-sync Auth users to Firestore: {ae}")
+                reviewers_docs = db_client.collection("reviewers").get()
+        else:
+            reviewers_docs = db_client.collection("reviewers").get()
         
         # Calculate active child IDs and total credits from active reviewers (whose UID starts with "kakao")
         active_child_ids = set()
