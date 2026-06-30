@@ -790,6 +790,80 @@
             </button>
         </div>
 
+        <!-- 💬 AI고치 소통 광장 & 게시판 섹션 -->
+        <div id="community-section" style="width: 100%; margin-top: 32px; box-sizing: border-box; background: rgba(255, 255, 255, 0.7); border: 1.5px solid var(--border-color); border-radius: 24px; padding: 24px; box-shadow: var(--shadow-soft);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                <div style="text-align: left;">
+                    <h3 style="margin: 0; font-family: 'Jua', sans-serif; font-size: 24px; color: var(--secondary-color); display: flex; align-items: center; gap: 8px;">
+                        💬 AI고치 소통 광장
+                    </h3>
+                    <p style="margin: 4px 0 0 0; font-size: 13.5px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
+                        공지사항 확인 및 자유로운 의견 소통을 나누는 공간입니다.
+                    </p>
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button onclick="showWriteModal()" style="padding: 10px 18px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Jua', sans-serif;" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary-color)'">
+                        ✍️ 새 글 쓰기
+                    </button>
+                    <button onclick="promptAdminMode()" id="adminModeBtn" style="padding: 10px 14px; background: #edf2f7; color: #4a5568; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px;" title="관리자 모드 활성화">
+                        ⚙️ 관리자
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4대 카테고리 탭 헤더 -->
+            <div class="community-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px;">
+                <button class="comm-tab active" onclick="switchCommTab('notice')" id="tab-notice">📢 공지사항</button>
+                <button class="comm-tab" onclick="switchCommTab('free')" id="tab-free">💬 자유게시판</button>
+                <button class="comm-tab" onclick="switchCommTab('suggestion')" id="tab-suggestion">💡 개선의견제안</button>
+                <button class="comm-tab" onclick="switchCommTab('inquiry')" id="tab-inquiry">🔒 1:1 문의</button>
+            </div>
+
+            <!-- 글 목록 리스트 영역 -->
+            <div id="posts-list-container" style="display: flex; flex-direction: column; gap: 12px; min-height: 120px;">
+                <!-- JS로 채워짐 -->
+            </div>
+        </div>
+
+        <!-- 📝 게시판 글쓰기 모달 창 -->
+        <div id="writeModal" class="comm-modal-backdrop" style="display: none;" onclick="handleCommModalClick(event)">
+            <div class="comm-modal-card">
+                <h3 id="writeModalTitle" style="margin: 0 0 16px 0; color: var(--secondary-color); font-size: 20px; font-family: 'Jua', sans-serif;">✍️ 소통 광장 글쓰기</h3>
+                <form id="writePostForm" onsubmit="submitPost(event)">
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">카테고리</label>
+                        <select id="postCategorySelect" style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; font-family: 'Nanum Gothic', sans-serif;" onchange="handleCategorySelectChange()">
+                            <option value="free">💬 자유게시판</option>
+                            <option value="suggestion">💡 개선의견제안</option>
+                            <option value="inquiry">🔒 1:1 문의 (비밀글)</option>
+                            <option value="notice" id="noticeSelectOption" style="display: none;">📢 공지사항 (관리자 전용)</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">글쓴이 닉네임</label>
+                        <input type="text" id="postAuthorInput" placeholder="닉네임을 적어주세요" required style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; box-sizing: border-box; font-family: 'Nanum Gothic', sans-serif;">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">제목</label>
+                        <input type="text" id="postTitleInput" placeholder="제목을 입력하세요" required style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; box-sizing: border-box; font-family: 'Nanum Gothic', sans-serif;">
+                    </div>
+                    <div style="margin-bottom: 16px;">
+                        <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">내용</label>
+                        <textarea id="postContentInput" rows="5" placeholder="내용을 정성껏 적어주세요" required style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; box-sizing: border-box; resize: none; font-family: 'Nanum Gothic', sans-serif;"></textarea>
+                    </div>
+                    
+                    <div id="privateNoticeMsg" style="display: none; background: #fff5f5; border: 1px solid #feb2b2; padding: 10px; border-radius: 10px; font-size: 11px; color: #c53030; font-family: 'Nanum Gothic', sans-serif; margin-bottom: 16px; font-weight: bold;">
+                        🔒 1:1 문의글은 자동 비밀글로 등록되어 본인과 관리자만 볼 수 있게 보호됩니다.
+                    </div>
+                    
+                    <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                        <button type="button" onclick="closeWriteModal()" style="padding: 10px 16px; background: #edf2f7; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">취소</button>
+                        <button type="submit" style="padding: 10px 20px; background: #6c5ce7; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer;">등록하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
 
         <div style="margin-top: 24px; border-top: 1px dashed #eeddcc; padding-top: 15px; text-align: center; font-size: 10px; font-family: 'Nanum Gothic', sans-serif; line-height: 1.6; color: #a0aec0;">
             <div style="font-weight: bold; color: #718096;">제이케이 (JK.)</div>
@@ -1569,6 +1643,114 @@
 <style>
     @media print {
         .app-footer { display: none; }
+    }
+    
+    /* --- AI고치 소통 광장 스타일시트 --- */
+    .comm-tab {
+        border: 1.5px solid #eeddcc;
+        background: #fff;
+        border-radius: 20px;
+        color: #4a5568;
+        font-family: 'Nanum Gothic', sans-serif;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 8px 18px;
+        transition: all 0.2s;
+        outline: none;
+    }
+    .comm-tab:hover {
+        background: #f7f5ff;
+        border-color: #dcd3fc;
+    }
+    .comm-tab.active {
+        background: #6c5ce7;
+        border-color: #6c5ce7;
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
+    }
+    .post-card {
+        background: #fff;
+        border: 1.5px solid #eeddcc;
+        border-radius: 16px;
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: all 0.2s;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(183, 157, 137, 0.04);
+        text-align: left;
+    }
+    .post-card:hover {
+        transform: translateY(-2px);
+        border-color: #6c5ce7;
+        box-shadow: 0 6px 16px rgba(108, 92, 231, 0.08);
+    }
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: #718096;
+        font-family: 'Nanum Gothic', sans-serif;
+        font-weight: bold;
+    }
+    .post-title {
+        font-family: 'Jua', sans-serif;
+        font-size: 18px;
+        color: #2d3748;
+        margin: 0;
+    }
+    .post-content {
+        font-size: 14.5px;
+        color: #4a5568;
+        line-height: 1.6;
+        font-family: 'Nanum Gothic', sans-serif;
+        font-weight: bold;
+        white-space: pre-wrap;
+    }
+    .reply-box {
+        background: #f7f6fc;
+        border-left: 4px solid #6c5ce7;
+        padding: 12px 16px;
+        border-radius: 0 12px 12px 0;
+        font-size: 13.5px;
+        color: #5b4bc4;
+        margin-top: 8px;
+        font-family: 'Nanum Gothic', sans-serif;
+        font-weight: bold;
+    }
+    /* 모달 스타일 */
+    .comm-modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.4);
+        backdrop-filter: blur(4px);
+        z-index: 21000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    .comm-modal-card {
+        background: #faf6f0;
+        border: 2px solid #eeddcc;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 550px;
+        padding: 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        box-sizing: border-box;
+        animation: comm-modal-show 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        text-align: left;
+    }
+    @keyframes comm-modal-show {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
     }
 </style>
 
@@ -3200,6 +3382,270 @@
     if (reportParam) {
         renderParentReport(reportParam);
     }
+
+    // ----------------------------------------------------
+    // 💬 AI고치 소통 광장 & 게시판 자바스크립트 연동 시스템
+    // ----------------------------------------------------
+    let currentCommCategory = 'notice';
+    let boardPosts = [];
+    let boardUnsubscribe = null;
+    let adminMode = false;
+
+    // 1. 관리자 모드 활성화 검증 (암호 입력)
+    function promptAdminMode() {
+        if (adminMode) {
+            adminMode = false;
+            sessionStorage.removeItem('is_admin_mode');
+            document.getElementById('adminModeBtn').style.background = '#edf2f7';
+            document.getElementById('adminModeBtn').style.color = '#4a5568';
+            document.getElementById('noticeSelectOption').style.display = 'none';
+            alert('관리자 모드가 해제되었습니다.');
+            loadPosts();
+            return;
+        }
+        const pw = prompt("관리자 비밀번호를 입력해 주세요:");
+        if (pw === 'dkdlfjs18!*') {
+            adminMode = true;
+            sessionStorage.setItem('is_admin_mode', 'true');
+            document.getElementById('adminModeBtn').style.background = '#48bb78';
+            document.getElementById('adminModeBtn').style.color = 'white';
+            document.getElementById('noticeSelectOption').style.display = 'block';
+            alert('관리자 모드가 활성화되었습니다! 📢 공지사항 등록 및 🔒 1:1 문의글 답변 작성이 가능합니다.');
+            loadPosts();
+        } else if (pw !== null) {
+            alert('비밀번호가 올바르지 않습니다.');
+        }
+    }
+
+    // 페이지 로드 시 기존 관리자 모드 복원
+    if (sessionStorage.getItem('is_admin_mode') === 'true') {
+        adminMode = true;
+        setTimeout(() => {
+            const btn = document.getElementById('adminModeBtn');
+            const opt = document.getElementById('noticeSelectOption');
+            if (btn) {
+                btn.style.background = '#48bb78';
+                btn.style.color = 'white';
+            }
+            if (opt) opt.style.display = 'block';
+        }, 500);
+    }
+
+    // 2. 카테고리 전환 탭 토글
+    function switchCommTab(category) {
+        currentCommCategory = category;
+        document.querySelectorAll('.comm-tab').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`tab-${category}`).classList.add('active');
+        loadPosts();
+    }
+
+    // 3. 글쓰기 모달 제어
+    function showWriteModal() {
+        document.getElementById('writeModal').style.display = 'flex';
+        const authorInput = document.getElementById('postAuthorInput');
+        if (authorInput) {
+            authorInput.value = childName || '';
+        }
+        const select = document.getElementById('postCategorySelect');
+        if (select) {
+            select.value = currentCommCategory === 'notice' && !adminMode ? 'free' : currentCommCategory;
+            handleCategorySelectChange();
+        }
+    }
+    function closeWriteModal() {
+        document.getElementById('writeModal').style.display = 'none';
+        document.getElementById('writePostForm').reset();
+    }
+    function handleCommModalClick(e) {
+        if (e.target.id === 'writeModal') closeWriteModal();
+    }
+    function handleCategorySelectChange() {
+        const selectVal = document.getElementById('postCategorySelect').value;
+        const msg = document.getElementById('privateNoticeMsg');
+        if (msg) {
+            msg.style.display = selectVal === 'inquiry' ? 'block' : 'none';
+        }
+    }
+
+    // 4. Firestore 게시물 로딩 (실시간 리스너 바인딩)
+    function loadPosts() {
+        if (boardUnsubscribe) {
+            boardUnsubscribe();
+        }
+
+        boardUnsubscribe = db.collection("homepage_posts")
+            .where("category", "==", currentCommCategory)
+            .orderBy("createdAt", "desc")
+            .onSnapshot((snapshot) => {
+                boardPosts = [];
+                snapshot.forEach(doc => {
+                    boardPosts.push({ id: doc.id, ...doc.data() });
+                });
+                renderPostsList();
+            }, (error) => {
+                console.error("Failed to load posts from Firestore:", error);
+                document.getElementById('posts-list-container').innerHTML = 
+                    `<div style="padding: 30px; text-align: center; color: #a0aec0; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">
+                        글을 불러오는 도중 오류가 발생했습니다. 보안 규칙을 확인해 주세요.
+                     </div>`;
+            });
+    }
+
+    // 5. 글 목록 UI 렌더링
+    function renderPostsList() {
+        const container = document.getElementById('posts-list-container');
+        if (!container) return;
+
+        if (boardPosts.length === 0) {
+            container.innerHTML = 
+                `<div style="padding: 40px; text-align: center; color: #cbd5e0; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
+                    등록된 게시글이 아직 없습니다. 첫 글의 주인공이 되어보세요! ✨
+                 </div>`;
+            return;
+        }
+
+        let html = '';
+        boardPosts.forEach(post => {
+            const dateStr = post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleString('ko-KR', {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            }) : '방금 전';
+
+            const hasAccess = !post.isPrivate 
+                || (childId && childId === post.authorUid) 
+                || adminMode;
+
+            if (!hasAccess) {
+                html += `
+                <div class="post-card" style="opacity: 0.8; cursor: not-allowed;">
+                    <div class="post-header">
+                        <span>🔒 비밀 1:1 문의글</span>
+                        <span>${dateStr}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-family: 'Nanum Gothic', sans-serif; font-size: 14.5px; color: #a0aec0;">비밀글입니다. 작성자와 관리자만 볼 수 있습니다.</span>
+                    </div>
+                </div>`;
+            } else {
+                let replyHtml = '';
+                if (post.replies && post.replies.length > 0) {
+                    post.replies.forEach(rep => {
+                        replyHtml += `
+                        <div class="reply-box">
+                            👾 AI고치 답변: ${rep.replyContent}
+                        </div>`;
+                    });
+                }
+
+                let adminActionHtml = '';
+                if (adminMode) {
+                    adminActionHtml = `
+                    <div style="margin-top: 10px; display: flex; gap: 8px;" onclick="event.stopPropagation()">
+                        <input type="text" id="replyInput-${post.id}" placeholder="관리자 답변을 작성하세요..." style="flex: 1; padding: 8px 12px; border: 1.5px solid #eeddcc; border-radius: 10px; outline: none; font-size: 13px; font-family: 'Nanum Gothic', sans-serif;">
+                        <button onclick="submitAdminReply('${post.id}')" style="padding: 8px 14px; background: #6c5ce7; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">답변등록</button>
+                        <button onclick="deletePost('${post.id}')" style="padding: 8px 12px; background: #e53e3e; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">삭제</button>
+                    </div>`;
+                }
+
+                html += `
+                <div class="post-card" onclick="togglePostDetail('${post.id}')">
+                    <div class="post-header">
+                        <span>✍️ 작가: ${post.authorName} ${post.isPrivate ? '🔒' : ''}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                    <h4 class="post-title">${post.title}</h4>
+                    <div id="post-detail-${post.id}" style="display: none; margin-top: 10px; border-top: 1px dashed #eeddcc; padding-top: 10px;">
+                        <p class="post-content">${post.content}</p>
+                        ${replyHtml}
+                        ${adminActionHtml}
+                    </div>
+                </div>`;
+            }
+        });
+
+        container.innerHTML = html;
+    }
+
+    function togglePostDetail(id) {
+        const detail = document.getElementById(`post-detail-${id}`);
+        if (detail) {
+            detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
+        }
+    }
+
+    function submitPost(e) {
+        e.preventDefault();
+
+        const category = document.getElementById('postCategorySelect').value;
+        const title = document.getElementById('postTitleInput').value.trim();
+        const content = document.getElementById('postContentInput').value.trim();
+        const authorName = document.getElementById('postAuthorInput').value.trim();
+
+        if (!title || !content || !authorName) {
+            alert("모든 빈칸을 채워주세요!");
+            return;
+        }
+
+        const isPrivate = category === 'inquiry';
+
+        const newPost = {
+            category: category,
+            title: title,
+            content: content,
+            authorName: authorName,
+            authorUid: childId || "anonymous",
+            isPrivate: isPrivate,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            replies: []
+        };
+
+        db.collection("homepage_posts").add(newPost)
+            .then(() => {
+                alert("성공적으로 등록되었습니다!");
+                closeWriteModal();
+            })
+            .catch(err => {
+                console.error("Error creating post:", err);
+                alert("등록에 실패했습니다: " + err.message);
+            });
+    }
+
+    function submitAdminReply(postId) {
+        const replyVal = document.getElementById(`replyInput-${postId}`).value.trim();
+        if (!replyVal) {
+            alert("답변 내용을 입력해 주세요.");
+            return;
+        }
+
+        const newReplyObj = {
+            adminUid: childId || "admin",
+            replyContent: replyVal,
+            repliedAt: new Date()
+        };
+
+        db.collection("homepage_posts").doc(postId).update({
+            replies: firebase.firestore.FieldValue.arrayUnion(newReplyObj)
+        }).then(() => {
+            alert("답변이 정상 등록되었습니다!");
+            const inp = document.getElementById(`replyInput-${postId}`);
+            if (inp) inp.value = '';
+        }).catch(err => {
+            alert("답변 등록 실패: " + err.message);
+        });
+    }
+
+    function deletePost(postId) {
+        if (confirm("정말로 이 게시글을 영구 삭제하시겠습니까?")) {
+            db.collection("homepage_posts").doc(postId).delete().then(() => {
+                alert("게시글이 삭제되었습니다.");
+            }).catch(err => {
+                alert("삭제 실패: " + err.message);
+            });
+        }
+    }
+
+    setTimeout(() => {
+        loadPosts();
+    }, 1000);
 </script>
 
 <!-- 이미지 캡처 저장용 모달 창 (인앱 브라우저 롱클릭 저장용) -->
