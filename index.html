@@ -3498,11 +3498,16 @@
 
         boardUnsubscribe = db.collection("homepage_posts")
             .where("category", "==", currentCommCategory)
-            .orderBy("createdAt", "desc")
             .onSnapshot((snapshot) => {
                 boardPosts = [];
                 snapshot.forEach(doc => {
                     boardPosts.push({ id: doc.id, ...doc.data() });
+                });
+                // 💡 파이어스토어 인덱스 미생성으로 인한 쿼리 차단 오류 우회를 위해 클라이언트 단에서 최신순 정렬 처리
+                boardPosts.sort((a, b) => {
+                    const timeA = a.createdAt ? (a.createdAt.seconds || 0) : 0;
+                    const timeB = b.createdAt ? (b.createdAt.seconds || 0) : 0;
+                    return timeB - timeA;
                 });
                 renderPostsList();
             }, (error) => {
