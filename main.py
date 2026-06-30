@@ -2781,7 +2781,7 @@ class PaymentVerifyInput(BaseModel):
 class GooglePlayVerifyInput(BaseModel):
     purchaseToken: str
     productId: str
-    packageName: str = "com.example.aidiarycheomsak.parent"
+    packageName: str = "com.aigochi.parent"
     parentUid: str
     childId: str = None
 

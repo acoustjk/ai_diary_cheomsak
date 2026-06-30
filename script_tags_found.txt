@@ -1,0 +1,18 @@
+Position: 38489
+<script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        
+        <p style="margin: 0; font-size: 13px; color: #718096; font-weight: bold;">📢 [광고 게재 영역] 구글 애드센스</p>
+        <p style="margin: 3px 0 0 0; font-size: 11px; color: #a0aec0;">(수익을 창출하려면 index.html 
+--------------------------
+Position: 42451
+<script>
+    // ----------------------------------------------------
+    // Firebase 설정 및 초기화
+    // ----------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyCEDJy7Mlsbd-FW10XhkqtMvW1VtuAjY9E",
+        authDomain: "toktok-diary.firebaseapp.com",
+      
+--------------------------

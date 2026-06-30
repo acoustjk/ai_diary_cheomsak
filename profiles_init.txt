@@ -1,0 +1,43 @@
+Found 5 occurrences of profiles =.
+torage.getItem('child_id');
+    let childName = sessionStorage.getItem('child_name') || '';
+    let profiles = [];
+    let nameUpdateTimeout = null;
+
+    function syncChildName(newName) {
+        childName = newName;
+        sessionStorage.setItem('c
+--------------------------
+splay = 'none';
+        document.getElementById('btnLogout').style.display = 'inline-flex';
+        profiles = [{ id: childId, name: childName }];
+    }
+                    if (doc.exists) {
+                        const data = doc.data();
+          
+--------------------------
+torage.getItem('child_id');
+    let childName = sessionStorage.getItem('child_name') || '';
+    let profiles = [];
+    let nameUpdateTimeout = null;
+
+    function syncChildName(newName) {
+        childName = newName;
+        sessionStorage.setItem('c
+--------------------------
+splay = 'none';
+        document.getElementById('btnLogout').style.display = 'inline-flex';
+        profiles = [{ id: childId, name: childName }];
+    }
+    const childNameInput = document.getElementById('childNameInput');
+    if (childNameInput) {
+ 
+--------------------------
+oveItem('diary_streak_' + id);
+        sessionStorage.removeItem('diary_last_date_' + id);
+
+        profiles = profiles.filter(p => p.id !== id);
+        sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+
+        if (childId === id)
+--------------------------

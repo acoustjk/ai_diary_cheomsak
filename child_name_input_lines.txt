@@ -1,0 +1,17 @@
+Line 777: '<label for="childNameInput" style="font-weight: bold; font-size: 14px; color: #4a5568; white-space: nowrap;">👦 어린이 이름:</label>'
+Line 778: '<input type="text" id="childNameInput" placeholder="이름을 입력해 주세요" style="flex: 1; padding: 8px 12px; border: 1.5px solid #cbd5e0; border-radius: 10px; font-size: 14px; color: #2d3748; font-weight: bold; outline: none;">'
+Line 1024: "const childNameInput = document.getElementById('childNameInput');"
+Line 1025: 'if (childNameInput) {'
+Line 1026: 'childNameInput.value = childName;'
+Line 1027: "childNameInput.addEventListener('input', (e) => {"
+Line 1114: "const childNameInput = document.getElementById('childNameInput');"
+Line 1115: 'if (childNameInput) childNameInput.value = childName;'
+Line 1144: "const childNameInput = document.getElementById('childNameInput');"
+Line 1145: 'if (childNameInput) {'
+Line 1146: 'childNameInput.value = childName;'
+Line 1473: 'const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";'
+Line 1530: 'const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";'
+Line 1560: 'const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";'
+Line 1922: 'child_name: document.getElementById(\'childNameInput\') ? document.getElementById(\'childNameInput\').value.trim() : "어린이"'
+Line 1977: 'child_name: childNameInput ? childNameInput.value.trim() : "무명 어린이"'
+Line 2126: 'const currentName = childNameInput ? childNameInput.value.trim() : "무명 어린이";'

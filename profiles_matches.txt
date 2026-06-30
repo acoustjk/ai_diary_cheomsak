@@ -1,0 +1,47 @@
+Found 5 occurrences of child_profiles.
+       profile.name = newName || '\uc5b4\ub9b0\uc774'; // "어린이"
+            sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+            renderProfiles();
+        }
+
+        // Debounced Firestore Update
+        clearTimeout(nameUp
+--------------------------
+       profile.name = newName || '\uc5b4\ub9b0\uc774'; // "어린이"
+            sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+            renderProfiles();
+        }
+
+        // Debounced Firestore Update
+        clearTimeout(nameUp
+--------------------------
+ {
+                profile.name = childName || '?�린???��?';
+                sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+                renderProfiles();
+            }
+        });
+    }
+
+    // ?�로???�더�?
+    function renderPr
+--------------------------
+domUUID();
+        profiles.push({ id: newId, name: name.trim() });
+        sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+
+        selectProfile(newId);
+    }
+
+    // ?�로????�� ?�롬?�트
+    function deleteProfilePrompt(id, name) {
+--------------------------
+ate_' + id);
+
+        profiles = profiles.filter(p => p.id !== id);
+        sessionStorage.setItem('child_profiles', JSON.stringify(profiles));
+
+        if (childId === id) {
+            childId = profiles[0].id;
+            sessionStorage.setItem('c
+--------------------------
