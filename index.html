@@ -784,49 +784,56 @@
             🖥️ 컴퓨터(PC)로 접속하시면<br>QR 코드를 통해 일기를 쓸 수 있어요!
         </div>
 
-        <div style="margin-top: 16px;">
+        <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 10px;">
             <button type="button" onclick="openGuideModal()" style="width: 100%; padding: 12px; background: #f0ecfd; color: #6c5ce7; border: 2px solid #dcd3fc; border-radius: 14px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: 'Jua', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='#6c5ce7'; this.style.color='white'; this.style.borderColor='#6c5ce7';" onmouseout="this.style.background='#f0ecfd'; this.style.color='#6c5ce7'; this.style.borderColor='#dcd3fc';">
                 💡 AI고치 소개 및 사용법 안내
             </button>
+            <button type="button" onclick="openCommunityModal()" style="width: 100%; padding: 12px; background: #eef1fe; color: #6c5ce7; border: 2px solid #ccd4fc; border-radius: 14px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-family: 'Jua', sans-serif; display: flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='#6c5ce7'; this.style.color='white'; this.style.borderColor='#6c5ce7';" onmouseout="this.style.background='#eef1fe'; this.style.color='#6c5ce7'; this.style.borderColor='#ccd4fc';">
+                💬 AI고치 소통 광장 (공지/문의/자유/제안)
+            </button>
         </div>
 
-        <!-- 💬 AI고치 소통 광장 & 게시판 섹션 -->
-        <div id="community-section" style="width: 100%; margin-top: 32px; box-sizing: border-box; background: rgba(255, 255, 255, 0.7); border: 1.5px solid var(--border-color); border-radius: 24px; padding: 24px; box-shadow: var(--shadow-soft);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-                <div style="text-align: left;">
-                    <h3 style="margin: 0; font-family: 'Jua', sans-serif; font-size: 24px; color: var(--secondary-color); display: flex; align-items: center; gap: 8px;">
-                        💬 AI고치 소통 광장
-                    </h3>
-                    <p style="margin: 4px 0 0 0; font-size: 13.5px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
-                        공지사항 확인 및 자유로운 의견 소통을 나누는 공간입니다.
-                    </p>
+        <!-- 💬 AI고치 소통 광장 & 게시판 모달 백드롭 -->
+        <div id="communityModal" class="comm-modal-backdrop" style="display: none;" onclick="handleCommunityBackdropClick(event)">
+            <div class="guide-modal-card" style="max-width: 850px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; position: relative;">
+                <span class="guide-modal-close" onclick="closeCommunityModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; font-weight: bold; color: #aaa;" onmouseover="this.style.color='black'" onmouseout="this.style.color='#aaa'">&times;</span>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
+                    <div style="text-align: left;">
+                        <h3 style="margin: 0; font-family: 'Jua', sans-serif; font-size: 24px; color: var(--secondary-color); display: flex; align-items: center; gap: 8px;">
+                            💬 AI고치 소통 광장
+                        </h3>
+                        <p style="margin: 4px 0 0 0; font-size: 13.5px; color: #718096; font-family: 'Nanum Gothic', sans-serif; font-weight: bold;">
+                            공지사항 확인 및 자유로운 의견 소통을 나누는 공간입니다.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button onclick="showWriteModal()" style="padding: 10px 18px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Jua', sans-serif;" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary-color)'">
+                            ✍️ 새 글 쓰기
+                        </button>
+                        <button onclick="promptAdminMode()" id="adminModeBtn" style="padding: 10px 14px; background: #edf2f7; color: #4a5568; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px;" title="관리자 모드 활성화">
+                            ⚙️ 관리자
+                        </button>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <button onclick="showWriteModal()" style="padding: 10px 18px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Jua', sans-serif;" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary-color)'">
-                        ✍️ 새 글 쓰기
-                    </button>
-                    <button onclick="promptAdminMode()" id="adminModeBtn" style="padding: 10px 14px; background: #edf2f7; color: #4a5568; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px;" title="관리자 모드 활성화">
-                        ⚙️ 관리자
-                    </button>
+
+                <!-- 4대 카테고리 탭 헤더 -->
+                <div class="community-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px;">
+                    <button class="comm-tab active" onclick="switchCommTab('notice')" id="tab-notice">📢 공지사항</button>
+                    <button class="comm-tab" onclick="switchCommTab('free')" id="tab-free">💬 자유게시판</button>
+                    <button class="comm-tab" onclick="switchCommTab('suggestion')" id="tab-suggestion">💡 개선의견제안</button>
+                    <button class="comm-tab" onclick="switchCommTab('inquiry')" id="tab-inquiry">🔒 1:1 문의</button>
                 </div>
-            </div>
 
-            <!-- 4대 카테고리 탭 헤더 -->
-            <div class="community-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px;">
-                <button class="comm-tab active" onclick="switchCommTab('notice')" id="tab-notice">📢 공지사항</button>
-                <button class="comm-tab" onclick="switchCommTab('free')" id="tab-free">💬 자유게시판</button>
-                <button class="comm-tab" onclick="switchCommTab('suggestion')" id="tab-suggestion">💡 개선의견제안</button>
-                <button class="comm-tab" onclick="switchCommTab('inquiry')" id="tab-inquiry">🔒 1:1 문의</button>
-            </div>
-
-            <!-- 글 목록 리스트 영역 -->
-            <div id="posts-list-container" style="display: flex; flex-direction: column; gap: 12px; min-height: 120px;">
-                <!-- JS로 채워짐 -->
+                <!-- 글 목록 리스트 영역 -->
+                <div id="posts-list-container" style="display: flex; flex-direction: column; gap: 12px; min-height: 120px;">
+                    <!-- JS로 채워짐 -->
+                </div>
             </div>
         </div>
 
         <!-- 📝 게시판 글쓰기 모달 창 -->
-        <div id="writeModal" class="comm-modal-backdrop" style="display: none;" onclick="handleCommModalClick(event)">
+        <div id="writeModal" class="comm-modal-backdrop" style="display: none; z-index: 22000;" onclick="handleCommModalClick(event)">
             <div class="comm-modal-card">
                 <h3 id="writeModalTitle" style="margin: 0 0 16px 0; color: var(--secondary-color); font-size: 20px; font-family: 'Jua', sans-serif;">✍️ 소통 광장 글쓰기</h3>
                 <form id="writePostForm" onsubmit="submitPost(event)">
@@ -3391,6 +3398,22 @@
     let boardUnsubscribe = null;
     let adminMode = false;
 
+    // 0. 소통광장 메인 모달 제어 함수
+    function openCommunityModal() {
+        document.getElementById('communityModal').style.display = 'flex';
+        loadPosts();
+    }
+    function closeCommunityModal() {
+        document.getElementById('communityModal').style.display = 'none';
+        if (boardUnsubscribe) {
+            boardUnsubscribe();
+            boardUnsubscribe = null;
+        }
+    }
+    function handleCommunityBackdropClick(e) {
+        if (e.target.id === 'communityModal') closeCommunityModal();
+    }
+
     // 1. 관리자 모드 활성화 검증 (암호 입력)
     function promptAdminMode() {
         if (adminMode) {
@@ -3642,10 +3665,6 @@
             });
         }
     }
-
-    setTimeout(() => {
-        loadPosts();
-    }, 1000);
 </script>
 
 <!-- 이미지 캡처 저장용 모달 창 (인앱 브라우저 롱클릭 저장용) -->
