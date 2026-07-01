@@ -19,6 +19,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
+    <!-- 카카오 간편 로그인 JS SDK -->
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js" integrity="sha384-Mx0Hn/tTSYY3eGPzBY5w66g8wyWp301/t0E9OMqyFMQBPh1TAip5RfyUP9TC2yFZ" crossorigin="anonymous"></script>
+
     <!-- Google Fonts & Cute Korean Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1759,6 +1762,20 @@
         });
 
     // ----------------------------------------------------
+    // 카카오 SDK 초기화
+    // ----------------------------------------------------
+    try {
+        if (typeof Kakao !== 'undefined') {
+            if (!Kakao.isInitialized()) {
+                Kakao.init("1928d1861881709d41f93da6a041693c");
+                console.log("Kakao SDK Initialized successfully");
+            }
+        }
+    } catch (e) {
+        console.error("Kakao SDK initialization failed:", e);
+    }
+
+    // ----------------------------------------------------
     // 다중 프로필 관리 시스템 (Option 1)
     // ----------------------------------------------------
     let profiles = [];
@@ -3362,9 +3379,91 @@
     let boardUnsubscribe = null;
     let adminMode = false;
 
+    // 0-1. 카카오 로그인 상태창 갱신 함수
+    function updateKakaoLoginState() {
+        const stateArea = document.getElementById('kakaoAuthStateArea');
+        if (!stateArea) return;
+
+        const isKakaoLoggedIn = childId && childId.startsWith("kakao_");
+        
+        if (isKakaoLoggedIn) {
+            stateArea.innerHTML = `
+                <span style="color: #38a169; font-size: 13px;">💛 ${childName}님 로그인됨</span>
+                <button onclick="logoutKakao()" style="padding: 4px 8px; background: #e53e3e; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: bold;">로그아웃</button>
+            `;
+        } else {
+            stateArea.innerHTML = `
+                <button onclick="loginWithKakao()" style="padding: 6px 12px; background: #fee500; color: #191919; border: none; border-radius: 10px; font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: bold;" title="카카오 1초 간편 로그인">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-5.979 0-10.825 3.847-10.825 8.592 0 3.017 1.967 5.661 4.939 7.185l-1.258 4.607c-.15.549.467.994.947.669l5.441-3.693c.249.02.502.032.756.032 5.979 0 10.825-3.847 10.825-8.592.001-4.745-4.845-8.592-10.825-8.592z"/></svg>
+                    카카오 로그인
+                </button>
+            `;
+        }
+    }
+
+    // 0-2. 카카오 로그인 API 실행
+    function loginWithKakao() {
+        if (typeof Kakao === 'undefined') {
+            alert("카카오 SDK가 준비되지 않았습니다. 인터넷 연결을 확인해 주세요.");
+            return;
+        }
+        
+        Kakao.Auth.login({
+            success: function(authObj) {
+                Kakao.API.request({
+                    url: '/v2/user/me',
+                    success: function(res) {
+                        const kakaoId = "kakao_" + res.id;
+                        const kakaoName = res.properties.nickname || (res.kakao_account && res.kakao_account.profile && res.kakao_account.profile.nickname) || "카카오 작가";
+                        
+                        childId = kakaoId;
+                        childName = kakaoName;
+                        sessionStorage.setItem('child_id', kakaoId);
+                        sessionStorage.setItem('child_name', kakaoName);
+                        
+                        updateKakaoLoginState();
+                        alert(`반갑습니다, ${kakaoName}님! 카카오 계정으로 간편 인증되었습니다.`);
+                        loadPosts();
+                    },
+                    fail: function(error) {
+                        console.error("Kakao profile request error:", error);
+                        alert("프로필 정보 조회에 실패했습니다: " + error.msg);
+                    }
+                });
+            },
+            fail: function(err) {
+                console.error("Kakao login request error:", err);
+                alert("카카오 로그인 실패: " + (err.error_description || "로그인창이 닫혔습니다."));
+            }
+        });
+    }
+
+    // 0-3. 카카오 로그아웃
+    function logoutKakao() {
+        try {
+            if (typeof Kakao !== 'undefined' && Kakao.Auth.getAccessToken()) {
+                Kakao.Auth.logout(function() {
+                    console.log('Kakao token logged out');
+                });
+            }
+        } catch (e) {
+            console.error("Kakao token logout bypass:", e);
+        }
+        
+        sessionStorage.removeItem('child_id');
+        sessionStorage.removeItem('child_name');
+        childId = null;
+        childName = null;
+        
+        updateKakaoLoginState();
+        alert("로그아웃되었습니다. 익명(비회원) 상태로 전환됩니다.");
+        loadPosts();
+    }
+
     // 0. 소통광장 메인 모달 제어 함수
     function openCommunityModal() {
         document.getElementById('communityModal').style.display = 'flex';
+        updateKakaoLoginState();
         loadPosts();
     }
     function closeCommunityModal() {
@@ -3436,9 +3535,12 @@
         const titleEl = document.getElementById('writeModalTitle');
         const authorInput = document.getElementById('postAuthorInput');
         const passwordInput = document.getElementById('postPasswordInput');
+        const passwordGroup = document.getElementById('writePostPasswordGroup');
         const titleInput = document.getElementById('postTitleInput');
         const contentInput = document.getElementById('postContentInput');
         const select = document.getElementById('postCategorySelect');
+
+        const isKakaoUser = childId && childId.startsWith("kakao_");
 
         if (editingPostId) {
             titleEl.innerText = "✍️ 소통 광장 글 수정하기";
@@ -3448,8 +3550,17 @@
                 titleInput.value = post.title || '';
                 contentInput.value = post.content || '';
                 select.value = post.category || 'free';
-                passwordInput.placeholder = "새로운 비밀번호 (미입력 시 기존 비밀번호 유지)";
-                passwordInput.required = false; 
+                
+                if (isKakaoUser) {
+                    authorInput.disabled = true;
+                    passwordGroup.style.display = 'none';
+                    passwordInput.required = false;
+                } else {
+                    authorInput.disabled = false;
+                    passwordGroup.style.display = 'block';
+                    passwordInput.placeholder = "새로운 비밀번호 (미입력 시 기존 비밀번호 유지)";
+                    passwordInput.required = false; 
+                }
                 passwordInput.value = '';
             }
         } else {
@@ -3457,9 +3568,18 @@
             authorInput.value = childName || '';
             titleInput.value = '';
             contentInput.value = '';
-            passwordInput.placeholder = "수정/삭제 시 사용할 비밀번호 4자리";
-            passwordInput.required = true;
             passwordInput.value = '';
+            
+            if (isKakaoUser) {
+                authorInput.disabled = true;
+                passwordGroup.style.display = 'none';
+                passwordInput.required = false;
+            } else {
+                authorInput.disabled = false;
+                passwordGroup.style.display = 'block';
+                passwordInput.placeholder = "수정/삭제 시 사용할 비밀번호 4자리";
+                passwordInput.required = true;
+            }
             
             if (select) {
                 select.value = currentCommCategory === 'notice' && !adminMode ? 'free' : currentCommCategory;
@@ -3470,6 +3590,8 @@
     function closeWriteModal() {
         document.getElementById('writeModal').style.display = 'none';
         document.getElementById('writePostForm').reset();
+        const authorInput = document.getElementById('postAuthorInput');
+        if (authorInput) authorInput.disabled = false;
     }
     function handleCommModalClick(e) {
         if (e.target.id === 'writeModal') closeWriteModal();
@@ -3635,12 +3757,14 @@
         const authorName = document.getElementById('postAuthorInput').value.trim();
         const passwordVal = document.getElementById('postPasswordInput').value.trim();
 
+        const isKakaoUser = childId && childId.startsWith("kakao_");
+
         if (!title || !content || !authorName) {
             alert("모든 빈칸을 채워주세요!");
             return;
         }
 
-        if (!editingPostId && !passwordVal) {
+        if (!isKakaoUser && !editingPostId && !passwordVal) {
             alert("비밀번호 4자리를 입력해 주세요.");
             return;
         }
@@ -3655,7 +3779,7 @@
                 authorName: authorName,
                 isPrivate: isPrivate
             };
-            if (passwordVal) {
+            if (!isKakaoUser && passwordVal) {
                 updateData.password = passwordVal;
             }
 
@@ -3674,7 +3798,7 @@
                 content: content,
                 authorName: authorName,
                 authorUid: childId || "anonymous",
-                password: passwordVal,
+                password: isKakaoUser ? "" : passwordVal,
                 isPrivate: isPrivate,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 replies: []
@@ -3767,7 +3891,11 @@
                     공지사항 확인 및 자유로운 의견 소통을 나누는 공간입니다.
                 </p>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                <!-- 💬 카카오 로그인 상태 표시 영역 -->
+                <div id="kakaoAuthStateArea" style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; color: #4a5568; margin-right: 4px;">
+                    <!-- JS에서 버튼 또는 로그인 정보 주입 -->
+                </div>
                 <button onclick="showWriteModal()" style="padding: 10px 18px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Jua', sans-serif;" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary-color)'">
                     ✍️ 새 글 쓰기
                 </button>
@@ -3810,7 +3938,7 @@
                 <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">글쓴이 닉네임</label>
                 <input type="text" id="postAuthorInput" placeholder="닉네임을 적어주세요" required style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; box-sizing: border-box; font-family: 'Nanum Gothic', sans-serif;">
             </div>
-            <div style="margin-bottom: 12px;">
+            <div style="margin-bottom: 12px;" id="writePostPasswordGroup">
                 <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">비밀번호 (4자리)</label>
                 <input type="password" id="postPasswordInput" placeholder="수정/삭제 시 사용할 비밀번호 4자리" maxlength="4" required style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; box-sizing: border-box; font-family: 'Nanum Gothic', sans-serif;">
             </div>
