@@ -3379,6 +3379,25 @@
     let boardUnsubscribe = null;
     let adminMode = false;
 
+    // 전역 이벤트 위임을 통한 카카오 로그인/로그아웃 클릭 바인딩 (인라인 스코프 에러 원천 차단)
+    document.addEventListener('click', function(e) {
+        const loginBtn = e.target.closest('#kakaoLoginBtn');
+        if (loginBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            loginWithKakao();
+            return;
+        }
+
+        const logoutBtn = e.target.closest('#kakaoLogoutBtn');
+        if (logoutBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            logoutKakao();
+            return;
+        }
+    });
+
     // 0-1. 카카오 로그인 상태창 갱신 함수
     function updateKakaoLoginState() {
         const stateArea = document.getElementById('kakaoAuthStateArea');
@@ -3389,11 +3408,11 @@
         if (isKakaoLoggedIn) {
             stateArea.innerHTML = `
                 <span style="color: #38a169; font-size: 13px;">💛 ${childName}님 로그인됨</span>
-                <button onclick="logoutKakao()" style="padding: 4px 8px; background: #e53e3e; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: bold;">로그아웃</button>
+                <button id="kakaoLogoutBtn" style="padding: 4px 8px; background: #e53e3e; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: bold;">로그아웃</button>
             `;
         } else {
             stateArea.innerHTML = `
-                <button onclick="loginWithKakao()" style="padding: 6px 12px; background: #fee500; color: #191919; border: none; border-radius: 10px; font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: bold;" title="카카오 1초 간편 로그인">
+                <button id="kakaoLoginBtn" style="padding: 6px 12px; background: #fee500; color: #191919; border: none; border-radius: 10px; font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: bold;" title="카카오 1초 간편 로그인">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-5.979 0-10.825 3.847-10.825 8.592 0 3.017 1.967 5.661 4.939 7.185l-1.258 4.607c-.15.549.467.994.947.669l5.441-3.693c.249.02.502.032.756.032 5.979 0 10.825-3.847 10.825-8.592.001-4.745-4.845-8.592-10.825-8.592z"/></svg>
                     카카오 로그인
                 </button>
