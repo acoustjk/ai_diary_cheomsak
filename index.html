@@ -795,7 +795,7 @@
 
         <!-- 💬 AI고치 소통 광장 & 게시판 모달 백드롭 -->
         <div id="communityModal" class="comm-modal-backdrop" style="display: none;" onclick="handleCommunityBackdropClick(event)">
-            <div class="guide-modal-card" style="max-width: 850px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; position: relative;">
+            <div class="guide-modal-card" style="max-width: 1200px; width: 95%; padding: 32px; max-height: 90vh; min-height: 80vh; overflow-y: auto; position: relative;">
                 <span class="guide-modal-close" onclick="closeCommunityModal()" style="position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; font-weight: bold; color: #aaa;" onmouseover="this.style.color='black'" onmouseout="this.style.color='#aaa'">&times;</span>
                 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
@@ -817,11 +817,11 @@
                     </div>
                 </div>
 
-                <!-- 4대 카테고리 탭 헤더 -->
+                <!-- 4대 카테고리 탭 헤더 (전통적인 밑줄형 가로형 칩) -->
                 <div class="community-tabs">
                     <button class="comm-tab active" onclick="switchCommTab('notice')" id="tab-notice">📢 공지사항</button>
                     <button class="comm-tab" onclick="switchCommTab('free')" id="tab-free">💬 자유게시판</button>
-                    <button class="comm-tab" onclick="switchCommTab('suggestion')" id="tab-suggestion">💡 개선의견제안</button>
+                    <button class="comm-tab" onclick="switchCommTab('suggestion')" id="tab-suggestion">💡 개선의견</button>
                     <button class="comm-tab" onclick="switchCommTab('inquiry')" id="tab-inquiry">🔒 1:1 문의</button>
                 </div>
 
@@ -1652,45 +1652,43 @@
         .app-footer { display: none; }
     }
     
-    /* --- AI고치 소통 광장 스타일시트 --- */
+    /* --- AI고치 소통 광장 스타일시트 (전통 게시판 스타일) --- */
     .community-tabs {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr); /* 모바일: 2개씩 2줄 */
-        gap: 10px;
+        display: flex;
+        border-bottom: 2px solid #eeddcc;
         margin-bottom: 20px;
-    }
-    @media (min-width: 600px) {
-        .community-tabs {
-            grid-template-columns: repeat(4, 1fr); /* PC: 4개 일렬 */
-        }
+        width: 100%;
     }
     .comm-tab {
-        border: 1.5px solid #eeddcc;
-        background: #fff;
-        border-radius: 16px;
-        color: #4a5568;
+        flex: 1;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 0;
+        color: #718096;
         font-family: 'Nanum Gothic', sans-serif;
         font-weight: bold;
         cursor: pointer;
-        padding: 12px 14px;
-        transition: all 0.2s;
-        outline: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
+        padding: 12px 6px;
+        text-align: center;
         font-size: 14px;
-        white-space: nowrap; /* 글자 줄바꿈 절대 방지 */
+        transition: all 0.2s;
+        white-space: nowrap;
+        outline: none;
     }
     .comm-tab:hover {
-        background: #f7f5ff;
-        border-color: #dcd3fc;
+        color: #6c5ce7;
     }
     .comm-tab.active {
-        background: #6c5ce7;
-        border-color: #6c5ce7;
-        color: #fff;
-        box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
+        color: #6c5ce7;
+        border-bottom: 3px solid #6c5ce7;
+        background: none;
+    }
+    @media (max-width: 480px) {
+        .comm-tab {
+            font-size: 12px;
+            padding: 10px 2px;
+        }
     }
     .post-card {
         background: #fff;
