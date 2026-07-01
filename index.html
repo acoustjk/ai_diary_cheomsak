@@ -818,7 +818,7 @@
                 </div>
 
                 <!-- 4대 카테고리 탭 헤더 -->
-                <div class="community-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px;">
+                <div class="community-tabs">
                     <button class="comm-tab active" onclick="switchCommTab('notice')" id="tab-notice">📢 공지사항</button>
                     <button class="comm-tab" onclick="switchCommTab('free')" id="tab-free">💬 자유게시판</button>
                     <button class="comm-tab" onclick="switchCommTab('suggestion')" id="tab-suggestion">💡 개선의견제안</button>
@@ -1653,17 +1653,34 @@
     }
     
     /* --- AI고치 소통 광장 스타일시트 --- */
+    .community-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* 모바일: 2개씩 2줄 */
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    @media (min-width: 600px) {
+        .community-tabs {
+            grid-template-columns: repeat(4, 1fr); /* PC: 4개 일렬 */
+        }
+    }
     .comm-tab {
         border: 1.5px solid #eeddcc;
         background: #fff;
-        border-radius: 20px;
+        border-radius: 16px;
         color: #4a5568;
         font-family: 'Nanum Gothic', sans-serif;
         font-weight: bold;
         cursor: pointer;
-        padding: 8px 18px;
+        padding: 12px 14px;
         transition: all 0.2s;
         outline: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 14px;
+        white-space: nowrap; /* 글자 줄바꿈 절대 방지 */
     }
     .comm-tab:hover {
         background: #f7f5ff;
