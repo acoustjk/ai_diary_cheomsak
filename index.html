@@ -20,7 +20,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 
     <!-- 카카오 간편 로그인 JS SDK -->
-    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js"></script>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js" onload="initKakaoSDK()"></script>
 
     <!-- Google Fonts & Cute Korean Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1764,16 +1764,20 @@
     // ----------------------------------------------------
     // 카카오 SDK 초기화
     // ----------------------------------------------------
-    try {
-        if (typeof Kakao !== 'undefined') {
-            if (!Kakao.isInitialized()) {
-                Kakao.init("b00523e880c628e7aab23040e4b5fff5");
-                console.log("Kakao SDK Initialized successfully");
+    function initKakaoSDK() {
+        try {
+            if (typeof Kakao !== 'undefined') {
+                if (!Kakao.isInitialized()) {
+                    Kakao.init("b00523e880c628e7aab23040e4b5fff5");
+                    console.log("Kakao SDK Initialized successfully via initKakaoSDK");
+                }
             }
+        } catch (e) {
+            console.error("Kakao SDK initialization failed:", e);
         }
-    } catch (e) {
-        console.error("Kakao SDK initialization failed:", e);
     }
+    window.initKakaoSDK = initKakaoSDK;
+    initKakaoSDK();
 
     // ----------------------------------------------------
     // 다중 프로필 관리 시스템 (Option 1)
@@ -3425,6 +3429,16 @@
         if (typeof Kakao === 'undefined') {
             alert("카카오 SDK 파일 로드에 실패했습니다. (typeof Kakao === 'undefined')\n네트워크 상태를 확인해 주세요.");
             return;
+        }
+        
+        if (!Kakao.Auth) {
+            try {
+                initKakaoSDK();
+            } catch(e) {}
+            if (!Kakao.Auth) {
+                alert("카카오 인증 모듈(Kakao.Auth)이 아직 완벽하게 로드되지 않았습니다.\n1~2초 후 버튼을 다시 클릭해 주세요!");
+                return;
+            }
         }
         
         try {
