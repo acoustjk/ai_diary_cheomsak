@@ -3426,18 +3426,46 @@
         loadPosts();
     }
 
+    let editingPostId = null;
+
     // 3. 글쓰기 모달 제어
-    function showWriteModal() {
+    function showWriteModal(postId = null) {
+        editingPostId = postId;
         document.getElementById('writeModal').style.display = 'flex';
+        
+        const titleEl = document.getElementById('writeModalTitle');
         const authorInput = document.getElementById('postAuthorInput');
-        if (authorInput) {
-            authorInput.value = childName || '';
-        }
+        const passwordInput = document.getElementById('postPasswordInput');
+        const titleInput = document.getElementById('postTitleInput');
+        const contentInput = document.getElementById('postContentInput');
         const select = document.getElementById('postCategorySelect');
-        if (select) {
-            select.value = currentCommCategory === 'notice' && !adminMode ? 'free' : currentCommCategory;
-            handleCategorySelectChange();
+
+        if (editingPostId) {
+            titleEl.innerText = "✍️ 소통 광장 글 수정하기";
+            const post = boardPosts.find(p => p.id === editingPostId);
+            if (post) {
+                authorInput.value = post.authorName || '';
+                titleInput.value = post.title || '';
+                contentInput.value = post.content || '';
+                select.value = post.category || 'free';
+                passwordInput.placeholder = "새로운 비밀번호 (미입력 시 기존 비밀번호 유지)";
+                passwordInput.required = false; 
+                passwordInput.value = '';
+            }
+        } else {
+            titleEl.innerText = "✍️ 소통 광장 글쓰기";
+            authorInput.value = childName || '';
+            titleInput.value = '';
+            contentInput.value = '';
+            passwordInput.placeholder = "수정/삭제 시 사용할 비밀번호 4자리";
+            passwordInput.required = true;
+            passwordInput.value = '';
+            
+            if (select) {
+                select.value = currentCommCategory === 'notice' && !adminMode ? 'free' : currentCommCategory;
+            }
         }
+        handleCategorySelectChange();
     }
     function closeWriteModal() {
         document.getElementById('writeModal').style.display = 'none';
@@ -3521,22 +3549,30 @@
                 let replyHtml = '';
                 if (post.replies && post.replies.length > 0) {
                     post.replies.forEach(rep => {
+                        const isAdminReply = rep.adminUid === 'admin' || rep.adminUid === 'admin_id_here';
                         replyHtml += `
-                        <div class="reply-box">
-                            👾 AI고치 답변: ${rep.replyContent}
+                        <div class="reply-box" style="${isAdminReply ? 'background: #f7f6fc; border-left: 4px solid #6c5ce7; color: #5b4bc4;' : 'background: #f0f7f4; border-left: 4px solid #48bb78; color: #2f855a;'}">
+                            ${isAdminReply ? '👾 AI고치 답변' : '✍️ 답글'}: ${rep.replyContent}
                         </div>`;
                     });
                 }
 
-                let adminActionHtml = '';
-                if (adminMode) {
-                    adminActionHtml = `
-                    <div style="margin-top: 10px; display: flex; gap: 8px;" onclick="event.stopPropagation()">
-                        <input type="text" id="replyInput-${post.id}" placeholder="관리자 답변을 작성하세요..." style="flex: 1; padding: 8px 12px; border: 1.5px solid #eeddcc; border-radius: 10px; outline: none; font-size: 13px; font-family: 'Nanum Gothic', sans-serif;">
-                        <button onclick="submitAdminReply('${post.id}')" style="padding: 8px 14px; background: #6c5ce7; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">답변등록</button>
-                        <button onclick="deletePost('${post.id}')" style="padding: 8px 12px; background: #e53e3e; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">삭제</button>
+                // 1. 답글 작성창 (공지사항이 아닌 모든 카테고리에 항상 오픈)
+                let replyActionHtml = '';
+                if (post.category !== 'notice') {
+                    replyActionHtml = `
+                    <div style="margin-top: 12px; display: flex; gap: 8px;" onclick="event.stopPropagation()">
+                        <input type="text" id="replyInput-${post.id}" placeholder="답글을 남겨주세요..." style="flex: 1; padding: 8px 12px; border: 1.5px solid #eeddcc; border-radius: 10px; outline: none; font-size: 13px; font-family: 'Nanum Gothic', sans-serif;">
+                        <button onclick="submitUserReply('${post.id}')" style="padding: 8px 14px; background: #6c5ce7; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 13px;">등록</button>
                     </div>`;
                 }
+
+                // 2. 글 수정/삭제 버튼 제어
+                let postActionsHtml = `
+                <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: flex-end;" onclick="event.stopPropagation()">
+                    <button onclick="editPost('${post.id}')" style="padding: 6px 12px; background: #edf2f7; color: #4a5568; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">수정</button>
+                    <button onclick="deletePost('${post.id}')" style="padding: 6px 12px; background: #fff5f5; color: #e53e3e; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px;">삭제</button>
+                </div>`;
 
                 html += `
                 <div class="post-card" onclick="togglePostDetail('${post.id}')">
@@ -3548,7 +3584,8 @@
                     <div id="post-detail-${post.id}" style="display: none; margin-top: 10px; border-top: 1px dashed #eeddcc; padding-top: 10px;">
                         <p class="post-content">${post.content}</p>
                         ${replyHtml}
-                        ${adminActionHtml}
+                        ${replyActionHtml}
+                        ${postActionsHtml}
                     </div>
                 </div>`;
             }
@@ -3564,6 +3601,31 @@
         }
     }
 
+    // 일반 사용자 및 관리자 답글 등록
+    function submitUserReply(postId) {
+        const replyVal = document.getElementById(`replyInput-${postId}`).value.trim();
+        if (!replyVal) {
+            alert("답글 내용을 입력해 주세요.");
+            return;
+        }
+
+        const replyObj = {
+            adminUid: adminMode ? 'admin' : (childId || 'anonymous'),
+            replyContent: replyVal,
+            repliedAt: new Date()
+        };
+
+        db.collection("homepage_posts").doc(postId).update({
+            replies: firebase.firestore.FieldValue.arrayUnion(replyObj)
+        }).then(() => {
+            alert("답글이 등록되었습니다!");
+            const inp = document.getElementById(`replyInput-${postId}`);
+            if (inp) inp.value = '';
+        }).catch(err => {
+            alert("답글 등록 실패: " + err.message);
+        });
+    }
+
     function submitPost(e) {
         e.preventDefault();
 
@@ -3571,67 +3633,107 @@
         const title = document.getElementById('postTitleInput').value.trim();
         const content = document.getElementById('postContentInput').value.trim();
         const authorName = document.getElementById('postAuthorInput').value.trim();
+        const passwordVal = document.getElementById('postPasswordInput').value.trim();
 
         if (!title || !content || !authorName) {
             alert("모든 빈칸을 채워주세요!");
             return;
         }
 
-        const isPrivate = category === 'inquiry';
-
-        const newPost = {
-            category: category,
-            title: title,
-            content: content,
-            authorName: authorName,
-            authorUid: childId || "anonymous",
-            isPrivate: isPrivate,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            replies: []
-        };
-
-        db.collection("homepage_posts").add(newPost)
-            .then(() => {
-                alert("성공적으로 등록되었습니다!");
-                closeWriteModal();
-            })
-            .catch(err => {
-                console.error("Error creating post:", err);
-                alert("등록에 실패했습니다: " + err.message);
-            });
-    }
-
-    function submitAdminReply(postId) {
-        const replyVal = document.getElementById(`replyInput-${postId}`).value.trim();
-        if (!replyVal) {
-            alert("답변 내용을 입력해 주세요.");
+        if (!editingPostId && !passwordVal) {
+            alert("비밀번호 4자리를 입력해 주세요.");
             return;
         }
 
-        const newReplyObj = {
-            adminUid: childId || "admin",
-            replyContent: replyVal,
-            repliedAt: new Date()
-        };
+        const isPrivate = category === 'inquiry';
 
-        db.collection("homepage_posts").doc(postId).update({
-            replies: firebase.firestore.FieldValue.arrayUnion(newReplyObj)
-        }).then(() => {
-            alert("답변이 정상 등록되었습니다!");
-            const inp = document.getElementById(`replyInput-${postId}`);
-            if (inp) inp.value = '';
-        }).catch(err => {
-            alert("답변 등록 실패: " + err.message);
-        });
+        if (editingPostId) {
+            const updateData = {
+                category: category,
+                title: title,
+                content: content,
+                authorName: authorName,
+                isPrivate: isPrivate
+            };
+            if (passwordVal) {
+                updateData.password = passwordVal;
+            }
+
+            db.collection("homepage_posts").doc(editingPostId).update(updateData)
+                .then(() => {
+                    alert("수정이 완료되었습니다!");
+                    closeWriteModal();
+                })
+                .catch(err => {
+                    alert("수정 실패: " + err.message);
+                });
+        } else {
+            const newPost = {
+                category: category,
+                title: title,
+                content: content,
+                authorName: authorName,
+                authorUid: childId || "anonymous",
+                password: passwordVal,
+                isPrivate: isPrivate,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                replies: []
+            };
+
+            db.collection("homepage_posts").add(newPost)
+                .then(() => {
+                    alert("성공적으로 등록되었습니다!");
+                    closeWriteModal();
+                })
+                .catch(err => {
+                    alert("등록에 실패했습니다: " + err.message);
+                });
+        }
     }
 
     function deletePost(postId) {
-        if (confirm("정말로 이 게시글을 영구 삭제하시겠습니까?")) {
-            db.collection("homepage_posts").doc(postId).delete().then(() => {
-                alert("게시글이 삭제되었습니다.");
-            }).catch(err => {
-                alert("삭제 실패: " + err.message);
-            });
+        const post = boardPosts.find(p => p.id === postId);
+        if (!post) return;
+
+        const isMyPost = childId && childId === post.authorUid && post.authorUid !== "anonymous";
+        
+        if (adminMode || isMyPost) {
+            if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
+                db.collection("homepage_posts").doc(postId).delete().then(() => {
+                    alert("게시글이 삭제되었습니다.");
+                }).catch(err => alert("삭제 실패: " + err.message));
+            }
+        } else {
+            const pw = prompt("글 작성 시 입력한 비밀번호 4자리를 입력하세요:");
+            if (pw === null) return;
+            
+            if (post.password && pw === post.password) {
+                db.collection("homepage_posts").doc(postId).delete().then(() => {
+                    alert("게시글이 삭제되었습니다.");
+                }).catch(err => alert("삭제 실패: " + err.message));
+            } else {
+                alert("비밀번호가 일치하지 않습니다!");
+            }
+        }
+    }
+
+    function editPost(postId) {
+        const post = boardPosts.find(p => p.id === postId);
+        if (!post) return;
+
+        const isMyPost = childId && childId === post.authorUid && post.authorUid !== "anonymous";
+
+        if (adminMode || isMyPost) {
+            showWriteModal(postId);
+        } else {
+            const pw = prompt("글 작성 시 입력한 비밀번호 4자리를 입력하세요:");
+            if (pw === null) return;
+            
+            if (post.password && pw === post.password) {
+                showWriteModal(postId);
+            } else {
+                alert("비밀번호가 일치하지 않습니다!");
+            }
         }
     }
 </script>
@@ -3707,6 +3809,10 @@
             <div style="margin-bottom: 12px;">
                 <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">글쓴이 닉네임</label>
                 <input type="text" id="postAuthorInput" placeholder="닉네임을 적어주세요" required style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; box-sizing: border-box; font-family: 'Nanum Gothic', sans-serif;">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">비밀번호 (4자리)</label>
+                <input type="password" id="postPasswordInput" placeholder="수정/삭제 시 사용할 비밀번호 4자리" maxlength="4" required style="width: 100%; padding: 10px; border: 1.5px solid #eeddcc; border-radius: 12px; outline: none; box-sizing: border-box; font-family: 'Nanum Gothic', sans-serif;">
             </div>
             <div style="margin-bottom: 12px;">
                 <label style="display: block; margin-bottom: 6px; font-size: 13px; color: #4a5568; font-weight: bold; font-family: 'Nanum Gothic', sans-serif;">제목</label>
