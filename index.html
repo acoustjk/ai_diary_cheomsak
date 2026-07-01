@@ -3411,13 +3411,13 @@
         
         if (isKakaoLoggedIn) {
             stateArea.innerHTML = `
-                <span style="color: #38a169; font-size: 13px;">💛 ${childName}님 로그인됨</span>
-                <button id="kakaoLogoutBtn" style="padding: 4px 8px; background: #e53e3e; color: white; border: none; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: bold;">로그아웃</button>
+                <span style="color: #38a169; font-size: 13.5px; font-family: 'Jua', sans-serif; margin-right: 4px;">💛 ${childName}님</span>
+                <button id="kakaoLogoutBtn" style="height: 40px; padding: 0 16px; background: #fff5f5; color: #e53e3e; border: 1.5px solid #fed7d7; border-radius: 12px; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: bold; font-family: 'Jua', sans-serif; transition: all 0.2s;" onmouseover="this.style.background='#e53e3e'; this.style.color='white'; this.style.borderColor='#e53e3e';" onmouseout="this.style.background='#fff5f5'; this.style.color='#e53e3e'; this.style.borderColor='#fed7d7';">로그아웃</button>
             `;
         } else {
             stateArea.innerHTML = `
-                <button id="kakaoLoginBtn" style="padding: 6px 12px; background: #fee500; color: #191919; border: none; border-radius: 10px; font-size: 12.5px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: bold;" title="카카오 1초 간편 로그인">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-5.979 0-10.825 3.847-10.825 8.592 0 3.017 1.967 5.661 4.939 7.185l-1.258 4.607c-.15.549.467.994.947.669l5.441-3.693c.249.02.502.032.756.032 5.979 0 10.825-3.847 10.825-8.592.001-4.745-4.845-8.592-10.825-8.592z"/></svg>
+                <button id="kakaoLoginBtn" style="height: 40px; padding: 0 16px; background: #fee500; color: #191919; border: none; border-radius: 12px; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: bold; font-family: 'Jua', sans-serif; transition: all 0.2s;" title="카카오 1초 간편 로그인" onmouseover="this.style.background='#fdd835'" onmouseout="this.style.background='#fee500'">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-5.979 0-10.825 3.847-10.825 8.592 0 3.017 1.967 5.661 4.939 7.185l-1.258 4.607c-.15.549.467.994.947.669l5.441-3.693c.249.02.502.032.756.032 5.979 0 10.825-3.847 10.825-8.592.001-4.745-4.845-8.592-10.825-8.592z"/></svg>
                     카카오 로그인
                 </button>
             `;
@@ -3941,10 +3941,10 @@
                 <div id="kakaoAuthStateArea" style="display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-family: 'Nanum Gothic', sans-serif; font-weight: bold; color: #4a5568; margin-right: 4px;">
                     <!-- JS에서 버튼 또는 로그인 정보 주입 -->
                 </div>
-                <button onclick="showWriteModal()" style="padding: 10px 18px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Jua', sans-serif;" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary-color)'">
+                <button onclick="showWriteModal()" style="height: 40px; padding: 0 16px; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Jua', sans-serif; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary-color)'">
                     ✍️ 새 글 쓰기
                 </button>
-                <button onclick="promptAdminMode()" id="adminModeBtn" style="padding: 10px 14px; background: #edf2f7; color: #4a5568; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 14px;" title="관리자 모드 활성화">
+                <button onclick="promptAdminMode()" id="adminModeBtn" style="height: 40px; padding: 0 16px; background: #edf2f7; color: #4a5568; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; font-family: 'Jua', sans-serif; font-size: 13.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px;" title="관리자 모드 활성화">
                     ⚙️ 관리자
                 </button>
             </div>
